@@ -1,0 +1,1039 @@
+import React, { useState, useEffect } from 'react';
+import { useApp } from '../../context/AppContext';
+import { 
+  Invoice, 
+  InvoiceItem, 
+  InvoiceType, 
+  GstTaxRate, 
+  PaymentMethod 
+} from '../../types';
+import { INDIAN_STATES, COMMON_HSN_CODES, STANDARD_UNITS } from '../../utils/constants';
+import { 
+  calculateItemGst, 
+  recalculateInvoiceTotals, 
+  suggestRateForHsn,
+  getStateInfoByCode 
+} from '../../utils/gstCalculations';
+import { formatCurrency, validateGstin, normalizeSignatureUrl } from '../../utils/formatters';
+import { 
+  Plus, 
+  Trash2, 
+  Save, 
+  ArrowLeft, 
+  CheckCircle2, 
+  AlertCircle, 
+  Zap,
+  HelpCircle,
+  FileCheck,
+  FileSignature,
+  Printer
+} from 'lucide-react';
+
+interface InvoiceEditorProps {
+  onClose: () => void;
+  initialData?: Partial<Invoice>;
+}
+
+export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialData }) => {
+  const { business, parties, products, createInvoice, setSelectedInvoiceIdForPrint, showToast } = useApp();
+
+  const [invoiceType, setInvoiceType] = useState<InvoiceType>(initialData?.invoiceType || 'TAX_INVOICE');
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(
+    initialData?.invoiceNumber || `${business.invoicePrefix}${String(business.nextInvoiceNumber).padStart(3, '0')}`
+  );
+  const [invoiceDate, setInvoiceDate] = useState<string>(
+    initialData?.invoiceDate || new Date().toISOString().split('T')[0]
+  );
+  const [dueDate, setDueDate] = useState<string>(
+    initialData?.dueDate || new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString().split('T')[0]
+  );
+
+  // Customer State
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialData?.customerId || '');
+  const [customerName, setCustomerName] = useState<string>(initialData?.customerName || '');
+  const [customerGstin, setCustomerGstin] = useState<string>(initialData?.customerGstin || '');
+  const [customerAddress, setCustomerAddress] = useState<string>(initialData?.customerAddress || '');
+  const [customerCity, setCustomerCity] = useState<string>(initialData?.customerCity || '');
+  const [customerState, setCustomerState] = useState<string>(initialData?.customerState || business.state || 'Delhi');
+  const [customerStateCode, setCustomerStateCode] = useState<string>(initialData?.customerStateCode || business.stateCode || '07');
+  const [customerPhone, setCustomerPhone] = useState<string>(initialData?.customerPhone || '');
+  const [customerEmail, setCustomerEmail] = useState<string>(initialData?.customerEmail || '');
+
+  // Place of Supply & Tax Rules
+  const [placeOfSupplyState, setPlaceOfSupplyState] = useState<string>(
+    initialData?.placeOfSupplyState || customerState || business.state
+  );
+  const [placeOfSupplyStateCode, setPlaceOfSupplyStateCode] = useState<string>(
+    initialData?.placeOfSupplyStateCode || customerStateCode || business.stateCode
+  );
+  const [isReverseCharge, setIsReverseCharge] = useState<boolean>(initialData?.isReverseCharge || false);
+
+  // Inter-State vs Intra-State determination
+  const isInterState = (placeOfSupplyStateCode || customerStateCode || business.stateCode) !== business.stateCode;
+
+  // Shipping details
+  const [hasDifferentShipping, setHasDifferentShipping] = useState<boolean>(
+    initialData?.hasDifferentShippingAddress || false
+  );
+  const [shippingName, setShippingName] = useState(initialData?.shippingName || '');
+  const [shippingAddress, setShippingAddress] = useState(initialData?.shippingAddress || '');
+  const [shippingState, setShippingState] = useState(initialData?.shippingState || '');
+  const [shippingStateCode, setShippingStateCode] = useState(initialData?.shippingStateCode || '');
+
+  // Items List
+  const [items, setItems] = useState<InvoiceItem[]>(() => {
+    if (initialData?.items && initialData.items.length > 0) {
+      return initialData.items;
+    }
+    const initialIsInter = (initialData?.placeOfSupplyStateCode || business.stateCode) !== business.stateCode;
+    return [
+      {
+        id: 'item-' + Date.now(),
+        name: 'Dell UltraSharp 27" 4K Monitor',
+        hsnCode: '8528',
+        quantity: 1,
+        unit: 'PCS',
+        rate: 51999,
+        discountPercent: 0,
+        discountAmount: 0,
+        taxableAmount: 51999,
+        gstRate: 18,
+        cgstRate: initialIsInter ? 0 : 9,
+        cgstAmount: initialIsInter ? 0 : 4679.91,
+        sgstRate: initialIsInter ? 0 : 9,
+        sgstAmount: initialIsInter ? 0 : 4679.91,
+        igstRate: initialIsInter ? 18 : 0,
+        igstAmount: initialIsInter ? 9359.82 : 0,
+        totalAmount: 61358.82,
+        batchNumber: 'DL-2026-A1'
+      }
+    ];
+  });
+
+  // Payment Status
+  const [paymentStatus, setPaymentStatus] = useState<'PAID' | 'UNPAID' | 'PARTIALLY_PAID'>('UNPAID');
+  const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  const [notes, setNotes] = useState<string>(business.defaultNotes);
+  const [terms, setTerms] = useState<string>(business.defaultTerms);
+
+  // Auto-fill customer details when selected from dropdown
+  const handleCustomerSelect = (partyId: string) => {
+    setSelectedCustomerId(partyId);
+    const party = parties.find(p => p.id === partyId);
+    if (party) {
+      setCustomerName(party.name);
+      setCustomerGstin(party.gstin || '');
+      setCustomerAddress(party.billingAddress || '');
+      setCustomerCity(party.city || '');
+      
+      const pStateCode = party.stateCode || '07';
+      const pStateName = party.state || getStateInfoByCode(pStateCode).name;
+      
+      setCustomerState(pStateName);
+      setCustomerStateCode(pStateCode);
+      setPlaceOfSupplyState(pStateName);
+      setPlaceOfSupplyStateCode(pStateCode);
+      setCustomerPhone(party.phone || '');
+      setCustomerEmail(party.email || '');
+
+      const isInter = pStateCode !== business.stateCode;
+      showToast(
+        'info', 
+        isInter ? 'Inter-State Invoice' : 'Intra-State Invoice',
+        `Client in ${pStateName} (${pStateCode}).`
+      );
+    }
+  };
+
+  // When customer GSTIN changes, auto-detect state code from first 2 chars
+  const handleGstinChange = (val: string) => {
+    const uppercaseVal = val.toUpperCase().trim();
+    setCustomerGstin(uppercaseVal);
+
+    const res = validateGstin(uppercaseVal);
+    if (res.isValid && res.stateCode) {
+      const stateObj = getStateInfoByCode(res.stateCode);
+      setCustomerStateCode(stateObj.code);
+      setCustomerState(stateObj.name);
+      setPlaceOfSupplyStateCode(stateObj.code);
+      setPlaceOfSupplyState(stateObj.name);
+    }
+  };
+
+  // Recalculate item rates when inter/intra state changes
+  useEffect(() => {
+    setItems(prevItems =>
+      prevItems.map(item => {
+        const calcs = calculateItemGst(
+          item.rate,
+          item.quantity,
+          item.discountPercent,
+          item.gstRate,
+          isInterState,
+          item.cessRate || 0
+        );
+        return {
+          ...item,
+          ...calcs
+        };
+      })
+    );
+  }, [isInterState]);
+
+  // Recalculate full totals
+  const totals = recalculateInvoiceTotals(items, isInterState);
+
+  // Item row operations
+  const handleAddItem = () => {
+    const defaultProd = products[0];
+    const newRate = defaultProd ? defaultProd.sellingPrice : 1000;
+    const newGstRate = defaultProd ? defaultProd.gstRate : 18;
+    const calcs = calculateItemGst(newRate, 1, 0, newGstRate, isInterState);
+
+    const newItem: InvoiceItem = {
+      id: 'item-' + Date.now(),
+      productId: defaultProd?.id,
+      name: defaultProd?.name || 'New Item / Service',
+      hsnCode: defaultProd?.hsnCode || '8471',
+      unit: defaultProd?.unit || 'PCS',
+      ...calcs
+    };
+
+    setItems(prev => [...prev, newItem]);
+  };
+
+  const handleProductSelect = (index: number, prodId: string) => {
+    const prod = products.find(p => p.id === prodId);
+    if (!prod) return;
+
+    setItems(prev => {
+      const updated = [...prev];
+      const calcs = calculateItemGst(
+        prod.sellingPrice,
+        updated[index].quantity || 1,
+        updated[index].discountPercent || 0,
+        prod.gstRate,
+        isInterState
+      );
+      updated[index] = {
+        ...updated[index],
+        productId: prod.id,
+        name: prod.name,
+        hsnCode: prod.hsnCode,
+        unit: prod.unit,
+        ...calcs
+      };
+      return updated;
+    });
+  };
+
+  const handleItemChange = (index: number, field: keyof InvoiceItem, val: any) => {
+    setItems(prev => {
+      const updated = [...prev];
+      const target = { ...updated[index], [field]: val };
+
+      // Check if HSN code was changed, and if so, check if we can auto-suggest GST rate
+      if (field === 'hsnCode') {
+        const suggestedGst = suggestRateForHsn(String(val));
+        if (suggestedGst !== undefined && target.gstRate !== suggestedGst) {
+          target.gstRate = suggestedGst;
+        }
+      }
+      
+      const calcs = calculateItemGst(
+        field === 'rate' ? Number(val) : target.rate,
+        field === 'quantity' ? Number(val) : target.quantity,
+        field === 'discountPercent' ? Number(val) : target.discountPercent,
+        field === 'gstRate' ? Number(val) as GstTaxRate : target.gstRate,
+        isInterState,
+        target.cessRate || 0
+      );
+
+      updated[index] = {
+        ...target,
+        ...calcs
+      };
+      return updated;
+    });
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (items.length <= 1) {
+      showToast('warning', 'Minimum 1 Item', 'Invoice must have at least one line item.');
+      return;
+    }
+    setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const applyGstRateToAllItems = (rate: GstTaxRate) => {
+    setItems(prev =>
+      prev.map(item => {
+        const calcs = calculateItemGst(
+          item.rate,
+          item.quantity,
+          item.discountPercent,
+          rate,
+          isInterState,
+          item.cessRate || 0
+        );
+        return {
+          ...item,
+          ...calcs
+        };
+      })
+    );
+    showToast('info', 'Tax Rate Applied', `Applied ${rate}% GST (${isInterState ? 'IGST' : 'CGST+SGST'}) to all line items.`);
+  };
+
+  // Submit invoice
+  const handleSaveInvoice = (andPrint: boolean = false) => {
+    if (!customerName.trim()) {
+      showToast('error', 'Missing Customer', 'Please enter customer or party name.');
+      return;
+    }
+    if (items.length === 0) {
+      showToast('error', 'No Items', 'Please add at least one line item.');
+      return;
+    }
+
+    const calculatedPaid = paymentStatus === 'PAID' ? totals.grandTotal : amountPaid;
+    const calculatedDue = Math.max(0, totals.grandTotal - calculatedPaid);
+
+    const created = createInvoice({
+      invoiceNumber,
+      invoiceType,
+      invoiceDate,
+      dueDate,
+      status: calculatedDue === 0 ? 'PAID' : (calculatedPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID'),
+      sellerGstin: business.gstin,
+      sellerStateCode: business.stateCode,
+      sellerState: business.state,
+      customerId: selectedCustomerId || 'party-retail',
+      customerName,
+      customerGstin: customerGstin ? customerGstin.toUpperCase().trim() : undefined,
+      customerAddress,
+      customerCity,
+      customerState,
+      customerStateCode,
+      customerPhone,
+      customerEmail,
+      placeOfSupplyState,
+      placeOfSupplyStateCode,
+      isInterState,
+      isReverseCharge,
+      hasDifferentShippingAddress: hasDifferentShipping,
+      shippingName: hasDifferentShipping ? shippingName : undefined,
+      shippingAddress: hasDifferentShipping ? shippingAddress : undefined,
+      shippingState: hasDifferentShipping ? shippingState : undefined,
+      shippingStateCode: hasDifferentShipping ? shippingStateCode : undefined,
+      items,
+      subTotalTaxable: totals.subTotalTaxable,
+      totalCgst: totals.totalCgst,
+      totalSgst: totals.totalSgst,
+      totalIgst: totals.totalIgst,
+      totalCess: totals.totalCess,
+      totalTax: totals.totalTax,
+      totalDiscount: totals.totalDiscount,
+      roundOff: totals.roundOff,
+      grandTotal: totals.grandTotal,
+      amountPaid: calculatedPaid,
+      amountDue: calculatedDue,
+      paymentMethod,
+      notes,
+      terms,
+    });
+
+    showToast('success', 'Invoice Created', `Invoice #${invoiceNumber} has been created successfully.`);
+    onClose();
+    if (andPrint && created?.id) {
+      setSelectedInvoiceIdForPrint(created.id);
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Top action header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Create GST Tax Invoice
+              </h1>
+              <span className={`px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border ${
+                isInterState 
+                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              Generate GST compliant invoices with accurate tax calculations and e-invoice readiness
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSaveInvoice(false)}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
+          >
+            <Save className="w-4 h-4 text-slate-600" />
+            <span>Save & Close</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSaveInvoice(true)}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Save & Print Invoice</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Left Column (Invoice Details & Items) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Invoice Meta Bar */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              1. Document Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Doc Type</label>
+                <select
+                  value={invoiceType}
+                  onChange={(e) => setInvoiceType(e.target.value as InvoiceType)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                >
+                  <option value="TAX_INVOICE">Tax Invoice</option>
+                  <option value="BILL_OF_SUPPLY">Bill of Supply</option>
+                  <option value="QUOTATION">Quotation / Estimate</option>
+                  <option value="CREDIT_NOTE">Credit Note</option>
+                  <option value="DEBIT_NOTE">Debit Note</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Number</label>
+                <input
+                  type="text"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-mono font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Date</label>
+                <input
+                  type="date"
+                  value={invoiceDate}
+                  onChange={(e) => setInvoiceDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Customer / Buyer Information & Supply Details */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                2. Customer Details & Location
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Saved Customer / Party
+                </label>
+                <select
+                  value={selectedCustomerId}
+                  onChange={(e) => handleCustomerSelect(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                >
+                  <option value="">-- Choose Existing Contact --</option>
+                  {parties.filter(p => p.type !== 'VENDOR').map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} {p.gstin ? `(${p.gstin})` : ''} - {p.state} ({p.stateCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Customer / Business Name *
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="e.g. Acme Corp or Rajesh Kumar"
+                  className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Customer GSTIN</span>
+                  <span className="text-[10px] text-slate-400 font-normal">State auto-syncs</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={15}
+                  value={customerGstin}
+                  onChange={(e) => handleGstinChange(e.target.value)}
+                  placeholder="27AABCU9603R1ZM"
+                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl uppercase focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Client Registered State
+                </label>
+                <select
+                  value={customerStateCode}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    const st = INDIAN_STATES.find(s => s.code === code);
+                    const name = st ? st.name : customerState;
+                    setCustomerStateCode(code);
+                    setCustomerState(name);
+                    setPlaceOfSupplyStateCode(code);
+                    setPlaceOfSupplyState(name);
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                >
+                  {INDIAN_STATES.map(s => (
+                    <option key={s.code} value={s.code}>
+                      {s.code} - {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Place of Supply (POS)
+                </label>
+                <select
+                  value={placeOfSupplyStateCode}
+                  onChange={(e) => {
+                    const stCode = e.target.value;
+                    const st = INDIAN_STATES.find(s => s.code === stCode);
+                    setPlaceOfSupplyStateCode(stCode);
+                    setPlaceOfSupplyState(st ? st.name : '');
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                >
+                  {INDIAN_STATES.map(s => (
+                    <option key={s.code} value={s.code}>
+                      {s.code} - {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone / Mobile</label>
+                <input
+                  type="text"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Billing Address</label>
+                <input
+                  type="text"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="Full Street Address, City, Pincode"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Clean Supply Mode & Reverse Charge Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600">Tax Type:</span>
+                <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
+                  isInterState
+                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST + SGST)'}
+                </span>
+                <span className="text-xs text-slate-500 font-mono">
+                  POS: {placeOfSupplyState} ({placeOfSupplyStateCode})
+                </span>
+              </div>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={isReverseCharge}
+                  onChange={(e) => setIsReverseCharge(e.target.checked)}
+                  className="rounded text-indigo-600 cursor-pointer"
+                />
+                <span className="font-semibold text-slate-700">Reverse Charge (RCM)</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Line Items Table */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  3. Line Items & Products
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Add products, services, quantities and applicable GST tax rates
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px]">
+                  <span className="px-2 text-slate-500 font-medium">Quick Apply Rate:</span>
+                  {([0, 5, 12, 18, 28] as GstTaxRate[]).map((rate) => (
+                    <button
+                      key={rate}
+                      type="button"
+                      onClick={() => applyGstRateToAllItems(rate)}
+                      className="px-2 py-0.5 rounded-lg font-bold bg-white text-slate-700 hover:text-indigo-600 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                    >
+                      {rate}%
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Item Row</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse min-w-[760px]">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-600 font-semibold bg-slate-50/80">
+                    <th className="py-2.5 px-3">Item / Description</th>
+                    <th className="py-2.5 px-2 w-28">HSN/SAC</th>
+                    <th className="py-2.5 px-2 w-16">Qty</th>
+                    <th className="py-2.5 px-2 w-20">Unit</th>
+                    <th className="py-2.5 px-2 w-24">Rate (₹)</th>
+                    <th className="py-2.5 px-2 w-16">Disc %</th>
+                    <th className="py-2.5 px-2 w-44">
+                      Suggested Tax ({isInterState ? 'IGST' : 'CGST+SGST'})
+                    </th>
+                    <th className="py-2.5 px-3 text-right">Amount (₹)</th>
+                    <th className="py-2.5 px-2 w-10 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((item, idx) => (
+                    <tr key={item.id} className="hover:bg-slate-50/50">
+                      <td className="py-2.5 px-3">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
+                          placeholder="Item name"
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                          required
+                        />
+                        <div className="mt-1 flex items-center gap-2">
+                          <select
+                            onChange={(e) => handleProductSelect(idx, e.target.value)}
+                            className="text-[10px] text-slate-500 bg-transparent border-0 underline focus:ring-0 cursor-pointer"
+                          >
+                            <option value="">Quick select from inventory...</option>
+                            {products.map(p => (
+                              <option key={p.id} value={p.id}>{p.name} (₹{p.sellingPrice} • {p.gstRate}% GST)</option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <input
+                          type="text"
+                          value={item.hsnCode}
+                          onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
+                          placeholder="e.g. 8471"
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:outline-none"
+                        />
+                        <select
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const match = COMMON_HSN_CODES.find(h => h.code === e.target.value);
+                              if (match) {
+                                handleItemChange(idx, 'hsnCode', match.code);
+                                handleItemChange(idx, 'gstRate', match.defaultGst);
+                              }
+                            }
+                          }}
+                          className="mt-1 w-full text-[9px] text-slate-400 bg-transparent border-0 truncate cursor-pointer"
+                        >
+                          <option value="">HSN Master...</option>
+                          {COMMON_HSN_CODES.map(h => (
+                            <option key={h.code} value={h.code}>{h.code} - {h.description.slice(0, 20)} ({h.defaultGst}%)</option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <input
+                          type="number"
+                          min="1"
+                          step="any"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 1)}
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none"
+                          required
+                        />
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <select
+                          value={item.unit}
+                          onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
+                          className="w-full px-1 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px] focus:outline-none"
+                        >
+                          {STANDARD_UNITS.map(u => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.rate}
+                          onChange={(e) => handleItemChange(idx, 'rate', parseFloat(e.target.value) || 0)}
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold focus:outline-none"
+                          required
+                        />
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={item.discountPercent}
+                          onChange={(e) => handleItemChange(idx, 'discountPercent', parseFloat(e.target.value) || 0)}
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:outline-none"
+                        />
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <div className="space-y-1">
+                          <select
+                            value={item.gstRate}
+                            onChange={(e) => handleItemChange(idx, 'gstRate', parseInt(e.target.value))}
+                            className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                          >
+                            <option value="0">0% (Nil / Exempt)</option>
+                            <option value="5">5% (Essential Goods)</option>
+                            <option value="12">12% (Standard Slabs)</option>
+                            <option value="18">18% (Standard Goods/Services)</option>
+                            <option value="28">28% (Luxury / De-merit)</option>
+                          </select>
+
+                          {/* Dynamic Tax Split Suggestion Tag */}
+                          <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium leading-tight ${
+                            isInterState ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                          }`}>
+                            {isInterState ? (
+                              <span>IGST {item.gstRate}% : ₹{item.igstAmount.toFixed(2)}</span>
+                            ) : (
+                              <span>CGST {item.cgstRate}% (₹{item.cgstAmount.toFixed(2)}) + SGST {item.sgstRate}% (₹{item.sgstAmount.toFixed(2)})</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                        {formatCurrency(item.totalAmount, business.currencySymbol)}
+                        <div className="text-[10px] text-slate-400 font-normal">
+                          Taxable: {formatCurrency(item.taxableAmount, business.currencySymbol)}
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(idx)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
+                          title="Delete Item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Invoice Calculation & Tax Summary Sidebar */}
+        <div className="space-y-5">
+          <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center justify-between">
+              <span>Invoice Calculation</span>
+              <span className={`px-2 py-0.5 text-[10px] font-mono rounded font-bold ${
+                isInterState ? 'bg-indigo-950 text-cyan-300 border border-cyan-500/30' : 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
+              }`}>
+                {isInterState ? 'IGST Regime' : 'CGST + SGST Regime'}
+              </span>
+            </h3>
+
+            {/* State Route summary pill */}
+            <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-[11px] space-y-1">
+              <div className="flex justify-between items-center text-slate-400">
+                <span>Supply Route:</span>
+                <span className="font-semibold text-slate-200">
+                  {business.state} ({business.stateCode}) ➔ {placeOfSupplyState} ({placeOfSupplyStateCode})
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-cyan-400 font-medium">
+                <span>Suggested Tax Type:</span>
+                <span>{isInterState ? 'Integrated GST (IGST)' : 'Central + State GST'}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs border-b border-slate-800 pb-3">
+              <div className="flex justify-between text-slate-300">
+                <span>Taxable Amount:</span>
+                <span className="font-mono font-semibold">{formatCurrency(totals.subTotalTaxable, business.currencySymbol)}</span>
+              </div>
+
+              {totals.totalDiscount > 0 && (
+                <div className="flex justify-between text-emerald-400">
+                  <span>Line Item Discounts:</span>
+                  <span className="font-mono">- {formatCurrency(totals.totalDiscount, business.currencySymbol)}</span>
+                </div>
+              )}
+
+              {!isInterState ? (
+                <>
+                  <div className="flex justify-between text-slate-300">
+                    <span className="flex items-center gap-1">
+                      <span>CGST (Central Tax):</span>
+                    </span>
+                    <span className="font-mono">{formatCurrency(totals.totalCgst, business.currencySymbol)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span className="flex items-center gap-1">
+                      <span>SGST / UTGST:</span>
+                    </span>
+                    <span className="font-mono">{formatCurrency(totals.totalSgst, business.currencySymbol)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-slate-300">
+                  <span>IGST (Integrated Tax):</span>
+                  <span className="font-mono text-cyan-300">{formatCurrency(totals.totalIgst, business.currencySymbol)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-slate-400 text-[11px] pt-1 border-t border-slate-800">
+                <span>Total Tax Amount:</span>
+                <span className="font-mono text-slate-200 font-semibold">{formatCurrency(totals.totalTax, business.currencySymbol)}</span>
+              </div>
+
+              {totals.roundOff !== 0 && (
+                <div className="flex justify-between text-slate-400 text-[11px]">
+                  <span>Round Off:</span>
+                  <span className="font-mono">{totals.roundOff > 0 ? '+' : ''}{totals.roundOff}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-baseline pt-1">
+              <span className="text-sm font-bold text-slate-200">Grand Total:</span>
+              <span className="text-2xl font-extrabold text-cyan-400 font-mono">
+                {formatCurrency(totals.grandTotal, business.currencySymbol)}
+              </span>
+            </div>
+
+            {/* Payment settlement options */}
+            <div className="pt-3 border-t border-slate-800 space-y-3">
+              <label className="block text-xs font-semibold text-slate-300">
+                Payment Collection
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentStatus('PAID');
+                    setAmountPaid(totals.grandTotal);
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    paymentStatus === 'PAID'
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  Fully Paid Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentStatus('UNPAID');
+                    setAmountPaid(0);
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    paymentStatus === 'UNPAID'
+                      ? 'bg-rose-600 text-white shadow-md'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  Credit / Unpaid
+                </button>
+              </div>
+
+              {paymentStatus === 'PAID' && (
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Payment Method</label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="UPI">UPI / QR Code</option>
+                    <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
+                    <option value="CASH">Cash</option>
+                    <option value="CREDIT_CARD">Credit / Debit Card</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => handleSaveInvoice(true)}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-transform active:scale-95 cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Save & Print Invoice</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveInvoice(false)}
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Save className="w-4 h-4 text-slate-600" />
+                <span>Save & Close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Notes & Terms Box */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Notes</label>
+              <textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Terms & Conditions</label>
+              <textarea
+                rows={3}
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+              />
+            </div>
+
+            {/* Authorized Signatory Preview */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <FileSignature className="w-3.5 h-3.5 text-indigo-600" />
+                  Authorized Signatory
+                </span>
+                <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Included on Invoice
+                </span>
+              </div>
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div className="text-[11px]">
+                  <div className="font-bold text-slate-800">{business.signatoryName || 'Authorized Signatory'}</div>
+                  <div className="text-slate-500 text-[10px]">{business.signatoryDesignation || 'Authorised Person'}</div>
+                </div>
+                <img
+                  src={normalizeSignatureUrl(business.signatureUrl)}
+                  alt="Authorized Signature"
+                  className="h-9 max-w-[100px] object-contain bg-white p-1 rounded border border-slate-200"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

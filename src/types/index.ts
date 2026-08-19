@@ -1,0 +1,491 @@
+export type InvoiceType = 'TAX_INVOICE' | 'BILL_OF_SUPPLY' | 'QUOTATION' | 'CREDIT_NOTE' | 'DEBIT_NOTE' | 'POS_SALE';
+
+export type InvoiceStatus = 'DRAFT' | 'UNPAID' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export type PaymentMethod = 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CREDIT_CARD' | 'CHEQUE' | 'MIXED';
+
+export type GstTaxRate = 0 | 5 | 12 | 18 | 28;
+
+export interface InvoiceItem {
+  id: string;
+  productId?: string;
+  name: string;
+  description?: string;
+  hsnCode: string;
+  quantity: number;
+  unit: string;
+  rate: number;
+  discountPercent: number;
+  discountAmount: number;
+  taxableAmount: number;
+  gstRate: GstTaxRate;
+  cgstRate: number;
+  cgstAmount: number;
+  sgstRate: number;
+  sgstAmount: number;
+  igstRate: number;
+  igstAmount: number;
+  cessRate?: number;
+  cessAmount?: number;
+  totalAmount: number;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface EInvoiceDetails {
+  irn: string;
+  ackNo: string;
+  ackDate: string;
+  signedQrCode: string;
+  signedInvoice?: string;
+  status: 'GENERATED' | 'CANCELLED' | 'PENDING' | 'FAILED';
+  cancelReason?: 'DUPLICATE' | 'DATA_ENTRY_ERROR' | 'ORDER_CANCELLED' | 'OTHER';
+  cancelRemarks?: string;
+  cancelledAt?: string;
+  generatedAt?: string;
+}
+
+export interface EWayBillDetails {
+  ewayBillNo: string;
+  ewayBillDate: string;
+  validUpto: string;
+  transporterId?: string;
+  transporterName?: string;
+  transporterDocNo?: string;
+  transporterDocDate?: string;
+  vehicleNo?: string;
+  vehicleType?: 'REGULAR' | 'OVER_DIMENSIONAL_CARGO';
+  distanceKm: number;
+  mode: 'ROAD' | 'RAIL' | 'AIR' | 'SHIP';
+  supplyType: 'OUTWARD' | 'INWARD';
+  subSupplyType: 'SUPPLY' | 'EXPORT' | 'JOB_WORK' | 'SKD_CKD' | 'RECIPIENT_NOT_KNOWN' | 'FOR_OWN_USE' | 'EXHIBITION' | 'LINE_SALES' | 'OTHERS';
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  invoiceType: InvoiceType;
+  invoiceDate: string;
+  dueDate: string;
+  status: InvoiceStatus;
+  
+  // Seller (Current business snapshot at invoice time)
+  sellerGstin: string;
+  sellerStateCode: string;
+  sellerState: string;
+  
+  // Customer details
+  customerId: string;
+  customerName: string;
+  customerGstin?: string;
+  customerPan?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  customerAddress: string;
+  customerCity?: string;
+  customerState: string;
+  customerStateCode: string;
+  customerPincode?: string;
+  
+  // Shipping details
+  hasDifferentShippingAddress?: boolean;
+  shippingName?: string;
+  shippingAddress?: string;
+  shippingState?: string;
+  shippingStateCode?: string;
+  shippingPincode?: string;
+  
+  // Place of supply & Tax calculation
+  placeOfSupplyState: string;
+  placeOfSupplyStateCode: string;
+  isInterState: boolean;
+  isReverseCharge: boolean;
+  isEcommerceSupply?: boolean;
+  ecommerceGstin?: string;
+  
+  // Line items
+  items: InvoiceItem[];
+  
+  // Totals
+  subTotalTaxable: number;
+  totalCgst: number;
+  totalSgst: number;
+  totalIgst: number;
+  totalCess: number;
+  totalTax: number;
+  totalDiscount: number;
+  roundOff: number;
+  grandTotal: number;
+  
+  // Payment info
+  amountPaid: number;
+  amountDue: number;
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
+  paymentsList?: {
+    id: string;
+    date: string;
+    amount: number;
+    method: PaymentMethod;
+    notes?: string;
+  }[];
+
+  // E-Invoice & E-Way Bill
+  isEinvoiceGenerated?: boolean;
+  einvoice?: EInvoiceDetails;
+  isEwayBillGenerated?: boolean;
+  ewayBill?: EWayBillDetails;
+  
+  // Meta
+  notes?: string;
+  terms?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  barcode?: string;
+  description?: string;
+  category: string;
+  hsnCode: string;
+  unit: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  gstRate: GstTaxRate;
+  cessRate?: number;
+  currentStock: number;
+  minStockAlert: number;
+  batches?: {
+    batchNumber: string;
+    mfgDate: string;
+    expiryDate: string;
+    stock: number;
+    mrp: number;
+  }[];
+  isService?: boolean;
+  createdAt: string;
+}
+
+export interface Party {
+  id: string;
+  type: 'CUSTOMER' | 'VENDOR' | 'BOTH';
+  name: string;
+  companyName?: string;
+  gstin?: string;
+  pan?: string;
+  phone: string;
+  email?: string;
+  billingAddress: string;
+  city: string;
+  state: string;
+  stateCode: string;
+  pincode: string;
+  creditLimit?: number;
+  creditPeriodDays?: number;
+  currentBalance: number; // Positive = Receivable (Debtor), Negative = Payable (Creditor)
+  openingBalance?: number;
+  createdAt: string;
+}
+
+export interface PurchaseBillItem {
+  id: string;
+  productId?: string;
+  name: string;
+  hsnCode: string;
+  quantity: number;
+  unit: string;
+  rate: number;
+  taxableAmount: number;
+  gstRate: GstTaxRate;
+  cgstAmount: number;
+  sgstAmount: number;
+  igstAmount: number;
+  totalAmount: number;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface PurchaseBill {
+  id: string;
+  billNumber: string;
+  vendorInvoiceNumber: string;
+  vendorId: string;
+  vendorName: string;
+  vendorGstin?: string;
+  billDate: string;
+  dueDate: string;
+  status: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
+  isInterState: boolean;
+  items: PurchaseBillItem[];
+  subTotalTaxable: number;
+  totalCgst: number;
+  totalSgst: number;
+  totalIgst: number;
+  totalTax: number;
+  roundOff: number;
+  grandTotal: number;
+  amountPaid: number;
+  amountDue: number;
+  itcEligibility: 'ELIGIBLE_ALL' | 'ELIGIBLE_CAPITAL_GOODS' | 'INELIGIBLE_17_5' | 'OTHER';
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Expense {
+  id: string;
+  date: string;
+  category: string;
+  payee: string;
+  amount: number;
+  gstRate: GstTaxRate;
+  gstAmount: number;
+  hasGstBill: boolean;
+  vendorGstin?: string;
+  paymentMethod: PaymentMethod;
+  notes?: string;
+  referenceNo?: string;
+  createdAt: string;
+}
+
+export type PaymentType = 'PAYMENT_IN' | 'PAYMENT_OUT' | 'CONTRA_TRANSFER';
+
+export interface PaymentRecord {
+  id: string;
+  voucherNumber: string;
+  type: PaymentType;
+  date: string;
+  partyId?: string;
+  partyName: string;
+  partyType?: 'CUSTOMER' | 'VENDOR';
+  amount: number;
+  paymentMethod: PaymentMethod;
+  bankAccountId?: string;
+  bankAccountName?: string;
+  referenceNo?: string;
+  chequeDate?: string;
+  linkedInvoiceId?: string;
+  linkedInvoiceNumber?: string;
+  linkedBillId?: string;
+  linkedBillNumber?: string;
+  fromAccount?: string;
+  toAccount?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  entryNumber: string;
+  date: string;
+  description: string;
+  reference?: string;
+  lines: {
+    accountId: string;
+    accountName: string;
+    debit: number;
+    credit: number;
+  }[];
+  createdAt: string;
+}
+
+export interface AccountHead {
+  id: string;
+  code: string;
+  name: string;
+  category: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'INCOME' | 'EXPENSE';
+  subCategory?: string;
+  openingBalance?: number;
+  openingBalanceType?: 'Dr' | 'Cr';
+  description?: string;
+  balance: number;
+  isSystem?: boolean;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  tradeName: string;
+  gstin: string;
+  pan: string;
+  businessType?: string;
+  state: string;
+  stateCode: string;
+  city: string;
+  address: string;
+  pincode: string;
+  phone: string;
+  email: string;
+  financialYear: string;
+  currency: string;
+  currencySymbol: string;
+  logoUrl?: string;
+  themeColor?: string;
+  createdAt: string;
+}
+
+export interface BusinessProfile {
+  name: string;
+  tradeName: string;
+  gstin: string;
+  pan: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  stateCode: string;
+  pincode: string;
+  website?: string;
+  logoUrl?: string;
+  signatureUrl?: string;
+  signatoryName?: string;
+  signatoryDesignation?: string;
+  showSignatureOnInvoice?: boolean;
+  currency: string;
+  currencySymbol: string;
+  
+  // Banking
+  bankName: string;
+  accountNumber: string;
+  ifscCode: string;
+  branchName: string;
+  upiId: string;
+  
+  // Invoice settings
+  invoicePrefix: string;
+  nextInvoiceNumber: number;
+  defaultTerms: string;
+  defaultNotes: string;
+  enableEinvoice: boolean;
+  enableEwayBill: boolean;
+  einvoiceThresholdCr: number; // e.g. 5 Cr
+}
+
+export interface StateCodeMap {
+  code: string;
+  name: string;
+}
+
+// User Roles & Permissions (RBAC)
+export type RoleType = 'ADMIN' | 'ACCOUNTANT' | 'SALESPERSON' | 'INVENTORY_MANAGER' | 'AUDITOR' | 'CUSTOM';
+
+export interface UserPermissions {
+  dashboard: {
+    view: boolean;
+    viewFinancialMetrics: boolean;
+    exportReports: boolean;
+  };
+  invoices: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+    generateIRN: boolean;
+    cancelInvoice: boolean;
+    printDownload: boolean;
+  };
+  pos_billing: {
+    view: boolean;
+    createSale: boolean;
+    giveCustomDiscount: boolean;
+    reprintReceipt: boolean;
+  };
+  payments: {
+    view: boolean;
+    recordPaymentIn: boolean;
+    recordPaymentOut: boolean;
+    recordContra: boolean;
+    deletePayment: boolean;
+  };
+  inventory: {
+    view: boolean;
+    viewPurchaseCost: boolean;
+    createProduct: boolean;
+    editProduct: boolean;
+    deleteProduct: boolean;
+    adjustStock: boolean;
+  };
+  parties: {
+    viewCustomers: boolean;
+    viewVendors: boolean;
+    createParty: boolean;
+    editParty: boolean;
+    deleteParty: boolean;
+    viewLedgerStatement: boolean;
+    bulkImport: boolean;
+  };
+  purchases: {
+    view: boolean;
+    createBill: boolean;
+    editBill: boolean;
+    deleteBill: boolean;
+    viewITCReports: boolean;
+  };
+  accounting: {
+    viewJournals: boolean;
+    createJournal: boolean;
+    viewChartOfAccounts: boolean;
+    viewBalanceSheet: boolean;
+    viewProfitAndLoss: boolean;
+    viewTrialBalance: boolean;
+  };
+  gst_returns: {
+    view: boolean;
+    viewGstr1: boolean;
+    viewGstr3b: boolean;
+    viewTaxRegisters: boolean;
+    exportGstJson: boolean;
+  };
+  settings: {
+    view: boolean;
+    editCompanyProfile: boolean;
+    editBankAndUPI: boolean;
+    manageUsersAndRoles: boolean;
+    backupAndRestore: boolean;
+    resetDatabase: boolean;
+  };
+}
+
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: RoleType;
+  roleTitle?: string;
+  department: string;
+  avatarBg: string;
+  avatarText: string;
+  isActive: boolean;
+  password?: string;
+  pin?: string;
+  customPermissions?: Partial<UserPermissions>;
+  createdAt: string;
+  lastLogin?: string;
+}
+
+export interface RoleDefinition {
+  id: RoleType;
+  name: string;
+  description: string;
+  color: string;
+  badgeBg: string;
+  badgeText: string;
+  isSystem: boolean;
+  defaultPermissions: UserPermissions;
+}
+
+export interface SecurityAuditLog {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  userRole: RoleType;
+  action: string;
+  module: string;
+  details: string;
+}

@@ -74,8 +74,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           </div>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
             <span className="text-indigo-600 dark:text-indigo-400 font-semibold truncate">GSTIN: {currentCompany?.gstin || business.gstin}</span>
-            <span className="hidden md:inline text-slate-300 dark:text-slate-600">•</span>
-            <span className="hidden md:inline text-slate-500 dark:text-slate-400">{currentCompany?.city || business.city}, {currentCompany?.state || business.state}</span>
           </div>
         </div>
       </div>
@@ -102,30 +100,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         <CloudSyncStatusBadge compact={true} />
 
         {/* Quick Theme Mode Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-          title={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode (Current: ${theme})`}
-          aria-label="Toggle Theme Mode"
-        >
-          {resolvedTheme === 'dark' ? (
-            <Sun className="w-5 h-5 text-amber-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-slate-600" />
-          )}
-        </button>
+        
 
         {/* Quick POS Mobile / Counter Bill Button */}
-        {can('pos_billing', 'view') && (
-          <button
-            onClick={() => setActiveTab('pos_billing')}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/80 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
-            title="Quick POS Counter Billing"
-          >
-            <ShoppingCart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span className="hidden sm:inline">Quick POS</span>
-          </button>
-        )}
+      
 
         {/* Create GST Tax Invoice CTA */}
         {can('invoices', 'create') && (

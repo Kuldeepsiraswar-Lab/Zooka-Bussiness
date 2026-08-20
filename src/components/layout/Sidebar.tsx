@@ -127,7 +127,7 @@ export const Sidebar: React.FC = () => {
         <div>
           <div className="flex items-center gap-1.5">
             <span className="font-extrabold text-white text-base tracking-tight">
-              Vyapar<span className="text-cyan-400">Flow</span>
+              Zooka<span className="text-cyan-400"> Business</span>
             </span>
             <span className="text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30">
               PRO

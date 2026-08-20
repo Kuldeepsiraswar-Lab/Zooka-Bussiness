@@ -151,7 +151,7 @@ export const LoginScreen: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-white">VyaparFlow</h1>
+              <h1 className="text-xl font-black tracking-tight text-white">Zooka Business</h1>
               <span className="text-[10px] uppercase font-extrabold bg-indigo-500/20 text-cyan-300 px-2.5 py-0.5 rounded-full border border-cyan-400/30">
                 Multi-Company
               </span>
@@ -620,11 +620,11 @@ export const LoginScreen: React.FC = () => {
 
       {/* Footer Note */}
       <footer className="relative z-10 w-full max-w-6xl mx-auto px-6 py-4 text-center text-xs text-slate-400 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p>© 2026 VyaparFlow Enterprise Multi-Business Accounting • All rights reserved</p>
+        <p>© 2026 Zooka Bussiness Enterprise Multi-Business Accounting • All rights reserved</p>
         <p className="flex items-center gap-3">
-          <span>Multi-Company Workspaces</span>
+          <span>DESIGN AND DEVELOPED BY</span>
           <span>•</span>
-          <span>Role-Based Access Control</span>
+          <span>KULDEEP SIRASWAR</span>
           <span>•</span>
           <span>E-Invoicing Ready</span>
         </p>

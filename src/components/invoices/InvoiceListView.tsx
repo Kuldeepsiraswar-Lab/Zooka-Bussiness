@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Invoice, InvoiceStatus, InvoiceType, PaymentMethod } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { ClientStatementModal } from '../parties/ClientStatementModal';
+import { ImportSaleInvoicesModal } from './ImportSaleInvoicesModal';
 import { 
   Search, 
   Filter, 
@@ -18,7 +19,12 @@ import {
   ExternalLink,
   ChevronDown,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  Package,
+  Boxes,
+  Edit3,
+  Upload,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface InvoiceListViewProps {
@@ -45,6 +51,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
   // Client Statement Modal State
   const [statementPartyId, setStatementPartyId] = useState<string | null>(null);
   const [isStatementOpen, setIsStatementOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Payment recording modal state
   const [paymentModalInvoice, setPaymentModalInvoice] = useState<Invoice | null>(null);
@@ -53,10 +60,16 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
   const [paymentNotes, setPaymentNotes] = useState<string>('');
 
   const filteredInvoices = invoices.filter(inv => {
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch = 
-      inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (inv.customerGstin && inv.customerGstin.toLowerCase().includes(searchQuery.toLowerCase()));
+      inv.invoiceNumber.toLowerCase().includes(q) ||
+      inv.customerName.toLowerCase().includes(q) ||
+      (inv.customerGstin && inv.customerGstin.toLowerCase().includes(q)) ||
+      (inv.items && inv.items.some(item => 
+        item.name.toLowerCase().includes(q) || 
+        (item.hsnCode && item.hsnCode.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q))
+      ));
 
     const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
     const matchesType = typeFilter === 'ALL' || inv.invoiceType === typeFilter;
@@ -97,27 +110,36 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
           <p className="text-xs text-slate-500">Create, track, and manage GST compliant tax invoices & receipts</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 rounded-xl transition-all cursor-pointer shadow-2xs"
+            title="Import historical and bulk sale invoices from CSV, Excel, or JSON"
+          >
+            <Upload className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <span>Import Sale Invoice</span>
+          </button>
           <button
             onClick={() => {
               setStatementPartyId(parties[0]?.id || null);
               setIsStatementOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 rounded-xl transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/80 dark:border-indigo-800 rounded-xl transition-all cursor-pointer shadow-2xs"
             title="Generate and export client account statement"
           >
-            <FileText className="w-4 h-4 text-indigo-600" />
+            <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Account Statement</span>
           </button>
           <button
             onClick={() => setActiveTab('pos_billing')}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all cursor-pointer"
           >
             <span>POS Quick Sale</span>
           </button>
           <button
             onClick={onOpenNewInvoice}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Create Tax Invoice</span>
@@ -175,6 +197,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
                 <th className="py-3.5 px-4">Type & Number</th>
                 <th className="py-3.5 px-4">Date & Due Date</th>
                 <th className="py-3.5 px-4">Customer Details</th>
+                <th className="py-3.5 px-4">Products & Items</th>
                 <th className="py-3.5 px-4 text-right">Taxable</th>
                 <th className="py-3.5 px-4 text-right">GST Total</th>
                 <th className="py-3.5 px-4 text-right">Grand Total</th>
@@ -186,6 +209,8 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
               {filteredInvoices.map(inv => {
                 const isPaid = inv.status === 'PAID';
                 const hasPendingPayment = (inv.amountDue || 0) > 0;
+                const totalItemsCount = inv.items?.length || 0;
+                const totalUnitsCount = inv.items?.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 0;
 
                 return (
                   <tr key={inv.id} className="hover:bg-indigo-50/40 transition-colors group">
@@ -201,14 +226,61 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
                       <div className="text-slate-800 font-medium">{formatDate(inv.invoiceDate)}</div>
                       <div className="text-[10px] text-slate-400">Due: {formatDate(inv.dueDate)}</div>
                     </td>
-                    <td className="py-3.5 px-4 max-w-[200px] cursor-pointer" onClick={() => setSelectedInvoiceIdForPrint(inv.id)}>
+                    <td className="py-3.5 px-4 max-w-[180px] cursor-pointer" onClick={() => setSelectedInvoiceIdForPrint(inv.id)}>
                       <div className="font-semibold text-slate-900 truncate">{inv.customerName}</div>
-                      <div className="text-[10px] font-mono text-slate-500">
+                      <div className="text-[10px] font-mono text-slate-500 truncate">
                         {inv.customerGstin ? `GSTIN: ${inv.customerGstin}` : 'Retail / Unregistered'}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-400 truncate">
                         POS: {inv.placeOfSupplyState} ({inv.placeOfSupplyStateCode})
                       </div>
+                    </td>
+                    <td className="py-3.5 px-4 min-w-[200px] max-w-[280px] cursor-pointer" onClick={() => setSelectedInvoiceIdForPrint(inv.id)}>
+                      {inv.items && inv.items.length > 0 ? (
+                        <div className="space-y-1">
+                          <div className="flex flex-col gap-1">
+                            {inv.items.slice(0, 2).map((item, idx) => (
+                              <div 
+                                key={idx} 
+                                className="flex items-center justify-between gap-1.5 px-2 py-1 bg-slate-100 hover:bg-indigo-50 border border-slate-200/90 rounded-lg text-[11px] transition-colors"
+                              >
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Package className="w-3 h-3 text-indigo-600 shrink-0" />
+                                  <span className="font-semibold text-slate-900 truncate" title={item.name}>
+                                    {item.name}
+                                  </span>
+                                </div>
+                                <span className="font-mono font-bold text-indigo-700 bg-white px-1.5 py-0.2 rounded border border-indigo-100 text-[10px] shrink-0">
+                                  {item.quantity} {item.unit || 'PCS'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          {inv.items.length > 2 && (
+                            <div className="flex items-center justify-between text-[10px] pt-0.5">
+                              <span 
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-100"
+                                title={inv.items.slice(2).map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}
+                              >
+                                <Boxes className="w-3 h-3" />
+                                +{inv.items.length - 2} more products
+                              </span>
+                              <span className="text-slate-400 font-medium">
+                                Total: {totalUnitsCount} units
+                              </span>
+                            </div>
+                          )}
+                          {inv.items.length <= 2 && (
+                            <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                              <span>{totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}</span>
+                              <span>•</span>
+                              <span>{totalUnitsCount} units</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs italic">No items attached</span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono text-slate-700">
                       {formatCurrency(inv.subTotalTaxable, business.currencySymbol)}
@@ -244,6 +316,17 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {onEditInvoice && (
+                          <button
+                            onClick={() => onEditInvoice(inv)}
+                            title="Edit Invoice"
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Edit</span>
+                          </button>
+                        )}
+
                         <button
                           onClick={() => setSelectedInvoiceIdForPrint(inv.id)}
                           title="Print / View Invoice"
@@ -297,7 +380,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
 
               {filteredInvoices.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
                     No invoices match your search filter criteria.
                   </td>
                 </tr>
@@ -405,6 +488,12 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
           onSelectInvoiceForPrint={setSelectedInvoiceIdForPrint}
         />
       )}
+
+      {/* Import Sale Invoices Bulk Modal */}
+      <ImportSaleInvoicesModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+      />
     </div>
   );
 };

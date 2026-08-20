@@ -31,10 +31,14 @@ import {
   FolderPlus,
   Building,
   CreditCard,
-  Briefcase
+  Briefcase,
+  Landmark,
+  Upload,
+  Sparkles
 } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
 import { AccountHead, JournalEntry, Invoice, PurchaseBill, Expense } from '../../types';
+import { BankStatementImportModal } from './BankStatementImportModal';
 
 interface LedgerPosting {
   id: string;
@@ -128,6 +132,9 @@ export const AccountingView: React.FC = () => {
   // Chart of Accounts Filters
   const [coaSearch, setCoaSearch] = useState('');
   const [coaCategoryFilter, setCoaCategoryFilter] = useState<string>('ALL');
+
+  // Bank Statement Auto Entry Import Modal State
+  const [showBankStatementImportModal, setShowBankStatementImportModal] = useState<boolean>(false);
 
   // JV Entry Modal State
   const [showJvModal, setShowJvModal] = useState(false);
@@ -886,10 +893,20 @@ export const AccountingView: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={handleOpenNewAccount}
-            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer shadow-sm"
+            onClick={() => setShowBankStatementImportModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Import Bank Statement CSV for auto-reconciliation and voucher posting"
           >
-            <FolderPlus className="w-4 h-4 text-indigo-600" />
+            <Landmark className="w-4 h-4 text-indigo-600" />
+            <Upload className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Bank Statement Auto Entry (CSV)</span>
+          </button>
+
+          <button
+            onClick={handleOpenNewAccount}
+            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer shadow-sm"
+          >
+            <FolderPlus className="w-4 h-4 text-slate-600" />
             <span>+ Add Ledger Account</span>
           </button>
 
@@ -1438,6 +1455,15 @@ export const AccountingView: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setShowBankStatementImportModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer transition-colors shadow-2xs active:scale-95"
+                  title="Import Bank Statement CSV for this Account"
+                >
+                  <Landmark className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Auto Entry from Bank Statement (CSV)</span>
+                </button>
+
+                <button
                   onClick={() => handleOpenEditAccount(currentAccount)}
                   className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer"
                 >
@@ -1447,6 +1473,36 @@ export const AccountingView: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* If current account is Bank Account, show specialized Bank Reconcile banner */}
+          {(currentAccount.name.toLowerCase().includes('bank') || currentAccount.code === '1010' || currentAccount.subCategory?.toLowerCase().includes('bank')) && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50/50 border border-indigo-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 shrink-0">
+                  <Landmark className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-indigo-950 flex items-center gap-2">
+                    <span>Reconcile & Auto-Populate {currentAccount.name} from Bank CSV</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                      AI Parser
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5">
+                    Upload official bank statement CSV (HDFC, ICICI, SBI, Axis, Kotak) to auto-generate receipts, vendor payments, expenses, and contra transfers.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowBankStatementImportModal(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 cursor-pointer whitespace-nowrap active:scale-95 transition-all"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Auto Entry Bank Statement</span>
+              </button>
+            </div>
+          )}
 
           {/* General Ledger Statement Table */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -2232,6 +2288,15 @@ export const AccountingView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* =========================================================================
+          BANK STATEMENT AUTO ENTRY & RECONCILIATION MODAL
+         ========================================================================= */}
+      <BankStatementImportModal
+        isOpen={showBankStatementImportModal}
+        onClose={() => setShowBankStatementImportModal(false)}
+        defaultBankAccountId={selectedAccountId}
+      />
     </div>
   );
 };

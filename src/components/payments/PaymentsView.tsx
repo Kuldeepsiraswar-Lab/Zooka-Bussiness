@@ -27,8 +27,11 @@ import {
   User,
   Hash,
   Landmark,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Upload,
+  Sparkles
 } from 'lucide-react';
+import { BankStatementImportModal } from '../accounting/BankStatementImportModal';
 
 export const PaymentsView: React.FC = () => {
   const { 
@@ -55,6 +58,7 @@ export const PaymentsView: React.FC = () => {
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
   const [voucherToPrint, setVoucherToPrint] = useState<PaymentRecord | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showBankStatementModal, setShowBankStatementModal] = useState<boolean>(false);
 
   // Form State for Recording / Editing Payment
   const [formData, setFormData] = useState({
@@ -390,6 +394,16 @@ export const PaymentsView: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setShowBankStatementModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer active:scale-95"
+            title="Auto-create receipts, payments, and ledger entries by uploading Bank Statement CSV"
+          >
+            <Landmark className="w-4 h-4 text-indigo-600" />
+            <Upload className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Bank Statement Auto Entry (CSV)</span>
+          </button>
+
           <button
             onClick={() => handleOpenRecord('PAYMENT_IN')}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm hover:shadow transition-all"
@@ -1225,6 +1239,12 @@ export const PaymentsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Bank Statement Auto Entry Modal */}
+      <BankStatementImportModal
+        isOpen={showBankStatementModal}
+        onClose={() => setShowBankStatementModal(false)}
+      />
     </div>
   );
 };

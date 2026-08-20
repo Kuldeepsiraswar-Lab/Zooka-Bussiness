@@ -11,6 +11,8 @@ export interface InvoiceItem {
   productId?: string;
   name: string;
   description?: string;
+  serialNumber?: string; // Sr. No. / IMEI / MAC of product
+  warranty?: string; // Warranty details e.g. 1 Year, 6 Months, 3 Years Onsite
   hsnCode: string;
   quantity: number;
   unit: string;
@@ -327,6 +329,95 @@ export interface Company {
   createdAt: string;
 }
 
+export interface InvoiceLineSettings {
+  enableDescription: boolean;
+  enableSerialNumber: boolean;
+  enableWarranty: boolean;
+  enableBatchNumber: boolean;
+  enableExpiryDate: boolean;
+  serialNumberLabel: string; // e.g. "Sr. No." or "Sr. No. / IMEI"
+  warrantyLabel: string; // e.g. "Warranty"
+  defaultWarranty: string; // e.g. "1 Year Comprehensive"
+  warrantyOptions: string[]; // List of presets: "No Warranty", "6 Months Replacement", "1 Year Comprehensive", "2 Years Onsite", "3 Years Limited"
+  descriptionPlaceholder: string;
+  showOnPrint: {
+    description: boolean;
+    serialNumber: boolean;
+    warranty: boolean;
+    batchNumber: boolean;
+  };
+}
+
+export type StandardTemplateId = 
+  | 'OFFICIAL_GST' 
+  | 'MODERN_CLEAN' 
+  | 'CLASSIC_TALLY'
+  | 'EMERALD_PHARMA' 
+  | 'ROYAL_SAPPHIRE' 
+  | 'VIBRANT_SUNSET' 
+  | 'MINIMAL_MONO' 
+  | 'RUBY_CRIMSON' 
+  | 'COMPACT_DENSE' 
+  | 'THERMAL_POS'
+  | 'CREATIVE_LUXE'
+  | 'CORPORATE_TEAL';
+
+export interface InvoiceTemplateConfig {
+  id: string;
+  name: string;
+  category: 'STANDARD' | 'CUSTOM' | 'POS';
+  description: string;
+  badge?: string;
+  themeColor: string; // Primary accent color (hex or tailwind base)
+  secondaryColor?: string;
+  headerColor?: string;
+  headerStyle: 'BANNER' | 'MODERN_SPLIT' | 'CENTERED' | 'MINIMAL_BORDERED' | 'THERMAL';
+  fontFamily: 'sans' | 'serif' | 'mono';
+  tableStyle: 'BORDERED' | 'STRIPED' | 'MINIMAL' | 'BOXED';
+  showLogo: boolean;
+  showUpiQr: boolean;
+  showBankDetails: boolean;
+  showSignature: boolean;
+  showTerms: boolean;
+  showNotes: boolean;
+  showAmountInWords: boolean;
+  showHsnSummaryTable: boolean;
+  showCopyTypeBadge: boolean;
+  showSerialNumber: boolean;
+  showWarranty: boolean;
+  showDescription: boolean;
+  showBatchNumber: boolean;
+  watermarkText?: string;
+  headerTagline?: string;
+  footerDeclaration?: string;
+  isDefault?: boolean;
+  createdAt?: string;
+}
+
+export type BottomNavStyle = 'FLOATING_PILL' | 'CLASSIC_DOCKED' | 'MODERN_CURVED' | 'COMPACT_SLIM';
+
+export interface BottomNavTabItem {
+  id: string; // matches ActiveTab
+  label: string; // Display label
+  customLabel?: string; // Optional user customized label
+  isEnabled: boolean;
+  order: number;
+}
+
+export type QuickActionType = 'invoice' | 'pos' | 'payment_in' | 'payment_out' | 'product' | 'party' | 'expense';
+
+export interface BottomNavConfig {
+  enabled: boolean;
+  style: BottomNavStyle;
+  showLabels: boolean;
+  showBadges: boolean;
+  showQuickActionCenter: boolean;
+  centerActionIcon?: string;
+  quickActionItems?: QuickActionType[];
+  showMoreDrawerButton: boolean;
+  tabs: BottomNavTabItem[];
+}
+
 export interface BusinessProfile {
   name: string;
   tradeName: string;
@@ -363,6 +454,10 @@ export interface BusinessProfile {
   enableEinvoice: boolean;
   enableEwayBill: boolean;
   einvoiceThresholdCr: number; // e.g. 5 Cr
+  itemLineSettings?: InvoiceLineSettings;
+  defaultTemplateId?: string;
+  customTemplates?: InvoiceTemplateConfig[];
+  bottomNavConfig?: BottomNavConfig;
 }
 
 export interface StateCodeMap {
@@ -488,4 +583,67 @@ export interface SecurityAuditLog {
   action: string;
   module: string;
   details: string;
+}
+
+export type BankEntryClassification = 
+  | 'PAYMENT_IN' 
+  | 'PAYMENT_OUT' 
+  | 'EXPENSE' 
+  | 'CONTRA_TRANSFER' 
+  | 'JOURNAL_ENTRY' 
+  | 'IGNORE';
+
+export interface BankStatementAutoEntry {
+  id: string;
+  date: string;
+  rawDate?: string;
+  narration: string;
+  referenceNo?: string;
+  chequeNo?: string;
+  withdrawalAmount: number; // Dr
+  depositAmount: number;    // Cr
+  closingBalance?: number;
+  
+  // Inferred or user-assigned classification
+  entryType: BankEntryClassification;
+  paymentMethod: PaymentMethod;
+  
+  // Party mapping
+  partyId?: string;
+  partyName?: string;
+  partyType?: 'CUSTOMER' | 'VENDOR';
+  
+  // Expense categorization
+  expenseCategory?: string;
+  
+  // Contra accounts (e.g. Cash in Hand <-> Bank Account)
+  fromAccount?: string;
+  toAccount?: string;
+  
+  // Ledger Head for Direct Journal / Tax / Interest
+  contraAccountId?: string;
+  contraAccountName?: string;
+  
+  // Matched invoices or bills
+  linkedInvoiceId?: string;
+  linkedInvoiceNumber?: string;
+  linkedBillId?: string;
+  linkedBillNumber?: string;
+  
+  notes?: string;
+  status: 'VALID' | 'WARNING' | 'DUPLICATE' | 'IGNORED';
+  matchReason?: string;
+  validationMessage?: string;
+  selected?: boolean;
+}
+
+export interface BankStatementImportResult {
+  totalRows: number;
+  importedCount: number;
+  paymentsInCreated: number;
+  paymentsOutCreated: number;
+  expensesCreated: number;
+  contraCreated: number;
+  journalsCreated: number;
+  partiesCreated: number;
 }

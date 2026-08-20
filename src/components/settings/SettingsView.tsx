@@ -24,10 +24,26 @@ import {
   Trash2,
   Sparkles,
   Check,
-  FileSignature
+  FileSignature,
+  Layers,
+  Tag,
+  Plus,
+  Package,
+  Eye,
+  Sliders,
+  LayoutTemplate,
+  Sun,
+  Moon,
+  Smartphone
 } from 'lucide-react';
 import { STATE_CODE_LIST } from '../../utils/constants';
 import { DEFAULT_SIGNATURE_DATA_URL, DEFAULT_SIGNATURE_2_DATA_URL, normalizeSignatureUrl } from '../../utils/formatters';
+import { InvoiceLineSettings } from '../../types';
+import { normalizeBusinessProfile, cleanDefaultBusinessProfile } from '../../utils/cleanDefaults';
+import { InvoiceTemplateManager } from './InvoiceTemplateManager';
+import { ThemeSettingsTab } from './ThemeSettingsTab';
+import { BottomNavSettingsTab } from './BottomNavSettingsTab';
+import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 
 export const SettingsView: React.FC = () => {
   const { 
@@ -40,10 +56,11 @@ export const SettingsView: React.FC = () => {
     setActiveTab: setGlobalActiveTab
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'signature' | 'banking' | 'invoicing' | 'backup'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'backup'>('profile');
   const [formData, setFormData] = useState({ ...business });
   const [importFileContent, setImportFileContent] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [newWarrantyPreset, setNewWarrantyPreset] = useState('');
 
   // Digital Signature Canvas State
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,9 +69,45 @@ export const SettingsView: React.FC = () => {
   const [penColor, setPenColor] = useState<'#1e3a8a' | '#0f172a'>('#1e3a8a');
   const [signatureFileName, setSignatureFileName] = useState<string | null>(null);
 
+  // Default Item Line Settings Fallback
+  const defaultLineSettings: InvoiceLineSettings = {
+    enableDescription: true,
+    enableSerialNumber: true,
+    enableWarranty: true,
+    enableBatchNumber: true,
+    enableExpiryDate: true,
+    serialNumberLabel: 'Sr. No. / IMEI',
+    warrantyLabel: 'Warranty',
+    defaultWarranty: '1 Year Comprehensive',
+    warrantyOptions: [
+      'No Warranty',
+      '6 Months Replacement',
+      '1 Year Comprehensive',
+      '2 Years Onsite',
+      '3 Years Limited Warranty',
+      '5 Years Manufacturer Warranty'
+    ],
+    descriptionPlaceholder: 'e.g. Model specs, accessories included, or warranty terms...',
+    showOnPrint: {
+      description: true,
+      serialNumber: true,
+      warranty: true,
+      batchNumber: true,
+    }
+  };
+
+  const currentItemSettings: InvoiceLineSettings = {
+    ...defaultLineSettings,
+    ...(formData.itemLineSettings || {}),
+    showOnPrint: {
+      ...defaultLineSettings.showOnPrint,
+      ...(formData.itemLineSettings?.showOnPrint || {})
+    }
+  };
+
   // Synchronize when business changes
   useEffect(() => {
-    setFormData({ ...business });
+    setFormData(normalizeBusinessProfile(business));
   }, [business]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -74,10 +127,76 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  const handleItemLineSettingChange = (field: keyof InvoiceLineSettings, value: any) => {
+    setFormData(prev => {
+      const existing: InvoiceLineSettings = {
+        ...defaultLineSettings,
+        ...(prev.itemLineSettings || {}),
+        showOnPrint: {
+          ...defaultLineSettings.showOnPrint,
+          ...(prev.itemLineSettings?.showOnPrint || {})
+        }
+      };
+      return {
+        ...prev,
+        itemLineSettings: {
+          ...existing,
+          [field]: value
+        }
+      };
+    });
+  };
+
+  const handlePrintToggle = (key: keyof InvoiceLineSettings['showOnPrint'], val: boolean) => {
+    setFormData(prev => {
+      const existing: InvoiceLineSettings = {
+        ...defaultLineSettings,
+        ...(prev.itemLineSettings || {}),
+        showOnPrint: {
+          ...defaultLineSettings.showOnPrint,
+          ...(prev.itemLineSettings?.showOnPrint || {})
+        }
+      };
+      return {
+        ...prev,
+        itemLineSettings: {
+          ...existing,
+          showOnPrint: {
+            ...existing.showOnPrint,
+            [key]: val
+          }
+        }
+      };
+    });
+  };
+
+  const handleAddWarrantyPreset = () => {
+    if (!newWarrantyPreset.trim()) return;
+    const existing = currentItemSettings.warrantyOptions || [];
+    if (existing.includes(newWarrantyPreset.trim())) {
+      showToast('warning', 'Already Exists', 'This warranty option already exists in the list.');
+      return;
+    }
+    const updated = [...existing, newWarrantyPreset.trim()];
+    handleItemLineSettingChange('warrantyOptions', updated);
+    setNewWarrantyPreset('');
+    showToast('success', 'Preset Added', `Added "${newWarrantyPreset.trim()}" to warranty presets.`);
+  };
+
+  const handleRemoveWarrantyPreset = (preset: string) => {
+    const existing = currentItemSettings.warrantyOptions || [];
+    const updated = existing.filter(p => p !== preset);
+    handleItemLineSettingChange('warrantyOptions', updated);
+    if (currentItemSettings.defaultWarranty === preset && updated.length > 0) {
+      handleItemLineSettingChange('defaultWarranty', updated[0]);
+    }
+    showToast('info', 'Preset Removed', `Removed "${preset}" from warranty presets.`);
+  };
+
   const handleSave = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     updateBusiness(formData);
-    showToast('success', 'Settings Saved', 'Business profile & signature preferences updated successfully.');
+    showToast('success', 'Settings Saved', 'Business profile & product line preferences updated successfully.');
   };
 
   // JPG / Image Upload Handler
@@ -260,34 +379,56 @@ export const SettingsView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveTab('profile')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Business & GSTIN
         </button>
         <button
+          onClick={() => setActiveTab('appearance')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'appearance'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Sun className="w-4 h-4 text-amber-500" />
+          <span>Appearance & Theme</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('bottom_nav')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'bottom_nav'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Smartphone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span>Bottom Navigation (Mobile/Tablet)</span>
+        </button>
+        <button
           onClick={() => setActiveTab('signature')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'signature'
-              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileSignature className="w-4 h-4 text-indigo-600" />
+          <FileSignature className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Authorized Signature (JPG)</span>
         </button>
         <button
           onClick={() => setActiveTab('banking')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'banking'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Bank & UPI QR Code
@@ -296,18 +437,40 @@ export const SettingsView: React.FC = () => {
           onClick={() => setActiveTab('invoicing')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'invoicing'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Invoice Numbering & Terms
         </button>
         <button
+          onClick={() => setActiveTab('templates')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'templates'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <LayoutTemplate className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span>Invoice Templates (10+ Designs & Custom)</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('item_lines')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'item_lines'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span>Product Line & Description Settings</span>
+        </button>
+        <button
           onClick={() => setActiveTab('backup')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'backup'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Backup & Data Management
@@ -315,9 +478,9 @@ export const SettingsView: React.FC = () => {
         <button
           type="button"
           onClick={() => setGlobalActiveTab('users')}
-          className="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-indigo-600 hover:text-indigo-800 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ml-auto bg-indigo-50/60 rounded-xl"
+          className="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ml-auto bg-indigo-50/60 dark:bg-indigo-950/60 rounded-xl"
         >
-          <ShieldCheck className="w-4 h-4 text-indigo-600" />
+          <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Users & Role Permissions (RBAC)</span>
         </button>
       </div>
@@ -476,6 +639,16 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: Appearance & Global Theme (Light / Dark / System) */}
+        {activeTab === 'appearance' && (
+          <ThemeSettingsTab />
+        )}
+
+        {/* TAB: Customizable Bottom Navigation Bar */}
+        {activeTab === 'bottom_nav' && (
+          <BottomNavSettingsTab />
         )}
 
         {/* TAB 2: AUTHORIZED SIGNATURE (JPG / DRAW / PREVIEW) */}
@@ -888,13 +1061,381 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 5: Backup & Reset */}
+        {/* TAB: Invoice Templates (10+ GST Designs & Custom Designer) */}
+        {activeTab === 'templates' && (
+          <InvoiceTemplateManager />
+        )}
+
+        {/* TAB 5: Product Line & Description Settings */}
+        {activeTab === 'item_lines' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-indigo-600" />
+                    Product Line Description, Serial Number (Sr. No.) & Warranty Settings
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Control which additional product tracking and description fields appear on invoices and printed bills.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 text-[11px] font-bold bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
+                    Auto Applied in Tax Invoices
+                  </span>
+                </div>
+              </div>
+
+              {/* 3 Main Settings Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* 1. Serial Number (Sr. No.) Settings */}
+                <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                          SN
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-900">Product Serial Number</h4>
+                          <p className="text-[10px] text-slate-500">Track device IMEI / Serial No.</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.enableSerialNumber}
+                          onChange={(e) => handleItemLineSettingChange('enableSerialNumber', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="space-y-2 pt-2 text-xs">
+                      <div>
+                        <label className="block text-slate-700 font-semibold mb-1">Field Label</label>
+                        <input
+                          type="text"
+                          value={currentItemSettings.serialNumberLabel}
+                          onChange={(e) => handleItemLineSettingChange('serialNumberLabel', e.target.value)}
+                          placeholder="e.g. Sr. No. / IMEI"
+                          disabled={!currentItemSettings.enableSerialNumber}
+                          className="w-full px-3 py-1.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-2 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.showOnPrint.serialNumber}
+                          onChange={(e) => handlePrintToggle('serialNumber', e.target.checked)}
+                          disabled={!currentItemSettings.enableSerialNumber}
+                          className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
+                        />
+                        <span className="text-[11px] font-medium text-slate-700">
+                          Print Sr. No. on PDF & Invoice Bills
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
+                    💡 Allows entering comma-separated serial numbers for multiple quantities (e.g. <span className="font-mono text-slate-700">SN-9011, SN-9012</span>).
+                  </div>
+                </div>
+
+                {/* 2. Warranty Settings */}
+                <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-900">Warranty Period</h4>
+                          <p className="text-[10px] text-slate-500">Attach guarantee & coverage</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.enableWarranty}
+                          onChange={(e) => handleItemLineSettingChange('enableWarranty', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="space-y-2 pt-2 text-xs">
+                      <div>
+                        <label className="block text-slate-700 font-semibold mb-1">Field Label</label>
+                        <input
+                          type="text"
+                          value={currentItemSettings.warrantyLabel}
+                          onChange={(e) => handleItemLineSettingChange('warrantyLabel', e.target.value)}
+                          placeholder="e.g. Warranty"
+                          disabled={!currentItemSettings.enableWarranty}
+                          className="w-full px-3 py-1.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-700 font-semibold mb-1">Default Selected Warranty</label>
+                        <select
+                          value={currentItemSettings.defaultWarranty}
+                          onChange={(e) => handleItemLineSettingChange('defaultWarranty', e.target.value)}
+                          disabled={!currentItemSettings.enableWarranty}
+                          className="w-full px-3 py-1.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:opacity-50"
+                        >
+                          {(currentItemSettings.warrantyOptions || []).map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <label className="flex items-center gap-2 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.showOnPrint.warranty}
+                          onChange={(e) => handlePrintToggle('warranty', e.target.checked)}
+                          disabled={!currentItemSettings.enableWarranty}
+                          className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
+                        />
+                        <span className="text-[11px] font-medium text-slate-700">
+                          Print Warranty badge on Invoices
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
+                    🛡️ Printed as an official warranty clause tag on customer tax receipts.
+                  </div>
+                </div>
+
+                {/* 3. Description Line Settings */}
+                <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-900">Product Description Line</h4>
+                          <p className="text-[10px] text-slate-500">Multi-line specs & notes</p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.enableDescription}
+                          onChange={(e) => handleItemLineSettingChange('enableDescription', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="space-y-2 pt-2 text-xs">
+                      <div>
+                        <label className="block text-slate-700 font-semibold mb-1">Input Placeholder</label>
+                        <input
+                          type="text"
+                          value={currentItemSettings.descriptionPlaceholder}
+                          onChange={(e) => handleItemLineSettingChange('descriptionPlaceholder', e.target.value)}
+                          placeholder="Placeholder helper text..."
+                          disabled={!currentItemSettings.enableDescription}
+                          className="w-full px-3 py-1.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                        />
+                      </div>
+
+                      <div className="pt-1">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={currentItemSettings.enableBatchNumber}
+                            onChange={(e) => handleItemLineSettingChange('enableBatchNumber', e.target.checked)}
+                            className="rounded text-indigo-600 cursor-pointer"
+                          />
+                          <span className="text-[11px] font-medium text-slate-700">Enable Batch Number Tracking</span>
+                        </label>
+                      </div>
+
+                      <label className="flex items-center gap-2 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          checked={currentItemSettings.showOnPrint.description}
+                          onChange={(e) => handlePrintToggle('description', e.target.checked)}
+                          disabled={!currentItemSettings.enableDescription}
+                          className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
+                        />
+                        <span className="text-[11px] font-medium text-slate-700">
+                          Print Item Description on Invoices
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
+                    📝 Allows extra item particulars, dimensions, or terms per line.
+                  </div>
+                </div>
+              </div>
+
+              {/* Manage Warranty Preset Options */}
+              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-xs text-slate-900 flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-emerald-600" />
+                      Manage Quick Warranty Presets
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      These presets appear as 1-click choices in invoice item lines and dropdowns.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newWarrantyPreset}
+                      onChange={(e) => setNewWarrantyPreset(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddWarrantyPreset();
+                        }
+                      }}
+                      placeholder="e.g. 3 Years Onsite Warranty"
+                      className="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddWarrantyPreset}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Preset</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {(currentItemSettings.warrantyOptions || []).map((preset) => (
+                    <div
+                      key={preset}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 shadow-2xs group hover:border-emerald-300 transition-colors"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{preset}</span>
+                      {currentItemSettings.defaultWarranty === preset && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 bg-emerald-50 text-emerald-700 rounded">
+                          Default
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveWarrantyPreset(preset)}
+                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer ml-1"
+                        title="Remove preset"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Visual Print Preview Box */}
+              <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-indigo-600" />
+                    <span className="font-bold text-xs text-indigo-950 uppercase tracking-wider">
+                      Live Sample Preview in GST Invoice Document
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-indigo-600 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
+                    Real-time visual output
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500 font-semibold bg-slate-50">
+                        <th className="py-2 px-3">#</th>
+                        <th className="py-2 px-3">Item Description</th>
+                        <th className="py-2 px-2 text-center">HSN</th>
+                        <th className="py-2 px-2 text-center">Qty</th>
+                        <th className="py-2 px-2 text-right">Rate</th>
+                        <th className="py-2 px-3 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-slate-100">
+                        <td className="py-3 px-3 text-slate-400 font-mono">1</td>
+                        <td className="py-3 px-3 max-w-[340px]">
+                          <div className="font-bold text-slate-900 text-sm">
+                            Apple MacBook Pro 16" M3 Max
+                          </div>
+
+                          {/* Serial Number & Warranty Line */}
+                          {(currentItemSettings.enableSerialNumber || currentItemSettings.enableWarranty) && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                              {currentItemSettings.enableSerialNumber && currentItemSettings.showOnPrint.serialNumber && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-mono text-[11px] font-semibold border border-blue-200">
+                                  <span>{currentItemSettings.serialNumberLabel}:</span>
+                                  <span>C02G80XZMD6T</span>
+                                </span>
+                              )}
+
+                              {currentItemSettings.enableWarranty && currentItemSettings.showOnPrint.warranty && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px] border border-emerald-200">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                  <span>{currentItemSettings.warrantyLabel}: {currentItemSettings.defaultWarranty}</span>
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Multi-line Description */}
+                          {currentItemSettings.enableDescription && currentItemSettings.showOnPrint.description && (
+                            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                              36GB Unified Memory, 1TB SSD, Space Black color. Includes 140W USB-C Power Adapter and MagSafe 3 Cable.
+                            </p>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-center font-mono text-slate-600">84713010</td>
+                        <td className="py-3 px-2 text-center font-bold text-slate-800">1 PCS</td>
+                        <td className="py-3 px-2 text-right font-mono text-slate-700">₹3,49,900.00</td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">₹4,12,882.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: Backup & Reset */}
         {activeTab === 'backup' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-            <h3 className="font-bold text-sm text-slate-900 pb-3 border-b border-slate-100 flex items-center gap-2">
-              <Database className="w-4 h-4 text-indigo-600" />
-              Database Backup, Restore & Reset
-            </h3>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-600" />
+                Database Storage, Google Cloud Firestore & Backup
+              </h3>
+            </div>
+
+            {/* Cloud DB Live Status */}
+            <CloudSyncStatusBadge />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               {/* Export Backup */}
@@ -905,7 +1446,7 @@ export const SettingsView: React.FC = () => {
                     Export Full System Backup
                   </div>
                   <p className="text-indigo-800 text-[11px]">
-                    Download a full JSON snapshot of all your invoices, products, stock levels, vendor purchase bills, journal vouchers, authorized signature, and company profile.
+                    Download a full JSON snapshot of all your companies, invoices, products, stock levels, vendor purchase bills, journal vouchers, authorized signature, and company profile.
                   </p>
                 </div>
                 <button
@@ -925,7 +1466,7 @@ export const SettingsView: React.FC = () => {
                     Restore from JSON Backup
                   </div>
                   <p className="text-slate-500 text-[11px]">
-                    Upload a previously exported VyaparFlow backup JSON file.
+                    Upload a previously exported VyaparFlow backup JSON file to restore and sync with Firestore.
                   </p>
                   <input
                     type="file"
@@ -945,16 +1486,16 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
 
-            {/* Dangerous Reset Area */}
+            {/* Clean Database Reset Area */}
             <div className="pt-6 border-t border-slate-200">
               <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                   <div className="font-bold text-rose-900 text-xs flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4 text-rose-600" />
-                    Reset to Factory Demo Data
+                    Reset & Initialize Clean Database
                   </div>
                   <p className="text-rose-700 text-[11px] mt-0.5">
-                    Erases local modifications and reloads sample GST invoices, items, and parties.
+                    Clears all transactional invoices, products, and parties, setting up a fresh, empty workspace in Google Cloud Firestore.
                   </p>
                 </div>
 
@@ -964,7 +1505,7 @@ export const SettingsView: React.FC = () => {
                     onClick={() => setShowResetConfirm(true)}
                     className="px-4 py-2 text-xs font-semibold text-rose-700 bg-white border border-rose-300 hover:bg-rose-100 rounded-xl transition-all cursor-pointer whitespace-nowrap"
                   >
-                    Reset Demo Data
+                    Clean Reset Database
                   </button>
                 ) : (
                   <div className="flex items-center gap-2">

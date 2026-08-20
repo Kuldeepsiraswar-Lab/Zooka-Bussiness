@@ -1,5 +1,6 @@
 import { Invoice, Product, Party, PurchaseBill, Expense, JournalEntry, AccountHead, BusinessProfile, PaymentRecord } from '../types';
 import { DEFAULT_SIGNATURE_DATA_URL } from './formatters';
+import { DEFAULT_BOTTOM_NAV_CONFIG } from './bottomNavDefaults';
 
 export const initialBusinessProfile: BusinessProfile = {
   name: 'Bharat Tech & Solutions Pvt Ltd',
@@ -32,6 +33,32 @@ export const initialBusinessProfile: BusinessProfile = {
   signatoryDesignation: 'Authorised Signatory / Director',
   showSignatureOnInvoice: true,
   signatureUrl: DEFAULT_SIGNATURE_DATA_URL,
+  bottomNavConfig: DEFAULT_BOTTOM_NAV_CONFIG,
+  itemLineSettings: {
+    enableDescription: true,
+    enableSerialNumber: true,
+    enableWarranty: true,
+    enableBatchNumber: true,
+    enableExpiryDate: true,
+    serialNumberLabel: 'Sr. No. / IMEI',
+    warrantyLabel: 'Warranty',
+    defaultWarranty: '1 Year Comprehensive',
+    warrantyOptions: [
+      'No Warranty',
+      '6 Months Replacement',
+      '1 Year Comprehensive',
+      '2 Years Onsite',
+      '3 Years Limited Warranty',
+      '5 Years Manufacturer Warranty'
+    ],
+    descriptionPlaceholder: 'e.g. Model specs, accessories included, or warranty terms...',
+    showOnPrint: {
+      description: true,
+      serialNumber: true,
+      warranty: true,
+      batchNumber: true,
+    }
+  }
 };
 
 export const initialProducts: Product[] = [
@@ -265,6 +292,9 @@ export const initialInvoices: Invoice[] = [
         id: 'item-1',
         productId: 'prod-1',
         name: 'Dell UltraSharp 27" 4K Monitor',
+        description: 'IPS Black panel, 98% DCI-P3 color gamut, USB-C 90W Hub',
+        serialNumber: 'SN-DELL-U2723-99812A, SN-DELL-U2723-99812B',
+        warranty: '3 Years Limited Warranty',
         hsnCode: '8528',
         quantity: 2,
         unit: 'PCS',
@@ -286,6 +316,9 @@ export const initialInvoices: Invoice[] = [
         id: 'item-2',
         productId: 'prod-2',
         name: 'Logitech MX Master 3S Wireless Mouse',
+        description: 'Dark Grey ergonomic Bluetooth mouse with MagSpeed scroll',
+        serialNumber: 'SN-LOGI-882910, SN-LOGI-882911, SN-LOGI-882912',
+        warranty: '1 Year Comprehensive',
         hsnCode: '8471',
         quantity: 3,
         unit: 'PCS',

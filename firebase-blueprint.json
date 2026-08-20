@@ -1,0 +1,182 @@
+{
+  "entities": {
+    "companies": {
+      "title": "Company Profiles",
+      "description": "Multi-company organizational profiles & GST settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "tradeName": { "type": "string" },
+        "gstin": { "type": "string" },
+        "pan": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "state": { "type": "string" },
+        "stateCode": { "type": "string" },
+        "address": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "ifscCode": { "type": "string" },
+        "upiId": { "type": "string" },
+        "currency": { "type": "string" },
+        "financialYear": { "type": "string" },
+        "themeColor": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "invoices": {
+      "title": "Tax Invoices",
+      "description": "Sales invoices, estimates, delivery challans",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "customer": { "type": "object" },
+        "items": { "type": "array" },
+        "subTotal": { "type": "number" },
+        "totalTax": { "type": "number" },
+        "total": { "type": "number" },
+        "amountPaid": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "invoiceNumber", "total"]
+    },
+    "products": {
+      "title": "Products & Inventory",
+      "description": "Product catalog and stock inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "hsnCode": { "type": "string" },
+        "salePrice": { "type": "number" },
+        "purchasePrice": { "type": "number" },
+        "taxRate": { "type": "number" },
+        "currentStock": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "parties": {
+      "title": "Parties (Customers & Vendors)",
+      "description": "Customer and vendor master contacts and ledgers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "gstin": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "state": { "type": "string" },
+        "stateCode": { "type": "string" },
+        "balance": { "type": "number" }
+      },
+      "required": ["id", "name"]
+    },
+    "purchases": {
+      "title": "Purchase Inward Bills",
+      "description": "Vendor purchase invoices and ITC tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "billNumber": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "date": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "billNumber", "total"]
+    },
+    "expenses": {
+      "title": "Operating Expenses",
+      "description": "Direct and indirect business expenses",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "paymentMode": { "type": "string" }
+      },
+      "required": ["id", "amount", "category"]
+    },
+    "payments": {
+      "title": "Payment Records",
+      "description": "Customer payments, vendor payouts, contra transfers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "voucherNumber": { "type": "string" },
+        "type": { "type": "string" },
+        "partyName": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string" },
+        "paymentMode": { "type": "string" }
+      },
+      "required": ["id", "voucherNumber", "amount"]
+    },
+    "accountHeads": {
+      "title": "Chart of Accounts",
+      "description": "General ledger accounts, banks, cash, capital and expense heads",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "balance": { "type": "number" }
+      },
+      "required": ["id", "name", "type"]
+    },
+    "journalEntries": {
+      "title": "Journal Entries",
+      "description": "Double entry book-keeping transaction vouchers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "entryNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "lines": { "type": "array" },
+        "totalAmount": { "type": "number" }
+      },
+      "required": ["id", "entryNumber"]
+    },
+    "users": {
+      "title": "Users & Access Control",
+      "description": "Authorized staff profiles, roles, and PIN access",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "systemState": {
+      "title": "System Configuration",
+      "description": "Global sync metadata, active company pointer, and UI theme",
+      "type": "object",
+      "properties": {
+        "activeCompanyId": { "type": "string" },
+        "lastSyncedAt": { "type": "string" }
+      }
+    }
+  }
+}

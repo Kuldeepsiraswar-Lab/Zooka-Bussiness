@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -26,6 +27,28 @@ import { LockScreenOverlay } from './components/auth/LockScreenOverlay';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { Invoice, Product } from './types';
 import { calculateItemGst } from './utils/gstCalculations';
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12, filter: 'blur(2px)' },
+  animate: { 
+    opacity: 1, 
+    y: 0, 
+    filter: 'blur(0px)',
+    transition: { 
+      duration: 0.24, 
+      ease: [0.22, 1, 0.36, 1] 
+    } 
+  },
+  exit: { 
+    opacity: 0, 
+    y: -8, 
+    filter: 'blur(2px)',
+    transition: { 
+      duration: 0.16, 
+      ease: [0.32, 0, 0.67, 0] 
+    } 
+  }
+};
 
 const MainContent: React.FC = () => {
   const { 
@@ -100,7 +123,7 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-100/70 text-slate-800 font-sans antialiased">
+    <div className="flex min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
       {/* Desktop Sidebar */}
       <Sidebar />
 
@@ -112,93 +135,125 @@ const MainContent: React.FC = () => {
         />
 
         <main className="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">
-          {/* If Print view is active, show the printable document overlay */}
-          {selectedInvoiceIdForPrint ? (
-            <InvoicePrintView
-              invoiceId={selectedInvoiceIdForPrint}
-              onBack={() => setSelectedInvoiceIdForPrint(null)}
-            />
-          ) : isEditorOpen ? (
-            /* If creating / editing invoice */
-            <InvoiceEditor
-              initialData={editingInvoiceData}
-              onClose={() => setIsEditorOpen(false)}
-            />
-          ) : (
-            /* Render Current View Tab with RBAC Protection */
-            <>
-              {activeTab === 'dashboard' && (
-                <DashboardView onOpenNewInvoice={handleOpenNewInvoice} />
-              )}
-              {activeTab === 'invoices' && (
-                can('invoices', 'view') ? (
-                  <InvoiceListView
+          <AnimatePresence mode="wait" initial={false}>
+            {/* If Print view is active, show the printable document overlay */}
+            {selectedInvoiceIdForPrint ? (
+              <motion.div
+                key="print-view"
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <InvoicePrintView
+                  invoiceId={selectedInvoiceIdForPrint}
+                  onBack={() => setSelectedInvoiceIdForPrint(null)}
+                  onEdit={(inv) => {
+                    setSelectedInvoiceIdForPrint(null);
+                    handleEditInvoice(inv);
+                  }}
+                />
+              </motion.div>
+            ) : isEditorOpen ? (
+              /* If creating / editing invoice */
+              <motion.div
+                key="editor-view"
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <InvoiceEditor
+                  initialData={editingInvoiceData}
+                  onClose={() => setIsEditorOpen(false)}
+                />
+              </motion.div>
+            ) : (
+              /* Render Current View Tab with RBAC Protection */
+              <motion.div
+                key={activeTab}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="w-full"
+              >
+                {activeTab === 'dashboard' && (
+                  <DashboardView 
                     onOpenNewInvoice={handleOpenNewInvoice}
                     onEditInvoice={handleEditInvoice}
                   />
-                ) : (
-                  <AccessRestricted moduleName="Invoices & Billing" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
-                )
-              )}
-              {activeTab === 'payments' && (
-                can('payments', 'view') ? (
-                  <PaymentsView />
-                ) : (
-                  <AccessRestricted moduleName="Payments & Receipts" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
-                )
-              )}
-              {activeTab === 'pos_billing' && (
-                can('pos_billing', 'view') ? (
-                  <PosBillingView />
-                ) : (
-                  <AccessRestricted moduleName="POS Counter Billing" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
-                )
-              )}
-              {activeTab === 'inventory' && (
-                can('inventory', 'view') ? (
-                  <InventoryView onOpenNewInvoiceWithItem={handleOpenNewInvoiceWithItem} />
-                ) : (
-                  <AccessRestricted moduleName="Inventory & Stock" allowedRoles={['ADMIN', 'ACCOUNTANT', 'INVENTORY_MANAGER']} />
-                )
-              )}
-              {activeTab === 'parties' && (
-                (can('parties', 'viewCustomers') || can('parties', 'viewVendors')) ? (
-                  <PartiesView />
-                ) : (
-                  <AccessRestricted moduleName="Customers & Vendors Directory" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON', 'INVENTORY_MANAGER']} />
-                )
-              )}
-              {activeTab === 'purchases' && (
-                can('purchases', 'view') ? (
-                  <PurchasesView />
-                ) : (
-                  <AccessRestricted moduleName="Purchases & Vendor Bills" allowedRoles={['ADMIN', 'ACCOUNTANT', 'INVENTORY_MANAGER']} />
-                )
-              )}
-              {activeTab === 'accounting' && (
-                can('accounting', 'viewJournals') ? (
-                  <AccountingView />
-                ) : (
-                  <AccessRestricted moduleName="Accounting & Financial Statements" allowedRoles={['ADMIN', 'ACCOUNTANT', 'AUDITOR']} />
-                )
-              )}
-              {activeTab === 'gst_returns' && (
-                can('gst_returns', 'view') ? (
-                  <GstReturnsView />
-                ) : (
-                  <AccessRestricted moduleName="GST Returns & Tax Registers" allowedRoles={['ADMIN', 'ACCOUNTANT', 'AUDITOR']} />
-                )
-              )}
-              {activeTab === 'users' && <UsersAndRolesView />}
-              {activeTab === 'settings' && (
-                can('settings', 'view') ? (
-                  <SettingsView />
-                ) : (
-                  <AccessRestricted moduleName="Settings & Company Profile" allowedRoles={['ADMIN']} />
-                )
-              )}
-            </>
-          )}
+                )}
+                {activeTab === 'invoices' && (
+                  can('invoices', 'view') ? (
+                    <InvoiceListView
+                      onOpenNewInvoice={handleOpenNewInvoice}
+                      onEditInvoice={handleEditInvoice}
+                    />
+                  ) : (
+                    <AccessRestricted moduleName="Invoices & Billing" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
+                  )
+                )}
+                {activeTab === 'payments' && (
+                  can('payments', 'view') ? (
+                    <PaymentsView />
+                  ) : (
+                    <AccessRestricted moduleName="Payments & Receipts" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
+                  )
+                )}
+                {activeTab === 'pos_billing' && (
+                  can('pos_billing', 'view') ? (
+                    <PosBillingView />
+                  ) : (
+                    <AccessRestricted moduleName="POS Counter Billing" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
+                  )
+                )}
+                {activeTab === 'inventory' && (
+                  can('inventory', 'view') ? (
+                    <InventoryView onOpenNewInvoiceWithItem={handleOpenNewInvoiceWithItem} />
+                  ) : (
+                    <AccessRestricted moduleName="Inventory & Stock" allowedRoles={['ADMIN', 'ACCOUNTANT', 'INVENTORY_MANAGER']} />
+                  )
+                )}
+                {activeTab === 'parties' && (
+                  (can('parties', 'viewCustomers') || can('parties', 'viewVendors')) ? (
+                    <PartiesView />
+                  ) : (
+                    <AccessRestricted moduleName="Customers & Vendors Directory" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON', 'INVENTORY_MANAGER']} />
+                  )
+                )}
+                {activeTab === 'purchases' && (
+                  can('purchases', 'view') ? (
+                    <PurchasesView />
+                  ) : (
+                    <AccessRestricted moduleName="Purchases & Vendor Bills" allowedRoles={['ADMIN', 'ACCOUNTANT', 'INVENTORY_MANAGER']} />
+                  )
+                )}
+                {activeTab === 'accounting' && (
+                  can('accounting', 'viewJournals') ? (
+                    <AccountingView />
+                  ) : (
+                    <AccessRestricted moduleName="Accounting & Financial Statements" allowedRoles={['ADMIN', 'ACCOUNTANT', 'AUDITOR']} />
+                  )
+                )}
+                {activeTab === 'gst_returns' && (
+                  can('gst_returns', 'view') ? (
+                    <GstReturnsView />
+                  ) : (
+                    <AccessRestricted moduleName="GST Returns & Tax Registers" allowedRoles={['ADMIN', 'ACCOUNTANT', 'AUDITOR']} />
+                  )
+                )}
+                {activeTab === 'users' && <UsersAndRolesView />}
+                {activeTab === 'settings' && (
+                  can('settings', 'view') ? (
+                    <SettingsView />
+                  ) : (
+                    <AccessRestricted moduleName="Settings & Company Profile" allowedRoles={['ADMIN']} />
+                  )
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
 

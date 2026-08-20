@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { 
@@ -30,7 +31,8 @@ import {
   Sparkles,
   BarChart3,
   Activity,
-  Maximize2
+  Maximize2,
+  Edit3
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -44,12 +46,14 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
+import { Invoice } from '../../types';
 
 interface DashboardViewProps {
   onOpenNewInvoice: () => void;
+  onEditInvoice?: (invoice: Invoice) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, onEditInvoice }) => {
   const { 
     invoices, 
     purchaseBills, 
@@ -961,6 +965,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice }
               <tr className="border-b border-slate-200 text-slate-500 font-semibold bg-slate-50/50">
                 <th className="py-2.5 px-3">Invoice No & Date</th>
                 <th className="py-2.5 px-3">Customer & GSTIN</th>
+                <th className="py-2.5 px-3">Products / Items</th>
                 <th className="py-2.5 px-3">Tax Type</th>
                 <th className="py-2.5 px-3 text-right">Taxable</th>
                 <th className="py-2.5 px-3 text-right">Total Amount</th>
@@ -982,6 +987,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice }
                       <div className="text-[11px] font-mono text-slate-500">
                         {inv.customerGstin || 'Unregistered / Retail'}
                       </div>
+                    </td>
+                    <td className="py-3 px-3 max-w-[200px]">
+                      {inv.items && inv.items.length > 0 ? (
+                        <div className="space-y-0.5">
+                          <div className="text-slate-800 font-medium truncate flex items-center gap-1" title={inv.items.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}>
+                            <Package className="w-3 h-3 text-indigo-500 shrink-0" />
+                            <span className="truncate">{inv.items[0]?.name}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">({inv.items[0]?.quantity} {inv.items[0]?.unit})</span>
+                          </div>
+                          {inv.items.length > 1 && (
+                            <div className="text-[10px] font-bold text-indigo-600">
+                              +{inv.items.length - 1} more item{inv.items.length - 1 > 1 ? 's' : ''}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-[11px] italic">No items</span>
+                      )}
                     </td>
                     <td className="py-3 px-3">
                       <span className="inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded">
@@ -1008,12 +1031,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice }
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => setSelectedInvoiceIdForPrint(inv.id)}
-                        className="px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                      >
-                        Print / PDF
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onEditInvoice && (
+                          <button
+                            onClick={() => onEditInvoice(inv)}
+                            className="px-2 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                            title="Edit Invoice"
+                          >
+                            <Edit3 className="w-3 h-3 text-amber-600" />
+                            <span>Edit</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setSelectedInvoiceIdForPrint(inv.id)}
+                          className="px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Print / PDF
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

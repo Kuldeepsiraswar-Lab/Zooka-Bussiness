@@ -22,7 +22,9 @@ import {
   ChevronRight,
   Users,
   ShieldAlert,
-  Crown
+  Crown,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { CreateCompanyModal } from '../company/CreateCompanyModal';
 
@@ -36,7 +38,10 @@ export const LoginScreen: React.FC = () => {
     currentUser, 
     authenticateAndSwitchUser, 
     loginAsSuperAdmin,
-    showToast
+    showToast,
+    theme,
+    resolvedTheme,
+    toggleTheme
   } = useApp();
 
   // Screen Flow Step: defaults to 'select_company' when opening the app
@@ -161,6 +166,20 @@ export const LoginScreen: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Quick Theme Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 rounded-xl transition-colors cursor-pointer"
+            title={`Toggle Theme Mode (Current: ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-300" />
+            )}
+          </button>
+
           {loginStep === 'login_credentials' && (
             <button
               type="button"

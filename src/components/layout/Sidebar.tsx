@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
 import { 
@@ -19,7 +20,9 @@ import {
   Lock,
   UserCheck,
   ShieldAlert,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -32,7 +35,19 @@ interface SidebarItem {
 }
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, products, currentUser, can, lockSession, openAuthModal, logout } = useApp();
+  const { 
+    activeTab, 
+    setActiveTab, 
+    products, 
+    currentUser, 
+    can, 
+    lockSession, 
+    openAuthModal, 
+    logout,
+    theme,
+    resolvedTheme,
+    toggleTheme
+  } = useApp();
 
   const lowStockCount = products.filter(p => !p.isService && p.currentStock <= p.minStockAlert).length;
 
@@ -155,16 +170,24 @@ export const Sidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
+              className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
                 isActive
-                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'text-white'
                   : hasAccess
                   ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/30 opacity-70'
               }`}
               title={!hasAccess ? `Access Restricted for ${currentUser.role}` : item.description}
             >
-              <div className="flex items-center gap-3">
+              {isActive && (
+                <motion.div
+                  layoutId="activeSidebarIndicator"
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl shadow-md shadow-indigo-600/25 z-0"
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                />
+              )}
+
+              <div className="relative z-10 flex items-center gap-3">
                 <Icon
                   className={`w-4 h-4 transition-colors ${
                     isActive ? 'text-white' : hasAccess ? 'text-slate-400 group-hover:text-cyan-400' : 'text-slate-600'
@@ -173,7 +196,7 @@ export const Sidebar: React.FC = () => {
                 <span className="font-medium text-left">{item.label}</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="relative z-10 flex items-center gap-1.5">
                 {!hasAccess && (
                   <span className="p-1 rounded bg-slate-800 text-slate-500 group-hover:text-amber-400" title="Restricted by role">
                     <Lock className="w-3 h-3" />
@@ -213,6 +236,17 @@ export const Sidebar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => toggleTheme()}
+              className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+              title={`Toggle Theme (Current: ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
+            >
+              {resolvedTheme === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-slate-300" />
+              )}
+            </button>
             <button
               onClick={() => lockSession()}
               className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"

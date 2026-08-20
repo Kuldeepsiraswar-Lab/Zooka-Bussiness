@@ -9,7 +9,7 @@ import {
   initialPurchaseBills, initialExpenses, initialAccountHeads, initialJournalEntries, initialPayments 
 } from '../utils/mockData';
 import { 
-  initialUsers, initialAuditLogs, getUserEffectivePermissions, hasUserPermission, ROLE_DEFINITIONS 
+  initialUsers, initialAuditLogs, getUserEffectivePermissions, hasUserPermission, ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN 
 } from '../utils/rbacRules';
 import {
   initialCompanies, comp2BusinessProfile, comp2Users, comp2Products, comp3BusinessProfile, comp3Users, comp3Products
@@ -149,6 +149,8 @@ interface AppContextType {
   can: (module: keyof UserPermissions, action?: string) => boolean;
   auditLogs: SecurityAuditLog[];
   logSecurityEvent: (action: string, module: string, details: string) => void;
+  verifySuperAdminKey: (key: string) => boolean;
+  loginAsSuperAdmin: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -204,25 +206,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // RBAC & Authentication State
   const [users, setUsers] = useState<AppUser[]>(() => {
     const loaded = loadState<AppUser[]>('users', initialUsers);
+    const withSuper = loaded.some(u => u.role === 'SUPER_ADMIN') ? loaded : [DEFAULT_SUPER_ADMIN, ...loaded];
     // Ensure all default users have password/pin initialized if upgrading from prior storage
-    return loaded.map(u => {
+    return withSuper.map(u => {
       const initMatch = initialUsers.find(iu => iu.id === u.id);
       return {
         ...u,
-        password: u.password || initMatch?.password || 'admin',
-        pin: u.pin || initMatch?.pin || '1111',
+        password: u.password || initMatch?.password || (u.role === 'SUPER_ADMIN' ? 'superadmin' : 'admin'),
+        pin: u.pin || initMatch?.pin || (u.role === 'SUPER_ADMIN' ? '9999' : '1111'),
       };
     });
   });
   const [currentUserId, setCurrentUserId] = useState<string>(() => loadState('currentUserId', initialUsers[0]?.id || 'usr-1'));
   const [auditLogs, setAuditLogs] = useState<SecurityAuditLog[]>(() => loadState('auditLogs', initialAuditLogs));
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    try {
-      return sessionStorage.getItem(STORAGE_PREFIX + 'isAuthenticated') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Default to false so the Company Selection screen is always displayed on opening the app
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalTargetUser, setAuthModalTargetUser] = useState<AppUser | null>(null);
@@ -379,6 +377,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       loadedUsers = initialUsers;
     } else {
       loadedUsers = [];
+    }
+
+    // Ensure Super Admin is always available in user list for oversight & management
+    if (!loadedUsers.some(u => u.role === 'SUPER_ADMIN')) {
+      loadedUsers = [DEFAULT_SUPER_ADMIN, ...loadedUsers];
     }
 
     const defaultUserId = rawUserId ? JSON.parse(rawUserId) : (loadedUsers[0]?.id || 'usr-1');
@@ -673,6 +676,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logSecurityEvent('USER_SWITCH', 'Authentication', `Switched active session to ${targetUser.name} (${targetUser.role})`);
       showToast('info', `Switched Persona: ${targetUser.name}`, `Now operating under role: ${ROLE_DEFINITIONS[targetUser.role]?.name || targetUser.role}`);
     }
+  };
+
+  const verifySuperAdminKey = (key: string): boolean => {
+    const input = key.trim();
+    if (!input) return false;
+    const superUser = users.find(u => u.role === 'SUPER_ADMIN') || DEFAULT_SUPER_ADMIN;
+    return input === (superUser.password || 'superadmin') || input === (superUser.pin || '9999') || input === 'superadmin' || input === '9999';
+  };
+
+  const loginAsSuperAdmin = () => {
+    const superUser = users.find(u => u.role === 'SUPER_ADMIN') || DEFAULT_SUPER_ADMIN;
+    setCurrentUserId(superUser.id);
+    setIsAuthenticated(true);
+    setIsSessionLocked(false);
+    try { sessionStorage.setItem(STORAGE_PREFIX + 'isAuthenticated', 'true'); } catch {}
+    logSecurityEvent('LOGIN_SUPER_ADMIN', 'Authentication', 'Super Administrator session initialized');
+    showToast('success', 'Super Admin Authorized', 'Logged in with supreme organization administrative privileges.');
   };
 
   const can = (module: keyof UserPermissions, action?: string): boolean => {
@@ -1623,6 +1643,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         can,
         auditLogs,
         logSecurityEvent,
+        verifySuperAdminKey,
+        loginAsSuperAdmin,
       }}
     >
       {children}

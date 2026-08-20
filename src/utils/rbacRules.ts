@@ -1,5 +1,82 @@
 import { AppUser, RoleDefinition, RoleType, SecurityAuditLog, UserPermissions } from '../types';
 
+export const SUPER_ADMIN_PERMISSIONS: UserPermissions = {
+  dashboard: {
+    view: true,
+    viewFinancialMetrics: true,
+    exportReports: true,
+  },
+  invoices: {
+    view: true,
+    create: true,
+    edit: true,
+    delete: true,
+    generateIRN: true,
+    cancelInvoice: true,
+    printDownload: true,
+  },
+  pos_billing: {
+    view: true,
+    createSale: true,
+    giveCustomDiscount: true,
+    reprintReceipt: true,
+  },
+  payments: {
+    view: true,
+    recordPaymentIn: true,
+    recordPaymentOut: true,
+    recordContra: true,
+    deletePayment: true,
+  },
+  inventory: {
+    view: true,
+    viewPurchaseCost: true,
+    createProduct: true,
+    editProduct: true,
+    deleteProduct: true,
+    adjustStock: true,
+  },
+  parties: {
+    viewCustomers: true,
+    viewVendors: true,
+    createParty: true,
+    editParty: true,
+    deleteParty: true,
+    viewLedgerStatement: true,
+    bulkImport: true,
+  },
+  purchases: {
+    view: true,
+    createBill: true,
+    editBill: true,
+    deleteBill: true,
+    viewITCReports: true,
+  },
+  accounting: {
+    viewJournals: true,
+    createJournal: true,
+    viewChartOfAccounts: true,
+    viewBalanceSheet: true,
+    viewProfitAndLoss: true,
+    viewTrialBalance: true,
+  },
+  gst_returns: {
+    view: true,
+    viewGstr1: true,
+    viewGstr3b: true,
+    viewTaxRegisters: true,
+    exportGstJson: true,
+  },
+  settings: {
+    view: true,
+    editCompanyProfile: true,
+    editBankAndUPI: true,
+    manageUsersAndRoles: true,
+    backupAndRestore: true,
+    resetDatabase: true,
+  },
+};
+
 export const ADMIN_PERMISSIONS: UserPermissions = {
   dashboard: {
     view: true,
@@ -386,6 +463,16 @@ export const AUDITOR_PERMISSIONS: UserPermissions = {
 };
 
 export const ROLE_DEFINITIONS: Record<RoleType, RoleDefinition> = {
+  SUPER_ADMIN: {
+    id: 'SUPER_ADMIN',
+    name: 'Super Administrator',
+    description: 'Supreme administrative authority across all multi-company workspaces, business entity provisioning, master configuration, and organization governance.',
+    color: 'violet',
+    badgeBg: 'bg-purple-100 border-purple-300',
+    badgeText: 'text-purple-900',
+    isSystem: true,
+    defaultPermissions: SUPER_ADMIN_PERMISSIONS,
+  },
   ADMIN: {
     id: 'ADMIN',
     name: 'Administrator',
@@ -448,14 +535,32 @@ export const ROLE_DEFINITIONS: Record<RoleType, RoleDefinition> = {
   },
 };
 
+export const DEFAULT_SUPER_ADMIN: AppUser = {
+  id: 'usr-super-admin',
+  name: 'Vikram Singhania',
+  email: 'superadmin@vyaparflow.in',
+  phone: '+91 99999 88888',
+  role: 'SUPER_ADMIN',
+  roleTitle: 'Platform Super Administrator',
+  department: 'Executive Governance & Board',
+  avatarBg: 'bg-gradient-to-tr from-purple-600 via-indigo-600 to-violet-700',
+  avatarText: 'SA',
+  password: 'superadmin',
+  pin: '9999',
+  isActive: true,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  lastLogin: '2026-08-20T08:00:00.000Z',
+};
+
 export const initialUsers: AppUser[] = [
+  DEFAULT_SUPER_ADMIN,
   {
     id: 'usr-1',
     name: 'Rajesh K. Sharma',
     email: 'rajesh@bharattech.in',
     phone: '+91 98765 43210',
     role: 'ADMIN',
-    roleTitle: 'Managing Director & Super Admin',
+    roleTitle: 'Managing Director & Admin',
     department: 'Executive Management',
     avatarBg: 'bg-indigo-600',
     avatarText: 'RS',

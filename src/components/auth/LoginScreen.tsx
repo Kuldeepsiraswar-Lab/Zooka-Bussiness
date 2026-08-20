@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AppUser, RoleType, Company } from '../../types';
-import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
+import { ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN } from '../../utils/rbacRules';
 import { 
   ShieldCheck, 
   Lock, 
@@ -21,7 +21,8 @@ import {
   Briefcase,
   ChevronRight,
   Users,
-  ShieldAlert
+  ShieldAlert,
+  Crown
 } from 'lucide-react';
 import { CreateCompanyModal } from '../company/CreateCompanyModal';
 
@@ -34,12 +35,16 @@ export const LoginScreen: React.FC = () => {
     users, 
     currentUser, 
     authenticateAndSwitchUser, 
+    loginAsSuperAdmin,
     showToast
   } = useApp();
 
   // Screen Flow Step: defaults to 'select_company' when opening the app
   const [loginStep, setLoginStep] = useState<'select_company' | 'login_credentials'>('select_company');
-  const [selectedUserId, setSelectedUserId] = useState<string>(currentUser?.id || users[0]?.id || 'usr-1');
+  const [selectedUserId, setSelectedUserId] = useState<string>(() => {
+    const admin = users.find(u => u.role === 'ADMIN' && u.isActive);
+    return admin ? admin.id : (users[0]?.id || DEFAULT_SUPER_ADMIN.id);
+  });
   const [authMode, setAuthMode] = useState<'password' | 'pin'>('password');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +61,7 @@ export const LoginScreen: React.FC = () => {
     }
   }, [users, currentCompanyId]);
 
-  const targetUser: AppUser = users.find(u => u.id === selectedUserId) || users[0];
+  const targetUser: AppUser = users.find(u => u.id === selectedUserId) || DEFAULT_SUPER_ADMIN;
   const roleMeta = ROLE_DEFINITIONS[targetUser?.role] || ROLE_DEFINITIONS.ADMIN;
 
   const handleChooseCompany = (comp: Company) => {
@@ -94,11 +99,15 @@ export const LoginScreen: React.FC = () => {
     }, 150);
   };
 
+  const handleQuickSuperAdminLogin = () => {
+    loginAsSuperAdmin();
+  };
+
   const handleAutoFill = () => {
     if (authMode === 'password') {
-      setPasswordInput(targetUser?.password || 'admin');
+      setPasswordInput(targetUser?.password || (targetUser?.role === 'SUPER_ADMIN' ? 'superadmin' : 'admin'));
     } else {
-      setPasswordInput(targetUser?.pin || '1111');
+      setPasswordInput(targetUser?.pin || (targetUser?.role === 'SUPER_ADMIN' ? '9999' : '1111'));
     }
     setErrorMessage(null);
   };
@@ -130,14 +139,14 @@ export const LoginScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-between relative overflow-hidden font-sans text-slate-100 selection:bg-indigo-500 selection:text-white">
       {/* Background Ambient Lighting */}
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 left-1/3 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top App Header */}
       <header className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 ring-2 ring-white/10">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 ring-2 ring-white/10">
             <Receipt className="w-6 h-6" />
           </div>
           <div>
@@ -166,9 +175,9 @@ export const LoginScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCreateCompanyOpen(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-700 hover:from-purple-800 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-purple-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer border border-purple-500/30"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Crown className="w-3.5 h-3.5 text-amber-300" />
             <span>+ Create Business</span>
           </button>
         </div>
@@ -195,6 +204,46 @@ export const LoginScreen: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-400">
                 Choose the business workspace you wish to access. Each company possesses its own isolated GSTIN, products, invoices, and user permissions.
               </p>
+            </div>
+
+            {/* Super Admin Quick Launch Banner */}
+            <div className="bg-gradient-to-r from-purple-950/70 via-indigo-950/70 to-slate-900/90 border border-purple-800/50 rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-amber-300 flex items-center justify-center font-bold text-sm shadow-lg shadow-purple-600/30 shrink-0 ring-2 ring-white/10">
+                  <Crown className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-white leading-tight">Super Administrator Control</h3>
+                    <span className="text-[9px] font-extrabold uppercase bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full border border-purple-400/40">
+                      Supreme Role
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    <strong>Vikram Singhania</strong> • Supreme authority to create & provision new business entities across the platform.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateCompanyOpen(true)}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create New Business</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuickSuperAdminLogin}
+                  className="px-3.5 py-2 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  title="Direct sign in as Super Admin"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Super Admin Login</span>
+                </button>
+              </div>
             </div>
 
             {/* Companies Grid */}
@@ -270,17 +319,17 @@ export const LoginScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsCreateCompanyOpen(true)}
-                className="group border-2 border-dashed border-slate-800 hover:border-indigo-500/60 bg-slate-900/30 hover:bg-slate-900/60 rounded-3xl p-6 transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 min-h-[240px]"
+                className="group border-2 border-dashed border-purple-900/60 hover:border-purple-500 bg-purple-950/20 hover:bg-purple-950/40 rounded-3xl p-6 transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-3 min-h-[240px]"
               >
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Plus className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-300 border border-purple-500/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Crown className="w-6 h-6 text-amber-300" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
                     Register New Company
                   </h4>
-                  <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
-                    Create a new entity with custom GSTIN, PAN, and initial Admin account
+                  <p className="text-xs text-purple-300/80 mt-1 max-w-[200px]">
+                    Requires Super Admin credentials to provision new business workspace
                   </p>
                 </div>
               </button>
@@ -319,14 +368,25 @@ export const LoginScreen: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setLoginStep('select_company')}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Switch Company</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateCompanyOpen(true)}
+                  className="px-3 py-1.5 bg-purple-950 hover:bg-purple-900 border border-purple-600/40 text-purple-200 hover:text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-300" />
+                  <span>+ New Business</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLoginStep('select_company')}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Switch Company</span>
+                </button>
+              </div>
             </div>
 
             {/* Login & Role Selection Grid */}
@@ -352,6 +412,7 @@ export const LoginScreen: React.FC = () => {
                   {users.filter(u => u.isActive).map(user => {
                     const isSelected = user.id === selectedUserId;
                     const uRoleMeta = ROLE_DEFINITIONS[user.role] || ROLE_DEFINITIONS.ADMIN;
+                    const isSuper = user.role === 'SUPER_ADMIN';
 
                     return (
                       <button
@@ -360,15 +421,19 @@ export const LoginScreen: React.FC = () => {
                         onClick={() => handleSelectUser(user)}
                         className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative group flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-slate-900/90 border-indigo-500 ring-2 ring-indigo-500/30 shadow-xl shadow-indigo-500/10'
-                            : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700'
+                            ? isSuper
+                              ? 'bg-purple-950/80 border-purple-500 ring-2 ring-purple-500/30 shadow-xl shadow-purple-500/10'
+                              : 'bg-slate-900/90 border-indigo-500 ring-2 ring-indigo-500/30 shadow-xl shadow-indigo-500/10'
+                            : isSuper
+                              ? 'bg-purple-950/40 border-purple-900/60 hover:bg-purple-950/70 hover:border-purple-700'
+                              : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700'
                         }`}
                       >
                         <div>
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2.5">
                               <div className={`w-9 h-9 rounded-xl ${user.avatarBg} text-white font-bold text-xs flex items-center justify-center shadow-md shrink-0`}>
-                                {user.avatarText}
+                                {isSuper ? <Crown className="w-4 h-4 text-amber-300" /> : user.avatarText}
                               </div>
                               <div className="min-w-0">
                                 <div className="text-xs font-bold text-white truncate group-hover:text-cyan-300 transition-colors">
@@ -391,8 +456,8 @@ export const LoginScreen: React.FC = () => {
                         </div>
 
                         <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                          <span>Password: <strong className="text-slate-300">{user.password || 'admin'}</strong></span>
-                          <span>PIN: <strong className="text-slate-300">{user.pin || '1111'}</strong></span>
+                          <span>Password: <strong className="text-slate-300">{user.password || (isSuper ? 'superadmin' : 'admin')}</strong></span>
+                          <span>PIN: <strong className="text-slate-300">{user.pin || (isSuper ? '9999' : '1111')}</strong></span>
                         </div>
 
                         {isSelected && (
@@ -411,7 +476,7 @@ export const LoginScreen: React.FC = () => {
                   {/* Selected User Header */}
                   <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
                     <div className={`w-11 h-11 rounded-2xl ${targetUser?.avatarBg} text-white font-black text-sm flex items-center justify-center shadow-md shrink-0 ring-2 ring-slate-700`}>
-                      {targetUser?.avatarText}
+                      {targetUser?.role === 'SUPER_ADMIN' ? <Crown className="w-5 h-5 text-amber-300" /> : targetUser?.avatarText}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -477,7 +542,7 @@ export const LoginScreen: React.FC = () => {
                           className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1 font-mono"
                         >
                           <Sparkles className="w-3 h-3 text-cyan-400" />
-                          <span>Auto-fill: {authMode === 'password' ? targetUser?.password || 'admin' : targetUser?.pin || '1111'}</span>
+                          <span>Auto-fill: {authMode === 'password' ? targetUser?.password || (targetUser?.role === 'SUPER_ADMIN' ? 'superadmin' : 'admin') : targetUser?.pin || (targetUser?.role === 'SUPER_ADMIN' ? '9999' : '1111')}</span>
                         </button>
                       </div>
 

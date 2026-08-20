@@ -371,7 +371,7 @@ export interface StateCodeMap {
 }
 
 // User Roles & Permissions (RBAC)
-export type RoleType = 'ADMIN' | 'ACCOUNTANT' | 'SALESPERSON' | 'INVENTORY_MANAGER' | 'AUDITOR' | 'CUSTOM';
+export type RoleType = 'SUPER_ADMIN' | 'ADMIN' | 'ACCOUNTANT' | 'SALESPERSON' | 'INVENTORY_MANAGER' | 'AUDITOR' | 'CUSTOM';
 
 export interface UserPermissions {
   dashboard: {

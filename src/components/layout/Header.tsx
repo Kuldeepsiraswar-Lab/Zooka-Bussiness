@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
-import { CompanySwitcher } from '../company/CompanySwitcher';
 import { 
   Building2, 
   Search, 
@@ -21,7 +20,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSearch }) => {
-  const { business, setActiveTab, invoices, products, can } = useApp();
+  const { business, currentCompany, setActiveTab, invoices, products, can } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Compute live alerts (e.g. low stock, unpaid overdue invoices)
@@ -30,11 +29,40 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
 
   const totalAlertsCount = lowStockItems.length + overdueInvoices.length;
 
+  const getThemeBg = (color?: string) => {
+    switch (color) {
+      case 'emerald': return 'bg-emerald-600';
+      case 'blue': return 'bg-blue-600';
+      case 'amber': return 'bg-amber-600';
+      case 'purple': return 'bg-purple-600';
+      case 'rose': return 'bg-rose-600';
+      case 'cyan': return 'bg-cyan-600';
+      default: return 'bg-indigo-600';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-white/95 backdrop-blur border-b border-slate-200">
-      {/* Left: Multi-Company Switcher & Business Identity */}
-      <div className="flex items-center gap-3">
-        <CompanySwitcher />
+      {/* Left: Current Active Company Identity (Static, No Switcher) */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${getThemeBg(currentCompany?.themeColor)} text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs shrink-0 ring-1 ring-black/5`}>
+          <Building2 className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h2 className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-[140px] sm:max-w-[220px] md:max-w-[280px]">
+              {currentCompany?.tradeName || currentCompany?.name || business.tradeName || business.name}
+            </h2>
+            <span className="hidden sm:inline-flex text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+              State: {currentCompany?.gstin ? currentCompany.gstin.substring(0, 2) : '27'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 font-mono truncate">
+            <span className="text-indigo-600 font-semibold truncate">GSTIN: {currentCompany?.gstin || business.gstin}</span>
+            <span className="hidden md:inline text-slate-300">•</span>
+            <span className="hidden md:inline text-slate-500">{currentCompany?.city || business.city}, {currentCompany?.state || business.state}</span>
+          </div>
+        </div>
       </div>
 
       {/* Middle: Universal Quick Search */}

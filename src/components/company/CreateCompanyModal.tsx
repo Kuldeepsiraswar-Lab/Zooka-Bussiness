@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Company, BusinessProfile } from '../../types';
 import { 
@@ -17,7 +17,10 @@ import {
   Receipt,
   Layers,
   Lock,
-  Fingerprint
+  Fingerprint,
+  Crown,
+  ShieldAlert,
+  AlertCircle
 } from 'lucide-react';
 import { INDIAN_STATES } from '../../utils/constants';
 
@@ -42,8 +45,15 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { createCompany, showToast } = useApp();
+  const { createCompany, currentUser, verifySuperAdminKey, showToast, logSecurityEvent } = useApp();
 
+  // Super Admin Authorization state
+  const isSuperAdminLoggedIn = currentUser?.role === 'SUPER_ADMIN';
+  const [superAdminKey, setSuperAdminKey] = useState('');
+  const [isSuperAdminAuthorized, setIsSuperAdminAuthorized] = useState<boolean>(isSuperAdminLoggedIn);
+  const [superAdminError, setSuperAdminError] = useState<string | null>(null);
+
+  // Form State
   const [companyName, setCompanyName] = useState('');
   const [tradeName, setTradeName] = useState('');
   const [gstin, setGstin] = useState('');
@@ -71,7 +81,37 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
   const [adminPassword, setAdminPassword] = useState('admin');
   const [adminPin, setAdminPin] = useState('1111');
 
+  useEffect(() => {
+    if (isSuperAdminLoggedIn) {
+      setIsSuperAdminAuthorized(true);
+    }
+  }, [isSuperAdminLoggedIn, isOpen]);
+
   if (!isOpen) return null;
+
+  const handleVerifySuperAdmin = () => {
+    if (!superAdminKey.trim()) {
+      setSuperAdminError('Please enter the Super Admin Password or 4-digit Master PIN.');
+      return;
+    }
+
+    if (verifySuperAdminKey(superAdminKey)) {
+      setIsSuperAdminAuthorized(true);
+      setSuperAdminError(null);
+      showToast('success', 'Super Admin Verified', 'Master authorization granted. You may now create a business.');
+    } else {
+      setIsSuperAdminAuthorized(false);
+      setSuperAdminError('Invalid Super Admin credentials. Only authorized Super Admin can provision businesses.');
+      showToast('error', 'Authorization Denied', 'Invalid Super Admin password or PIN.');
+    }
+  };
+
+  const handleQuickAuthorizeSuperAdmin = () => {
+    setSuperAdminKey('superadmin');
+    setIsSuperAdminAuthorized(true);
+    setSuperAdminError(null);
+    showToast('success', 'Super Admin Verified', 'Master authorization granted via Super Admin demo key.');
+  };
 
   const handleGstinChange = (value: string) => {
     const upper = value.toUpperCase().trim();
@@ -104,6 +144,13 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // STRICT CHECK: Without Super Admin, no business can be created!
+    if (!isSuperAdminAuthorized && !isSuperAdminLoggedIn) {
+      showToast('error', 'Super Admin Required', 'Strict Security: Without Super Admin authorization, no business can be created.');
+      setSuperAdminError('Super Admin authorization is required to create a business.');
+      return;
+    }
 
     if (!companyName.trim()) {
       showToast('error', 'Required Field', 'Please enter Company Legal Name.');
@@ -142,6 +189,8 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
       }
     );
 
+    logSecurityEvent('COMPANY_CREATED', 'Organization Management', `Created company "${newCompany.name}" (${newCompany.gstin}) with Super Admin authorization.`);
+
     if (onSuccess) {
       onSuccess(newCompany);
     }
@@ -173,18 +222,23 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         
         {/* Modal Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between">
+        <div className="px-6 py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-purple-900/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30 text-white">
-              <Building2 className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/30 text-white ring-2 ring-white/10">
+              <Crown className="w-5 h-5 text-amber-300" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white leading-none">Create New Company / Business</h2>
-              <p className="text-xs text-slate-300 mt-1">Multi-entity setup with isolated GST, inventory, and users</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-white leading-none">Register New Company / Business</h2>
+                <span className="text-[10px] font-extrabold uppercase bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full border border-purple-400/40">
+                  Super Admin Controlled
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">Multi-entity provisioning with isolated GSTIN, books & user roles</p>
             </div>
           </div>
 
@@ -192,10 +246,10 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
             <button
               type="button"
               onClick={handleFillDemo}
-              className="px-3 py-1.5 bg-indigo-500/30 hover:bg-indigo-500/50 text-cyan-300 text-xs font-semibold rounded-xl border border-cyan-400/30 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 hover:text-white text-xs font-semibold rounded-xl border border-purple-400/30 transition-all flex items-center gap-1 cursor-pointer"
               title="Auto-populate sample company details"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>Sample Details</span>
             </button>
 
@@ -211,6 +265,99 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
         {/* Modal Body / Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
           
+          {/* ======================================================================= */}
+          {/* MANDATORY SUPER ADMIN AUTHORIZATION BANNER / SECURITY GATE             */}
+          {/* ======================================================================= */}
+          <div className={`rounded-2xl p-4 border transition-all ${
+            isSuperAdminAuthorized 
+              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950' 
+              : 'bg-purple-50/80 border-purple-200 text-purple-950'
+          }`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-sm ${
+                  isSuperAdminAuthorized 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-gradient-to-tr from-purple-600 to-indigo-600 text-amber-300'
+                }`}>
+                  {isSuperAdminAuthorized ? <Check className="w-5 h-5" /> : <Crown className="w-5 h-5" />}
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-black uppercase tracking-wider">
+                      {isSuperAdminAuthorized 
+                        ? 'Super Admin Authorization Granted' 
+                        : 'Super Admin Authorization Required'}
+                    </h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                      isSuperAdminAuthorized
+                        ? 'bg-emerald-200/60 text-emerald-800'
+                        : 'bg-rose-100 text-rose-800 border border-rose-200'
+                    }`}>
+                      {isSuperAdminAuthorized ? 'Authorized' : 'Mandatory Requirement'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 mt-1">
+                    {isSuperAdminAuthorized
+                      ? 'Verified as Super Administrator (Vikram Singhania). You have master clearance to create business entities.'
+                      : 'Without Super Admin verification, no company can be created in the system. Enter the Super Admin password or PIN to unlock.'}
+                  </p>
+                </div>
+              </div>
+
+              {!isSuperAdminAuthorized && (
+                <button
+                  type="button"
+                  onClick={handleQuickAuthorizeSuperAdmin}
+                  className="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-xl border border-purple-300 transition-all cursor-pointer shrink-0 flex items-center gap-1 font-mono"
+                  title="Auto-authorize using Super Admin demo credentials"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Verify (superadmin)</span>
+                </button>
+              )}
+            </div>
+
+            {/* If not authorized, show input box */}
+            {!isSuperAdminAuthorized && (
+              <div className="mt-3 pt-3 border-t border-purple-200/60">
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <div className="relative flex-1 w-full">
+                    <KeyRound className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      value={superAdminKey}
+                      onChange={e => {
+                        setSuperAdminKey(e.target.value);
+                        if (superAdminError) setSuperAdminError(null);
+                      }}
+                      placeholder="Enter Super Admin Password ('superadmin') or PIN ('9999')..."
+                      className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleVerifySuperAdmin}
+                    className="w-full sm:w-auto px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Authorize Super Admin</span>
+                  </button>
+                </div>
+
+                {superAdminError && (
+                  <div className="flex items-center gap-1.5 text-xs text-rose-600 mt-2 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{superAdminError}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Section 1: Business Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 border-b border-indigo-100 pb-1.5">
@@ -381,7 +528,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
           <div className="bg-indigo-50/40 rounded-2xl p-4 border border-indigo-100 space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900 border-b border-indigo-200/60 pb-1.5">
               <ShieldCheck className="w-4 h-4 text-indigo-600" />
-              <span>3. Primary Administrator Account (Default Sign-in)</span>
+              <span>3. Primary Administrator Account (Default Sign-in for New Company)</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -472,21 +619,33 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Company & Launch</span>
-            </button>
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+              <Crown className="w-3.5 h-3.5 text-purple-600" />
+              <span>Super Admin Master Policy Enforced</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!isSuperAdminAuthorized && !isSuperAdminLoggedIn}
+                className={`px-6 py-2.5 font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
+                  isSuperAdminAuthorized || isSuperAdminLoggedIn
+                    ? 'bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-700 hover:from-purple-800 hover:to-indigo-700 text-white shadow-purple-600/25 active:scale-95'
+                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                <Crown className="w-4 h-4 text-amber-300" />
+                <span>Create Company & Launch</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

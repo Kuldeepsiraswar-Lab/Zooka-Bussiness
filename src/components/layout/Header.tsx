@@ -68,9 +68,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
             <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate max-w-[140px] sm:max-w-[220px] md:max-w-[280px]">
               {currentCompany?.tradeName || currentCompany?.name || business.tradeName || business.name}
             </h2>
-            <span className="hidden sm:inline-flex text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
-              State: {currentCompany?.gstin ? currentCompany.gstin.substring(0, 2) : '27'}
-            </span>
           </div>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
             <span className="text-indigo-600 dark:text-indigo-400 font-semibold truncate">GSTIN: {currentCompany?.gstin || business.gstin}</span>

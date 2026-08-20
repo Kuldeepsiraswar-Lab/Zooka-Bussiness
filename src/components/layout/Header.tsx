@@ -92,10 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
       </div>
 
       {/* Right: Quick Action CTAs, Theme Toggle, User Persona Switcher & Notification Menu */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Google Cloud DB Sync Status */}
-        <CloudSyncStatusBadge compact={true} />
-
+      
         {/* Quick Theme Mode Toggle Button */}
         
 

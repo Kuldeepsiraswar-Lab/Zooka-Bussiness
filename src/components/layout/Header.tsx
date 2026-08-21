@@ -6,7 +6,8 @@ import {
   Search, 
   Plus, 
   Bell, 
-  ArrowUpRight 
+  ArrowUpRight,
+  Crown
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -21,7 +22,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     setActiveTab, 
     invoices, 
     products, 
-    can
+    can,
+    loginAsSuperAdmin
   } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -90,6 +92,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
             <span>New Invoice</span>
           </button>
         )}
+
+        {/* Super Admin Quick Launch Button */}
+        <button
+          onClick={loginAsSuperAdmin}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+          title="Login to Super Admin Master Control Dashboard"
+        >
+          <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-amber-400" />
+          <span className="hidden sm:inline">Super Admin</span>
+        </button>
 
         {/* User Role Persona Switcher */}
         <UserPersonaSwitcher />

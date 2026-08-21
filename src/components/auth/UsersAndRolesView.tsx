@@ -280,10 +280,10 @@ export const UsersAndRolesView: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400 flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-slate-400" /> Password / PIN:
+                          <Lock className="w-3 h-3 text-slate-400" /> Security:
                         </span>
-                        <span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-bold">
-                          {user.password || 'admin'} • {user.pin || '1111'}
+                        <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-semibold border border-emerald-200">
+                          Password & PIN Protected
                         </span>
                       </div>
                       {user.phone && (

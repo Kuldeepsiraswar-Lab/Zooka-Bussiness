@@ -106,13 +106,6 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
     }
   };
 
-  const handleQuickAuthorizeSuperAdmin = () => {
-    setSuperAdminKey('superadmin');
-    setIsSuperAdminAuthorized(true);
-    setSuperAdminError(null);
-    showToast('success', 'Super Admin Verified', 'Master authorization granted via Super Admin demo key.');
-  };
-
   const handleGstinChange = (value: string) => {
     const upper = value.toUpperCase().trim();
     setGstin(upper);
@@ -306,18 +299,6 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   </p>
                 </div>
               </div>
-
-              {!isSuperAdminAuthorized && (
-                <button
-                  type="button"
-                  onClick={handleQuickAuthorizeSuperAdmin}
-                  className="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-xl border border-purple-300 transition-all cursor-pointer shrink-0 flex items-center gap-1 font-mono"
-                  title="Auto-authorize using Super Admin demo credentials"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                  <span>Verify (superadmin)</span>
-                </button>
-              )}
             </div>
 
             {/* If not authorized, show input box */}
@@ -333,7 +314,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                         setSuperAdminKey(e.target.value);
                         if (superAdminError) setSuperAdminError(null);
                       }}
-                      placeholder="Enter Super Admin Password ('superadmin') or PIN ('9999')..."
+                      placeholder="Enter Super Admin Password or 4-digit Master PIN..."
                       className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white font-mono"
                     />
                   </div>
@@ -566,7 +547,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                 <div className="relative">
                   <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="text"
+                    type="password"
                     required
                     placeholder="Enter password..."
                     value={adminPassword}
@@ -583,10 +564,10 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                 <div className="relative">
                   <Fingerprint className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="text"
+                    type="password"
                     required
                     maxLength={4}
-                    placeholder="1111"
+                    placeholder="4-digit PIN"
                     value={adminPin}
                     onChange={e => setAdminPin(e.target.value)}
                     className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-white"

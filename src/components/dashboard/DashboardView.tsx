@@ -32,7 +32,10 @@ import {
   BarChart3,
   Activity,
   Maximize2,
-  Edit3
+  Edit3,
+  Crown,
+  ShieldAlert,
+  KeyRound
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -62,7 +65,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
     expenses, 
     business, 
     setActiveTab,
-    setSelectedInvoiceIdForPrint
+    setSelectedInvoiceIdForPrint,
+    loginAsSuperAdmin
   } = useApp();
 
   // Selected Day for Daily Sales & Purchases (Default to today '2026-08-19')
@@ -263,6 +267,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={loginAsSuperAdmin}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white rounded-xl shadow-lg shadow-purple-950/40 border border-purple-400/40 transition-all active:scale-95 cursor-pointer group"
+            title="Login to Super Admin Master Control Dashboard (/admin)"
+          >
+            <Crown className="w-4 h-4 text-amber-300 group-hover:rotate-12 transition-transform" />
+            <span>Super Admin Dashboard</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('pos_billing')}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl backdrop-blur transition-all active:scale-95 cursor-pointer"
@@ -939,6 +952,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 👑 SUPER ADMIN MASTER CONTROL ACCESS PORTAL                   */}
+      {/* ------------------------------------------------------------- */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border border-purple-800/40 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
+            <Crown className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white">Super Admin Control Dashboard</h3>
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                System Master
+              </span>
+            </div>
+            <p className="text-xs text-purple-200/80 mt-0.5">
+              Manage all multi-company entities, switch businesses, verify licenses, and monitor platform logs.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={loginAsSuperAdmin}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-900/40 border border-purple-400/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
+        >
+          <KeyRound className="w-4 h-4 text-amber-300" />
+          <span>Login with Password / PIN</span>
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* ------------------------------------------------------------- */}

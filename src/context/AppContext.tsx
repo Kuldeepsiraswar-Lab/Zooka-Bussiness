@@ -180,6 +180,7 @@ interface AppContextType {
   logSecurityEvent: (action: string, module: string, details: string) => void;
   verifySuperAdminKey: (key: string) => boolean;
   loginAsSuperAdmin: () => void;
+  logoutSuperAdmin: () => void;
 
   // Theme Mode (Light / Dark / System)
   theme: 'light' | 'dark' | 'system';
@@ -303,9 +304,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [auditLogs, setAuditLogs] = useState<SecurityAuditLog[]>(() => loadState('auditLogs', []));
 
   // Authentication & Locking
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return isAdminRouteInitially ? true : false;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalTargetUser, setAuthModalTargetUser] = useState<AppUser | null>(null);
@@ -342,9 +341,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const handleUrlRouteSync = () => {
       if (isUrlAdminRoute()) {
-        setCurrentUserId(DEFAULT_SUPER_ADMIN.id);
-        setIsAuthenticated(true);
-        setIsSessionLocked(false);
         setActiveTab('super_admin_dashboard');
       }
     };
@@ -1053,6 +1049,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsSessionLocked(false);
         setIsAuthModalOpen(false);
         setAuthModalTargetUser(null);
+        setActiveTab('super_admin_dashboard');
         logSecurityEvent('USER_AUTHENTICATED', 'Super Admin Auth', 'Master Super Administrator logged in');
         showToast('success', 'Super Admin Authenticated', 'Master platform governance unlocked.');
         return { success: true };
@@ -1122,9 +1119,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    const isSuperAdminSession = currentUser.role === 'SUPER_ADMIN' || currentUserId === DEFAULT_SUPER_ADMIN.id || currentUserId === 'usr-super-admin';
+
+    // Terminate session authentication
     setIsAuthenticated(false);
     setIsSessionLocked(false);
-    showToast('info', 'Logged Out', 'Your session has ended.');
+    setIsAuthModalOpen(false);
+    setAuthModalTargetUser(null);
+
+    // Reset default active tab back to dashboard
+    setActiveTab('dashboard');
+
+    if (isSuperAdminSession) {
+      // Revert currentUserId back to the active company user so Super Admin session is purged
+      const defaultUser = users.find(u => u.role === 'ADMIN' && u.isActive) || users[0] || cleanDefaultAdminUser;
+      setCurrentUserId(defaultUser.id);
+      localStorage.setItem(STORAGE_PREFIX + 'currentUserId', JSON.stringify(defaultUser.id));
+      localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_currentUserId`, JSON.stringify(defaultUser.id));
+
+      if (typeof window !== 'undefined' && (window.location.pathname.includes('/admin') || window.location.hash.includes('admin'))) {
+        window.history.replaceState({}, '', window.location.pathname.replace(/\/admin\/?$/, '') || '/');
+      }
+
+      logSecurityEvent('USER_LOGOUT', 'Super Admin Auth', 'Super Administrator session terminated and closed.');
+      showToast('info', 'Super Admin Session Closed', 'Super Administrator session closed. Credentials required to log back in.');
+    } else {
+      logSecurityEvent('USER_LOGOUT', 'Auth', `User ${currentUser.name} logged out.`);
+      showToast('info', 'Logged Out', 'Your session has ended securely.');
+    }
+  };
+
+  const logoutSuperAdmin = () => {
+    logout();
   };
 
   const verifySuperAdminKey = (key: string): boolean => {
@@ -1138,12 +1164,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginAsSuperAdmin = () => {
-    setCurrentUserId(DEFAULT_SUPER_ADMIN.id);
-    setIsAuthenticated(true);
-    setIsSessionLocked(false);
-    setIsAuthModalOpen(false);
-    setActiveTab('super_admin_dashboard');
-    showToast('success', 'Super Admin Mode Activated', 'Master governance dashboard opened with multi-company controls.');
+    if (currentUser.role === 'SUPER_ADMIN' && isAuthenticated && !isSessionLocked) {
+      setActiveTab('super_admin_dashboard');
+      showToast('info', 'Super Admin Dashboard', 'Active Super Administrator session.');
+    } else {
+      openAuthModal(superAdminUser);
+    }
   };
 
   const createUser = (userData: Omit<AppUser, 'id' | 'createdAt'>): AppUser => {
@@ -2363,6 +2389,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         effectivePermissions,
         isAuthenticated,
         logout,
+        logoutSuperAdmin,
         isSessionLocked,
         isAuthModalOpen,
         authModalTargetUser,

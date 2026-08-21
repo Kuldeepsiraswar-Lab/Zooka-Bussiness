@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AppUser } from '../../types';
-import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
+import { ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN } from '../../utils/rbacRules';
 import { 
   ShieldCheck, 
   Lock, 
@@ -52,7 +52,15 @@ export const UserAuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  const targetUser: AppUser = users.find(u => u.id === selectedUserId) || currentUser;
+  const isTargetingSuperAdmin = 
+    selectedUserId === DEFAULT_SUPER_ADMIN.id || 
+    selectedUserId === 'usr-super-admin' || 
+    authModalTargetUser?.role === 'SUPER_ADMIN';
+
+  const targetUser: AppUser = isTargetingSuperAdmin 
+    ? DEFAULT_SUPER_ADMIN 
+    : users.find(u => u.id === selectedUserId) || currentUser;
+
   const roleMeta = ROLE_DEFINITIONS[targetUser.role] || ROLE_DEFINITIONS.CUSTOM;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,7 +68,7 @@ export const UserAuthModal: React.FC = () => {
     setErrorMessage(null);
 
     if (!passwordInput.trim()) {
-      setErrorMessage(authMode === 'password' ? 'Please enter the user password.' : 'Please enter the 4-digit PIN.');
+      setErrorMessage(authMode === 'password' ? 'Please enter the password.' : 'Please enter the 4-digit PIN.');
       return;
     }
 
@@ -76,20 +84,15 @@ export const UserAuthModal: React.FC = () => {
     }, 150);
   };
 
-  const handleQuickDemoFill = () => {
-    if (authMode === 'password') {
-      setPasswordInput(targetUser.password || 'admin');
-    } else {
-      setPasswordInput(targetUser.pin || '1111');
-    }
-    setErrorMessage(null);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header with gradient badge */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 relative">
+        <div className={`p-6 relative text-white ${
+          isTargetingSuperAdmin 
+            ? 'bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950' 
+            : 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900'
+        }`}>
           <button
             onClick={closeAuthModal}
             className="absolute top-4 right-4 p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -99,15 +102,21 @@ export const UserAuthModal: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-cyan-300 shadow-inner">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
+              isTargetingSuperAdmin 
+                ? 'bg-purple-600/30 border border-purple-400/40 text-amber-300' 
+                : 'bg-indigo-600/30 border border-indigo-400/30 text-cyan-300'
+            }`}>
               <Lock className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
-                <span>User Role Authentication</span>
+                <span>{isTargetingSuperAdmin ? 'Super Admin Authentication' : 'User Role Authentication'}</span>
               </h2>
               <p className="text-xs text-slate-300">
-                Secure login to {business.tradeName || business.name}
+                {isTargetingSuperAdmin 
+                  ? 'Master platform governance & multi-company control' 
+                  : `Secure login to ${business.tradeName || business.name}`}
               </p>
             </div>
           </div>
@@ -118,9 +127,47 @@ export const UserAuthModal: React.FC = () => {
           {/* User Account Selector */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Select User Account / Role
+              Select Account / Role
             </label>
             <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1">
+              {/* Super Admin Option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedUserId(DEFAULT_SUPER_ADMIN.id);
+                  setPasswordInput('');
+                  setErrorMessage(null);
+                }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                  selectedUserId === DEFAULT_SUPER_ADMIN.id
+                    ? 'border-purple-600 bg-purple-50/80 ring-2 ring-purple-600/20 shadow-xs'
+                    : 'border-purple-100 hover:border-purple-300 hover:bg-purple-50/40'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-purple-600 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    👑
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                      <span>{DEFAULT_SUPER_ADMIN.name}</span>
+                      {currentUser.role === 'SUPER_ADMIN' && (
+                        <span className="text-[10px] text-purple-700 font-semibold bg-purple-100 px-1.5 py-0.2 rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-purple-700 font-medium truncate">
+                      Super Administrator (/admin)
+                    </div>
+                  </div>
+                </div>
+
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 bg-purple-100 text-purple-800 border-purple-200">
+                  SUPER ADMIN
+                </span>
+              </button>
+
               {users.filter(u => u.isActive).map(u => {
                 const isSelected = u.id === selectedUserId;
                 const uRoleMeta = ROLE_DEFINITIONS[u.role] || ROLE_DEFINITIONS.CUSTOM;
@@ -178,15 +225,9 @@ export const UserAuthModal: React.FC = () => {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <span className="text-[10px] text-slate-400 font-mono">Demo: </span>
-              <button
-                type="button"
-                onClick={handleQuickDemoFill}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
-                title="Click to autofill demo credentials"
-              >
-                Auto-fill
-              </button>
+              <span className="text-[10px] font-semibold text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-md">
+                Encrypted Credentials
+              </span>
             </div>
           </div>
 
@@ -206,7 +247,7 @@ export const UserAuthModal: React.FC = () => {
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
-              <span>Password ({targetUser.password || 'admin'})</span>
+              <span>Password</span>
             </button>
             <button
               type="button"
@@ -222,7 +263,7 @@ export const UserAuthModal: React.FC = () => {
               }`}
             >
               <Fingerprint className="w-3.5 h-3.5" />
-              <span>4-Digit PIN ({targetUser.pin || '1111'})</span>
+              <span>4-Digit PIN</span>
             </button>
           </div>
 
@@ -233,14 +274,6 @@ export const UserAuthModal: React.FC = () => {
                 <span>{authMode === 'password' ? 'Enter Password' : 'Enter 4-Digit PIN'}</span>
                 <span className="text-rose-500">*</span>
               </label>
-              <button
-                type="button"
-                onClick={handleQuickDemoFill}
-                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center gap-1"
-              >
-                <Sparkles className="w-3 h-3 text-indigo-500" />
-                <span>Fill Default</span>
-              </button>
             </div>
 
             <div className="relative">
@@ -251,7 +284,7 @@ export const UserAuthModal: React.FC = () => {
                   setPasswordInput(e.target.value);
                   if (errorMessage) setErrorMessage(null);
                 }}
-                placeholder={authMode === 'password' ? 'Enter password (e.g. admin, acc, sales)' : '••••'}
+                placeholder={authMode === 'password' ? 'Enter account password...' : '••••'}
                 maxLength={authMode === 'pin' ? 6 : 50}
                 autoFocus
                 className={`w-full px-4 py-2.5 pr-11 text-sm bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono ${

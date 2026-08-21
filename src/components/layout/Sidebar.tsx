@@ -279,7 +279,7 @@ export const Sidebar: React.FC = () => {
             <button
               onClick={() => logout()}
               className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-rose-900/60 text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
-              title="Log Out to Login Screen"
+              title={currentUser.role === 'SUPER_ADMIN' ? 'Close Super Admin Session & Log Out' : 'Log Out to Login Screen'}
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>

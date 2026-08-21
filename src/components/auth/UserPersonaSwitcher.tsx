@@ -116,8 +116,8 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
               <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${currentRoleMeta.badgeBg} ${currentRoleMeta.badgeText}`}>
                 {currentRoleMeta.name}
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                PWD: <span className="text-slate-700 dark:text-slate-300 font-semibold">{currentUser.password || 'admin'}</span> • PIN: <span className="text-slate-700 dark:text-slate-300 font-semibold">{currentUser.pin || '1111'}</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Protected
               </span>
             </div>
           </div>
@@ -164,7 +164,6 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
                           <span className={`font-semibold ${roleMeta.badgeText}`}>
                             {roleMeta.name}
                           </span>
-                          <span className="font-mono text-slate-400 dark:text-slate-500">({user.password || 'admin'})</span>
                         </div>
                       </div>
                     </div>
@@ -203,7 +202,7 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
               className="py-2 px-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Log Out</span>
+              <span>{currentUser.role === 'SUPER_ADMIN' ? 'Exit & Log Out' : 'Log Out'}</span>
             </button>
           </div>
 

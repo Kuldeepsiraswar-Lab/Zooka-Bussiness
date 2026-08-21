@@ -53,11 +53,6 @@ export const LockScreenOverlay: React.FC = () => {
     }, 150);
   };
 
-  const handleQuickDemo = () => {
-    setPasswordInput(currentUser.password || currentUser.pin || 'admin');
-    setErrorMessage(null);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
       <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-8 text-center space-y-6">
@@ -93,14 +88,7 @@ export const LockScreenOverlay: React.FC = () => {
           <div className="space-y-1.5 text-left">
             <div className="flex items-center justify-between text-xs text-slate-300 font-semibold px-1">
               <span>Password or PIN</span>
-              <button
-                type="button"
-                onClick={handleQuickDemo}
-                className="text-[11px] text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1 font-mono"
-              >
-                <Sparkles className="w-3 h-3 text-cyan-400" />
-                <span>Demo Hint: {currentUser.password || currentUser.pin || 'admin'}</span>
-              </button>
+              <span className="text-[11px] text-slate-500">Confidential</span>
             </div>
 
             <div className="relative">

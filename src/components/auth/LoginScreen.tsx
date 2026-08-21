@@ -44,8 +44,13 @@ export const LoginScreen: React.FC = () => {
     toggleTheme
   } = useApp();
 
-  // Screen Flow Step: defaults to 'select_company' when opening the app
-  const [loginStep, setLoginStep] = useState<'select_company' | 'login_credentials'>('select_company');
+  // Screen Flow Step: defaults to 'super_admin_credentials' if on /admin or #admin route, otherwise 'select_company'
+  const [loginStep, setLoginStep] = useState<'select_company' | 'login_credentials' | 'super_admin_credentials'>(() => {
+    if (typeof window !== 'undefined' && (window.location.pathname.includes('/admin') || window.location.hash.includes('admin'))) {
+      return 'super_admin_credentials';
+    }
+    return 'select_company';
+  });
   const [selectedUserId, setSelectedUserId] = useState<string>(() => {
     const admin = users.find(u => u.role === 'ADMIN' && u.isActive);
     return admin ? admin.id : (users[0]?.id || DEFAULT_SUPER_ADMIN.id);
@@ -59,14 +64,16 @@ export const LoginScreen: React.FC = () => {
 
   // Sync selected user when switching company
   useEffect(() => {
-    if (users.length > 0) {
+    if (users.length > 0 && loginStep !== 'super_admin_credentials') {
       // Pick first active admin or first active user
       const admin = users.find(u => u.role === 'ADMIN' && u.isActive);
       setSelectedUserId(admin ? admin.id : users[0].id);
     }
-  }, [users, currentCompanyId]);
+  }, [users, currentCompanyId, loginStep]);
 
-  const targetUser: AppUser = users.find(u => u.id === selectedUserId) || DEFAULT_SUPER_ADMIN;
+  const targetUser: AppUser = loginStep === 'super_admin_credentials' || selectedUserId === DEFAULT_SUPER_ADMIN.id
+    ? DEFAULT_SUPER_ADMIN
+    : users.find(u => u.id === selectedUserId) || DEFAULT_SUPER_ADMIN;
   const roleMeta = ROLE_DEFINITIONS[targetUser?.role] || ROLE_DEFINITIONS.ADMIN;
 
   const handleChooseCompany = (comp: Company) => {
@@ -93,7 +100,8 @@ export const LoginScreen: React.FC = () => {
 
     setIsLoading(true);
     setTimeout(() => {
-      const res = authenticateAndSwitchUser(selectedUserId, passwordInput.trim());
+      const targetId = loginStep === 'super_admin_credentials' ? DEFAULT_SUPER_ADMIN.id : selectedUserId;
+      const res = authenticateAndSwitchUser(targetId, passwordInput.trim());
       setIsLoading(false);
       if (!res.success) {
         setErrorMessage(res.error || 'Authentication failed. Please verify password/PIN.');
@@ -104,17 +112,12 @@ export const LoginScreen: React.FC = () => {
     }, 150);
   };
 
-  const handleQuickSuperAdminLogin = () => {
-    loginAsSuperAdmin();
-  };
-
-  const handleAutoFill = () => {
-    if (authMode === 'password') {
-      setPasswordInput(targetUser?.password || (targetUser?.role === 'SUPER_ADMIN' ? 'superadmin' : 'admin'));
-    } else {
-      setPasswordInput(targetUser?.pin || (targetUser?.role === 'SUPER_ADMIN' ? '9999' : '1111'));
-    }
+  const handleGoToSuperAdminLogin = () => {
+    setSelectedUserId(DEFAULT_SUPER_ADMIN.id);
+    setPasswordInput('');
     setErrorMessage(null);
+    setShowPassword(false);
+    setLoginStep('super_admin_credentials');
   };
 
   const getCompanyGradient = (color?: string) => {
@@ -180,7 +183,7 @@ export const LoginScreen: React.FC = () => {
             )}
           </button>
 
-          {loginStep === 'login_credentials' && (
+          {loginStep !== 'select_company' && (
             <button
               type="button"
               onClick={() => setLoginStep('select_company')}
@@ -255,12 +258,12 @@ export const LoginScreen: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={handleQuickSuperAdminLogin}
-                  className="px-3.5 py-2 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
-                  title="Direct sign in as Super Admin (baseurl/admin)"
+                  onClick={handleGoToSuperAdminLogin}
+                  className="px-3.5 py-2 bg-gradient-to-r from-purple-900 to-indigo-950 hover:from-purple-800 hover:to-indigo-900 border border-purple-400/50 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-purple-950/40"
+                  title="Login to Super Admin with Password / PIN (/admin)"
                 >
                   <KeyRound className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Super Admin Portal (/admin)</span>
+                  <span>Login with Password / PIN</span>
                 </button>
               </div>
             </div>
@@ -474,9 +477,12 @@ export const LoginScreen: React.FC = () => {
                           </p>
                         </div>
 
-                        <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                          <span>Password: <strong className="text-slate-300">{user.password || (isSuper ? 'superadmin' : 'admin')}</strong></span>
-                          <span>PIN: <strong className="text-slate-300">{user.pin || (isSuper ? '9999' : '1111')}</strong></span>
+                        <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
+                          <span className="flex items-center gap-1 text-slate-400 font-medium">
+                            <Lock className="w-2.5 h-2.5 text-indigo-400" />
+                            <span>Security: Password / PIN Protected</span>
+                          </span>
+                          <span className="text-indigo-400 font-semibold">Select & Login</span>
                         </div>
 
                         {isSelected && (
@@ -555,14 +561,9 @@ export const LoginScreen: React.FC = () => {
                         <label className="text-xs font-semibold text-slate-300">
                           {authMode === 'password' ? 'Account Password' : '4-Digit Counter PIN'}
                         </label>
-                        <button
-                          type="button"
-                          onClick={handleAutoFill}
-                          className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-1 font-mono"
-                        >
-                          <Sparkles className="w-3 h-3 text-cyan-400" />
-                          <span>Auto-fill: {authMode === 'password' ? targetUser?.password || (targetUser?.role === 'SUPER_ADMIN' ? 'superadmin' : 'admin') : targetUser?.pin || (targetUser?.role === 'SUPER_ADMIN' ? '9999' : '1111')}</span>
-                        </button>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {authMode === 'password' ? 'Confidential' : 'Numeric PIN'}
+                        </span>
                       </div>
 
                       <div className="relative">
@@ -631,6 +632,166 @@ export const LoginScreen: React.FC = () => {
                 </div>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================================= */}
+        {/* STEP 3: SUPER ADMIN PASSWORD / PIN LOGIN                                */}
+        {/* ======================================================================= */}
+        {loginStep === 'super_admin_credentials' && (
+          <div className="animate-in fade-in zoom-in-95 duration-200 max-w-xl mx-auto w-full space-y-5">
+            {/* Header Navigation */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setLoginStep('select_company')}
+                className="px-3.5 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Company Selection</span>
+              </button>
+
+              <span className="text-[10px] font-extrabold uppercase bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
+                Super Admin Security Gate
+              </span>
+            </div>
+
+            {/* Super Admin Login Card */}
+            <div className="bg-gradient-to-b from-slate-900 via-purple-950/40 to-slate-900 border border-purple-800/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-950/60 backdrop-blur-xl space-y-6">
+              
+              {/* Profile Card Header */}
+              <div className="flex items-center gap-4 pb-5 border-b border-purple-900/40">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-amber-300 font-black text-base flex items-center justify-center shadow-lg shadow-purple-600/30 shrink-0 ring-2 ring-purple-400/40">
+                  <Crown className="w-7 h-7" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-white text-lg tracking-tight truncate">{DEFAULT_SUPER_ADMIN.name}</h3>
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border bg-purple-500/30 text-purple-200 border-purple-400/40">
+                      SUPER ADMIN
+                    </span>
+                  </div>
+                  <p className="text-xs text-purple-300/80 truncate mt-0.5">
+                    System Master Authority • Multi-Company Provisioning & Audit
+                  </p>
+                </div>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={handleLogin} className="space-y-5">
+                
+                {/* Mode Selector (Password vs PIN) */}
+                <div className="flex items-center bg-slate-950/80 p-1.5 rounded-2xl border border-purple-900/50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('password');
+                      setPasswordInput('');
+                      setErrorMessage(null);
+                    }}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      authMode === 'password'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    <span>Master Password</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('pin');
+                      setPasswordInput('');
+                      setErrorMessage(null);
+                    }}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      authMode === 'pin'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Fingerprint className="w-4 h-4" />
+                    <span>4-Digit Master PIN</span>
+                  </button>
+                </div>
+
+                {/* Password / PIN Input Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-200">
+                      {authMode === 'password' ? 'Super Admin Master Password' : '4-Digit Super Admin Master PIN'}
+                    </label>
+                    <span className="text-[11px] text-purple-400 font-semibold">
+                      Required
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={passwordInput}
+                      onChange={(e) => {
+                        setPasswordInput(e.target.value);
+                        if (errorMessage) setErrorMessage(null);
+                      }}
+                      placeholder={authMode === 'password' ? 'Enter master password...' : '••••'}
+                      maxLength={authMode === 'pin' ? 6 : 50}
+                      autoFocus
+                      className={`w-full px-4 py-3 pr-12 text-sm bg-slate-950/90 border rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono transition-all placeholder:text-slate-600 ${
+                        errorMessage ? 'border-rose-500 ring-1 ring-rose-500/50' : 'border-purple-900/60'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {errorMessage && (
+                    <div className="flex items-center gap-2 text-xs text-rose-400 mt-2.5 font-medium animate-in fade-in p-2.5 rounded-xl bg-rose-950/30 border border-rose-800/40">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit Action Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3.5 px-5 text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 rounded-2xl shadow-xl shadow-purple-900/40 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Verifying Super Admin Credentials...
+                    </span>
+                  ) : (
+                    <>
+                      <Crown className="w-4 h-4 text-amber-300" />
+                      <span>Login to Super Admin Dashboard</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Security Policy Footnote */}
+              <div className="pt-3 border-t border-purple-900/40 flex items-center justify-between text-[11px] text-purple-300/70">
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Master Key Protected</span>
+                </span>
+                <span className="font-semibold text-purple-400">
+                  Global Multi-Tenant Control
+                </span>
+              </div>
             </div>
           </div>
         )}

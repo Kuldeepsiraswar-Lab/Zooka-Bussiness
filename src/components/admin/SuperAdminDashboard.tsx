@@ -35,7 +35,8 @@ import {
   FileSpreadsheet,
   Sliders,
   Palette,
-  Layout
+  Layout,
+  LogOut
 } from 'lucide-react';
 import { CreateCompanyModal } from '../company/CreateCompanyModal';
 import { HeaderSettingsTab } from '../settings/HeaderSettingsTab';
@@ -358,6 +359,7 @@ export const SuperAdminDashboard: React.FC = () => {
     editBusinessProfile,
     superAdminAuth,
     updateSuperAdminPassword,
+    logoutSuperAdmin,
     cloudSyncStatus,
     lastCloudSyncTime,
     triggerCloudSync,
@@ -484,10 +486,18 @@ export const SuperAdminDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add New Business
+            </button>
+            <button
+              onClick={logoutSuperAdmin}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white text-xs font-bold transition-all shadow-lg shadow-rose-950/40 border border-rose-400/30 flex items-center gap-2 cursor-pointer active:scale-95"
+              title="Close Super Admin session and lock portal"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout Super Admin</span>
             </button>
           </div>
         </div>
@@ -732,6 +742,41 @@ export const SuperAdminDashboard: React.FC = () => {
 
         {/* Right Column: Super Admin Master Credentials & Platform Security */}
         <div className="space-y-6">
+          {/* Active Super Admin Session & Termination Card */}
+          <div className="bg-gradient-to-br from-slate-900 via-purple-950/60 to-slate-900 text-white rounded-3xl p-5 sm:p-6 border border-purple-800/40 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-amber-300 shadow-inner">
+                  <Crown className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-white">Super Admin Session</h3>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <p className="text-[11px] text-purple-300">Master session active</p>
+                </div>
+              </div>
+
+              <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                ACTIVE
+              </span>
+            </div>
+
+            <p className="text-xs text-purple-200/80 leading-relaxed">
+              When you are finished with multi-company management, close your Super Admin session to prevent unauthorized access.
+            </p>
+
+            <button
+              type="button"
+              onClick={logoutSuperAdmin}
+              className="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-950/40 border border-rose-400/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Close Super Admin Session</span>
+            </button>
+          </div>
+
           {/* Master Password & Master PIN Management Card */}
           <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center gap-3">

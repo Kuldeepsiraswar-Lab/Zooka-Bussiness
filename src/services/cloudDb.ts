@@ -1,4 +1,4 @@
-import { db, collection, doc, getDocs, getDoc, setDoc, deleteDoc, query, where, onSnapshot } from './firebase';
+import { db, collection, doc, getDocs, getDoc, setDoc, deleteDoc, writeBatch, query, where, onSnapshot } from './firebase';
 import { 
   Company, 
   BusinessProfile, 
@@ -16,7 +16,7 @@ import {
 import { normalizeBusinessProfile } from '../utils/cleanDefaults';
 
 /**
- * Recursively removes undefined values and cleans objects/arrays so Firestore setDoc / updateDoc succeeds without schema errors
+ * Recursively removes undefined values, functions, and invalid values so Firestore setDoc / writeBatch succeeds cleanly without schema errors
  */
 export function sanitizeForFirestore<T>(obj: T): T {
   if (obj === null || obj === undefined) {
@@ -28,7 +28,7 @@ export function sanitizeForFirestore<T>(obj: T): T {
   if (typeof obj === 'object' && !(obj instanceof Date)) {
     const cleanObj: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj)) {
-      if (value !== undefined) {
+      if (value !== undefined && typeof value !== 'function') {
         cleanObj[key] = sanitizeForFirestore(value);
       }
     }
@@ -79,11 +79,13 @@ export interface CloudCompanyData {
 }
 
 class CloudDbService {
-  private isOnline: boolean = navigator.onLine;
+  private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
   constructor() {
-    window.addEventListener('online', () => { this.isOnline = true; });
-    window.addEventListener('offline', () => { this.isOnline = false; });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => { this.isOnline = true; });
+      window.addEventListener('offline', () => { this.isOnline = false; });
+    }
   }
 
   public checkOnline(): boolean {
@@ -91,9 +93,7 @@ class CloudDbService {
   }
 
   // -------------------------------------------------------------
-  // System State: Active Company Pointer
-  // -------------------------------------------------------------
-  // System State & Super Admin Master Auth
+  // System State: Active Company Pointer & Super Admin Master Auth
   // -------------------------------------------------------------
   async getSystemState(): Promise<{ activeCompanyId?: string } | null> {
     try {
@@ -153,7 +153,7 @@ class CloudDbService {
       });
       return list;
     } catch (e) {
-      console.warn('CloudDb: Failed fetching companies:', e);
+      console.warn('CloudDb: Failed fetching companies from Firestore:', e);
       return [];
     }
   }
@@ -165,6 +165,7 @@ class CloudDbService {
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error('CloudDb: Error saving company:', e);
+      throw e;
     }
   }
 
@@ -190,16 +191,7 @@ class CloudDbService {
       ];
 
       for (const collName of collectionsToClean) {
-        try {
-          const collRef = collection(db, collName);
-          const q = query(collRef, where('companyId', '==', companyId));
-          const snap = await getDocs(q);
-          for (const d of snap.docs) {
-            await deleteDoc(d.ref);
-          }
-        } catch (subErr) {
-          // Continue cleaning other collections
-        }
+        await this.clearCollection(collName, companyId);
       }
     } catch (e) {
       console.error('CloudDb: Error deleting company:', e);
@@ -229,6 +221,7 @@ class CloudDbService {
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error('CloudDb: Error saving business profile:', e);
+      throw e;
     }
   }
 
@@ -338,20 +331,24 @@ class CloudDbService {
   // -------------------------------------------------------------
   async syncEntityDoc<T extends { id: string }>(collectionName: string, companyId: string, item: T): Promise<void> {
     try {
+      if (!item || !item.id || !companyId) return;
       const docRef = doc(db, collectionName, `${companyId}_${item.id}`);
       const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error(`CloudDb: Error syncing ${collectionName}/${item.id}:`, e);
+      throw e;
     }
   }
 
   async deleteEntityDoc(collectionName: string, companyId: string, itemId: string): Promise<void> {
     try {
+      if (!itemId || !companyId) return;
       const docRef = doc(db, collectionName, `${companyId}_${itemId}`);
       await deleteDoc(docRef);
     } catch (e) {
       console.error(`CloudDb: Error deleting ${collectionName}/${itemId}:`, e);
+      throw e;
     }
   }
 
@@ -360,8 +357,14 @@ class CloudDbService {
       const collRef = collection(db, collectionName);
       const q = query(collRef, where('companyId', '==', companyId));
       const snap = await getDocs(q);
-      for (const d of snap.docs) {
-        await deleteDoc(d.ref);
+      if (snap.empty) return;
+      
+      const BATCH_LIMIT = 450;
+      for (let i = 0; i < snap.docs.length; i += BATCH_LIMIT) {
+        const batch = writeBatch(db);
+        const chunk = snap.docs.slice(i, i + BATCH_LIMIT);
+        chunk.forEach(d => batch.delete(d.ref));
+        await batch.commit();
       }
     } catch (e) {
       console.error(`CloudDb: Error clearing collection ${collectionName} for company ${companyId}:`, e);
@@ -370,17 +373,25 @@ class CloudDbService {
 
   async syncEntireCollection<T extends { id: string }>(collectionName: string, companyId: string, items: T[]): Promise<void> {
     try {
-      // Save items
-      for (const item of items) {
-        const docRef = doc(db, collectionName, `${companyId}_${item.id}`);
-        const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
-        await setDoc(docRef, cleanData, { merge: true });
+      if (!items || items.length === 0 || !companyId) return;
+      const BATCH_LIMIT = 450;
+      for (let i = 0; i < items.length; i += BATCH_LIMIT) {
+        const batch = writeBatch(db);
+        const chunk = items.slice(i, i + BATCH_LIMIT);
+        for (const item of chunk) {
+          const docRef = doc(db, collectionName, `${companyId}_${item.id}`);
+          const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
+          batch.set(docRef, cleanData, { merge: true });
+        }
+        await batch.commit();
       }
     } catch (e) {
-      console.error(`CloudDb: Error syncing collection ${collectionName}:`, e);
+      console.error(`CloudDb: Error syncing entire collection ${collectionName}:`, e);
+      throw e;
     }
   }
 }
 
 export const cloudDb = new CloudDbService();
 export default cloudDb;
+

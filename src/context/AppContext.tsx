@@ -242,6 +242,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'online' | 'offline' | 'error'>('online');
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [lastCloudSyncTime, setLastCloudSyncTime] = useState<Date | null>(null);
+  const isCloudInitializedRef = useRef<boolean>(false);
 
   // Multi-Company State (Clean default single company)
   const [companies, setCompanies] = useState<Company[]>(() => {
@@ -445,12 +446,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await cloudDb.saveSystemState({ activeCompanyId: cleanDefaultCompany.id });
         }
         if (isMounted) {
+          isCloudInitializedRef.current = true;
           setCloudSyncStatus('online');
           setLastCloudSyncTime(new Date());
         }
       } catch (err) {
         console.warn('Firestore initial sync encountered error, running in local-cached mode:', err);
-        if (isMounted) setCloudSyncStatus('error');
+        if (isMounted) {
+          isCloudInitializedRef.current = true;
+          setCloudSyncStatus('error');
+        }
       } finally {
         if (isMounted) setIsCloudSyncing(false);
       }
@@ -460,6 +465,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => { isMounted = false; };
   }, []);
+
+  // Continuous Auto-Save to Firestore Cloud DB on background state changes
+  useEffect(() => {
+    if (!isCloudInitializedRef.current || !currentCompanyId) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        if (currentCompany) {
+          await cloudDb.saveCompany(currentCompany);
+        }
+        await cloudDb.saveBusinessProfile(currentCompanyId, business);
+        await cloudDb.saveSystemState({ activeCompanyId: currentCompanyId });
+        setCloudSyncStatus('online');
+        setLastCloudSyncTime(new Date());
+      } catch (err) {
+        console.warn('Firestore automatic background save warning:', err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [business, currentCompany, currentCompanyId]);
 
   // Theme application to root DOM element
   useEffect(() => {

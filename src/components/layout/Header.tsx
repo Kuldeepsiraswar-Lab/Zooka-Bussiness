@@ -1,21 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
-import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 import { 
   Building2, 
   Search, 
   Plus, 
-  ShoppingCart, 
-  FileText, 
-  Menu, 
   Bell, 
-  Sparkles, 
-  ArrowUpRight, 
-  ShieldCheck,
-  Sun,
-  Moon,
-  Laptop
+  ArrowUpRight 
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -30,11 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     setActiveTab, 
     invoices, 
     products, 
-    can,
-    theme,
-    resolvedTheme,
-    toggleTheme,
-    setTheme
+    can
   } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -92,13 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
       </div>
 
       {/* Right: Quick Action CTAs, Theme Toggle, User Persona Switcher & Notification Menu */}
-      
-        {/* Quick Theme Mode Toggle Button */}
-        
-
-        {/* Quick POS Mobile / Counter Bill Button */}
-      
-
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         {/* Create GST Tax Invoice CTA */}
         {can('invoices', 'create') && (
           <button

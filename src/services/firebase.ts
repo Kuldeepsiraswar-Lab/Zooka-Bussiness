@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, 
+  initializeFirestore,
   collection, 
   doc, 
   getDocs, 
@@ -19,8 +20,22 @@ import firebaseConfig from '../../firebase-applet-config.json';
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore Database with the configured custom database ID if present
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+// Initialize Firestore Database with custom database ID and resilience settings
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(
+    app,
+    {
+      experimentalAutoDetectLongPolling: true,
+      ignoreUndefinedProperties: true,
+    },
+    firebaseConfig.firestoreDatabaseId || undefined
+  );
+} catch {
+  firestoreDb = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+}
+
+export const db = firestoreDb;
 
 export {
   collection,

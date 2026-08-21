@@ -39,6 +39,8 @@ export interface ToastMessage {
   type: 'success' | 'error' | 'info' | 'warning';
   title: string;
   message: string;
+  duration?: number;
+  createdAt?: number;
 }
 
 interface AppContextType {
@@ -138,7 +140,7 @@ interface AppContextType {
   
   // System & Utils
   toasts: ToastMessage[];
-  showToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => void;
+  showToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string, duration?: number) => void;
   removeToast: (id: string) => void;
   resetAllData: () => void;
   exportDatabaseJSON: () => void;
@@ -994,14 +996,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Toast Helpers
-  const showToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => {
+  const showToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string, duration: number = 5000) => {
+    const id = Math.random().toString(36).substr(2, 9);
     const newToast: ToastMessage = {
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       type,
       title,
-      message
+      message,
+      duration,
+      createdAt: Date.now()
     };
     setToasts(prev => [...prev, newToast]);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
   };
 
   const removeToast = (id: string) => {

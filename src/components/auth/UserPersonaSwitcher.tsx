@@ -14,7 +14,8 @@ import {
   KeyRound, 
   Users,
   Settings,
-  Briefcase
+  Briefcase,
+  Crown
 } from 'lucide-react';
 
 interface UserPersonaSwitcherProps {
@@ -205,6 +206,21 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
               <span>Log Out</span>
             </button>
           </div>
+
+          {currentUser.role === 'SUPER_ADMIN' && (
+            <div className="px-2 pt-1 pb-1">
+              <button
+                onClick={() => {
+                  setActiveTab('super_admin_dashboard');
+                  setIsOpen(false);
+                }}
+                className="w-full py-1.5 px-2 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-amber-200 dark:border-amber-800/80"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                <span>Super Admin Master Portal</span>
+              </button>
+            </div>
+          )}
 
           <div className="px-2 pt-1 pb-1">
             <button

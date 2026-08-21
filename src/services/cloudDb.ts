@@ -16,6 +16,28 @@ import {
 import { normalizeBusinessProfile } from '../utils/cleanDefaults';
 
 /**
+ * Recursively removes undefined values and cleans objects/arrays so Firestore setDoc / updateDoc succeeds without schema errors
+ */
+export function sanitizeForFirestore<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeForFirestore(item)) as unknown as T;
+  }
+  if (typeof obj === 'object' && !(obj instanceof Date)) {
+    const cleanObj: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleanObj[key] = sanitizeForFirestore(value);
+      }
+    }
+    return cleanObj as T;
+  }
+  return obj;
+}
+
+/**
  * Standard Standardized Chart of Accounts (COA) template for new clean companies
  */
 export const defaultStandardAccountHeads: AccountHead[] = [
@@ -71,6 +93,8 @@ class CloudDbService {
   // -------------------------------------------------------------
   // System State: Active Company Pointer
   // -------------------------------------------------------------
+  // System State & Super Admin Master Auth
+  // -------------------------------------------------------------
   async getSystemState(): Promise<{ activeCompanyId?: string } | null> {
     try {
       const docRef = doc(db, 'systemState', 'global');
@@ -90,6 +114,29 @@ class CloudDbService {
       await setDoc(docRef, { ...state, lastSyncedAt: new Date().toISOString() }, { merge: true });
     } catch (e) {
       console.warn('CloudDb: Failed writing system state to Firestore:', e);
+    }
+  }
+
+  async fetchSuperAdminAuth(): Promise<{ password?: string; pin?: string; email?: string; lastChanged?: string } | null> {
+    try {
+      const docRef = doc(db, 'systemState', 'superAdminAuth');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return snap.data() as { password?: string; pin?: string; email?: string; lastChanged?: string };
+      }
+    } catch (e) {
+      console.warn('CloudDb: Failed reading Super Admin auth from Firestore:', e);
+    }
+    return null;
+  }
+
+  async saveSuperAdminAuth(authData: { password?: string; pin?: string; email?: string; lastChanged?: string }): Promise<void> {
+    try {
+      const docRef = doc(db, 'systemState', 'superAdminAuth');
+      const cleanData = sanitizeForFirestore({ ...authData, updatedAt: new Date().toISOString() });
+      await setDoc(docRef, cleanData, { merge: true });
+    } catch (e) {
+      console.error('CloudDb: Failed saving Super Admin auth to Firestore:', e);
     }
   }
 
@@ -114,7 +161,8 @@ class CloudDbService {
   async saveCompany(company: Company): Promise<void> {
     try {
       const docRef = doc(db, 'companies', company.id);
-      await setDoc(docRef, { ...company, updatedAt: new Date().toISOString() }, { merge: true });
+      const cleanData = sanitizeForFirestore({ ...company, updatedAt: new Date().toISOString() });
+      await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error('CloudDb: Error saving company:', e);
     }
@@ -126,6 +174,33 @@ class CloudDbService {
       await deleteDoc(docRef);
       const busDocRef = doc(db, 'businessProfiles', companyId);
       await deleteDoc(busDocRef);
+
+      // Clean up partitioned collection documents for this company
+      const collectionsToClean = [
+        'invoices',
+        'products',
+        'parties',
+        'purchaseBills',
+        'payments',
+        'expenses',
+        'accountHeads',
+        'journalEntries',
+        'users',
+        'auditLogs'
+      ];
+
+      for (const collName of collectionsToClean) {
+        try {
+          const collRef = collection(db, collName);
+          const q = query(collRef, where('companyId', '==', companyId));
+          const snap = await getDocs(q);
+          for (const d of snap.docs) {
+            await deleteDoc(d.ref);
+          }
+        } catch (subErr) {
+          // Continue cleaning other collections
+        }
+      }
     } catch (e) {
       console.error('CloudDb: Error deleting company:', e);
     }
@@ -139,7 +214,7 @@ class CloudDbService {
       const docRef = doc(db, 'businessProfiles', companyId);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        return snap.data() as BusinessProfile;
+        return normalizeBusinessProfile(snap.data() as BusinessProfile);
       }
     } catch (e) {
       console.warn(`CloudDb: Error fetching business profile for ${companyId}:`, e);
@@ -150,7 +225,8 @@ class CloudDbService {
   async saveBusinessProfile(companyId: string, profile: BusinessProfile): Promise<void> {
     try {
       const docRef = doc(db, 'businessProfiles', companyId);
-      await setDoc(docRef, { ...profile, updatedAt: new Date().toISOString() }, { merge: true });
+      const cleanData = sanitizeForFirestore({ ...profile, updatedAt: new Date().toISOString() });
+      await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error('CloudDb: Error saving business profile:', e);
     }
@@ -263,7 +339,8 @@ class CloudDbService {
   async syncEntityDoc<T extends { id: string }>(collectionName: string, companyId: string, item: T): Promise<void> {
     try {
       const docRef = doc(db, collectionName, `${companyId}_${item.id}`);
-      await setDoc(docRef, { ...item, companyId, updatedAt: new Date().toISOString() }, { merge: true });
+      const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
+      await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
       console.error(`CloudDb: Error syncing ${collectionName}/${item.id}:`, e);
     }
@@ -283,7 +360,8 @@ class CloudDbService {
       // Save items
       for (const item of items) {
         const docRef = doc(db, collectionName, `${companyId}_${item.id}`);
-        await setDoc(docRef, { ...item, companyId, updatedAt: new Date().toISOString() }, { merge: true });
+        const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
+        await setDoc(docRef, cleanData, { merge: true });
       }
     } catch (e) {
       console.error(`CloudDb: Error syncing collection ${collectionName}:`, e);

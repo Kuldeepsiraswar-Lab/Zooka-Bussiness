@@ -535,6 +535,19 @@ export const ROLE_DEFINITIONS: Record<RoleType, RoleDefinition> = {
   },
 };
 
+/**
+ * Roles assignable within individual company/business profiles.
+ * Super Admin is a global platform role outside individual business profiles.
+ */
+export const COMPANY_ASSIGNABLE_ROLES: RoleType[] = [
+  'ADMIN',
+  'ACCOUNTANT',
+  'SALESPERSON',
+  'INVENTORY_MANAGER',
+  'AUDITOR',
+  'CUSTOM',
+];
+
 export const DEFAULT_SUPER_ADMIN: AppUser = {
   id: 'usr-super-admin',
   name: 'Vikram Singhania',

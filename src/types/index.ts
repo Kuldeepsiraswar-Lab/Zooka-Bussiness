@@ -326,7 +326,11 @@ export interface Company {
   currencySymbol: string;
   logoUrl?: string;
   themeColor?: string;
+  isActive?: boolean; // Controls whether this business is enabled or disabled
+  disabledReason?: string; // Reason when disabled by Super Admin
+  headerConfig?: HeaderConfig;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface InvoiceLineSettings {
@@ -394,6 +398,53 @@ export interface InvoiceTemplateConfig {
   createdAt?: string;
 }
 
+export type HeaderStyle = 'GLASS' | 'SOLID' | 'BORDERED' | 'MINIMAL' | 'FLOATING';
+export type HeaderDensity = 'COMPACT' | 'COMFORTABLE' | 'SPACIOUS';
+export type HeaderSearchStyle = 'EXPANDED' | 'COMPACT' | 'PILL' | 'MINIMAL';
+
+export interface HeaderConfig {
+  enabled?: boolean;
+  style: HeaderStyle;
+  density: HeaderDensity;
+  
+  // Branding & Identity Display
+  showLogo: boolean;
+  logoShape?: 'square' | 'circle' | 'rounded';
+  showTradeName: boolean;
+  showLegalName: boolean;
+  showGstin: boolean;
+  showStateBadge: boolean;
+  showLocation: boolean;
+  showFinancialYear: boolean;
+  customTitle?: string;
+  customSubtitle?: string;
+  
+  // Universal Search
+  showSearch: boolean;
+  searchStyle: HeaderSearchStyle;
+  searchPlaceholder?: string;
+  
+  // Quick Action CTAs
+  showNewInvoiceBtn: boolean;
+  newInvoiceBtnText?: string;
+  showQuickPosBtn: boolean;
+  quickPosBtnText?: string;
+  showQuickExpenseBtn: boolean;
+  showQuickPaymentBtn: boolean;
+  
+  // System Tools & Status
+  showCloudSyncBadge: boolean;
+  showThemeToggle: boolean;
+  showNotificationBell: boolean;
+  showUserPersona: boolean;
+  
+  // Layout & Visual Styling
+  customAccentColor?: 'auto' | 'indigo' | 'emerald' | 'blue' | 'amber' | 'purple' | 'rose' | 'slate' | 'cyan';
+  showBorderBottom: boolean;
+  shadow: 'none' | 'xs' | 'sm' | 'md' | 'lg';
+  sticky: boolean;
+}
+
 export type BottomNavStyle = 'FLOATING_PILL' | 'CLASSIC_DOCKED' | 'MODERN_CURVED' | 'COMPACT_SLIM';
 
 export interface BottomNavTabItem {
@@ -458,6 +509,7 @@ export interface BusinessProfile {
   defaultTemplateId?: string;
   customTemplates?: InvoiceTemplateConfig[];
   bottomNavConfig?: BottomNavConfig;
+  headerConfig?: HeaderConfig;
 }
 
 export interface StateCodeMap {

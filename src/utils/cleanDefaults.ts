@@ -1,6 +1,7 @@
 import { Company, BusinessProfile, AppUser, AccountHead } from '../types';
 import { DEFAULT_SIGNATURE_DATA_URL, normalizeSignatureUrl } from './formatters';
 import { DEFAULT_BOTTOM_NAV_CONFIG } from './bottomNavDefaults';
+import { DEFAULT_HEADER_CONFIG, normalizeHeaderConfig } from './headerDefaults';
 import { DEFAULT_SUPER_ADMIN } from './rbacRules';
 
 export const cleanDefaultCompany: Company = {
@@ -21,6 +22,7 @@ export const cleanDefaultCompany: Company = {
   currency: 'INR',
   currencySymbol: '₹',
   themeColor: 'indigo',
+  headerConfig: DEFAULT_HEADER_CONFIG,
   createdAt: '2026-01-01T00:00:00Z',
 };
 
@@ -55,6 +57,7 @@ export const cleanDefaultBusinessProfile: BusinessProfile = {
   showSignatureOnInvoice: true,
   signatureUrl: DEFAULT_SIGNATURE_DATA_URL,
   bottomNavConfig: DEFAULT_BOTTOM_NAV_CONFIG,
+  headerConfig: DEFAULT_HEADER_CONFIG,
   itemLineSettings: {
     enableDescription: true,
     enableSerialNumber: true,
@@ -100,7 +103,6 @@ export const cleanDefaultAdminUser: AppUser = {
 };
 
 export const cleanDefaultUsers: AppUser[] = [
-  DEFAULT_SUPER_ADMIN,
   cleanDefaultAdminUser
 ];
 
@@ -140,9 +142,25 @@ export const normalizeBusinessProfile = (profile?: Partial<BusinessProfile> | nu
     }
   };
 
+  const rawBottomNav = profile.bottomNavConfig || base.bottomNavConfig;
   const bottomNavConfig = {
-    ...base.bottomNavConfig,
-    ...(profile.bottomNavConfig || {})
+    ...base.bottomNavConfig!,
+    ...(rawBottomNav || {}),
+    showQuickActionCenter: typeof rawBottomNav?.showQuickActionCenter === 'boolean'
+      ? rawBottomNav.showQuickActionCenter
+      : false,
+    tabs: rawBottomNav?.tabs && Array.isArray(rawBottomNav.tabs) && rawBottomNav.tabs.length > 0
+      ? rawBottomNav.tabs.map((tab, idx) => ({
+          id: tab.id,
+          label: tab.label || '',
+          customLabel: tab.customLabel || '',
+          isEnabled: typeof tab.isEnabled === 'boolean' ? tab.isEnabled : true,
+          order: typeof tab.order === 'number' ? tab.order : idx
+        }))
+      : base.bottomNavConfig!.tabs,
+    quickActionItems: Array.isArray(rawBottomNav?.quickActionItems)
+      ? rawBottomNav.quickActionItems
+      : base.bottomNavConfig!.quickActionItems
   };
 
   return {
@@ -151,7 +169,8 @@ export const normalizeBusinessProfile = (profile?: Partial<BusinessProfile> | nu
     signatureUrl: normalizeSignatureUrl(profile.signatureUrl || base.signatureUrl),
     showSignatureOnInvoice: profile.showSignatureOnInvoice !== false,
     itemLineSettings,
-    bottomNavConfig
+    bottomNavConfig,
+    headerConfig: normalizeHeaderConfig(profile.headerConfig || base.headerConfig)
   };
 };
 

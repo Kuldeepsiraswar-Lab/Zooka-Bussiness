@@ -166,7 +166,6 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
     }
 
     updateBusiness({
-      ...business,
       bottomNavConfig: config
     });
 

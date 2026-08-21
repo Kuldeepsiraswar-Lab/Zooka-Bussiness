@@ -19,7 +19,8 @@ import {
   Moon,
   Plus,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Crown
 } from 'lucide-react';
 import { 
   ALL_AVAILABLE_NAV_TABS, 
@@ -231,6 +232,28 @@ export const MobileNav: React.FC = () => {
 
                 {/* All Application Modules in Drawer */}
                 <div className="mt-4 space-y-1">
+                  {currentUser.role === 'SUPER_ADMIN' && (
+                    <button
+                      onClick={() => {
+                        setActiveTab('super_admin_dashboard');
+                        setDrawerOpen(false);
+                      }}
+                      className={`w-full mb-2 flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer border ${
+                        activeTab === 'super_admin_dashboard'
+                          ? 'bg-amber-600 text-white border-amber-500'
+                          : 'bg-amber-950/40 text-amber-300 border-amber-800/60 hover:bg-amber-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Crown className="w-4 h-4 text-amber-400" />
+                        <span>Super Admin Master Portal</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200">
+                        Master
+                      </span>
+                    </button>
+                  )}
+
                   <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1 flex items-center justify-between">
                     <span>All App Modules</span>
                     <span className="text-[10px] text-slate-500 font-normal">Switch View</span>

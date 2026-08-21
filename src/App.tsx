@@ -21,6 +21,7 @@ import { AccountingView } from './components/accounting/AccountingView';
 import { GstReturnsView } from './components/reports/GstReturnsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { UsersAndRolesView } from './components/auth/UsersAndRolesView';
+import { SuperAdminDashboard } from './components/admin/SuperAdminDashboard';
 import { AccessRestricted } from './components/auth/AccessRestricted';
 import { UserAuthModal } from './components/auth/UserAuthModal';
 import { LockScreenOverlay } from './components/auth/LockScreenOverlay';
@@ -244,6 +245,13 @@ const MainContent: React.FC = () => {
                   )
                 )}
                 {activeTab === 'users' && <UsersAndRolesView />}
+                {activeTab === 'super_admin_dashboard' && (
+                  currentUser.role === 'SUPER_ADMIN' ? (
+                    <SuperAdminDashboard />
+                  ) : (
+                    <AccessRestricted moduleName="Super Admin Master Governance" allowedRoles={['SUPER_ADMIN']} />
+                  )
+                )}
                 {activeTab === 'settings' && (
                   can('settings', 'view') ? (
                     <SettingsView />

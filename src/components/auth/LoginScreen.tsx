@@ -235,11 +235,11 @@ export const LoginScreen: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-white leading-tight">Super Administrator Control</h3>
                     <span className="text-[9px] font-extrabold uppercase bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full border border-purple-400/40">
-                      Supreme Role
+                      /admin route
                     </span>
                   </div>
                   <p className="text-xs text-slate-300 mt-0.5">
-                    <strong>Vikram Singhania</strong> • Supreme authority to create & provision new business entities across the platform.
+                    <strong>Vikram Singhania</strong> • Supreme authority to create & provision new business entities across the platform. Access directly via <code className="bg-purple-900/60 px-1.5 py-0.5 rounded text-amber-300 font-mono text-[11px]">baseurl/admin</code>
                   </p>
                 </div>
               </div>
@@ -257,10 +257,10 @@ export const LoginScreen: React.FC = () => {
                   type="button"
                   onClick={handleQuickSuperAdminLogin}
                   className="px-3.5 py-2 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
-                  title="Direct sign in as Super Admin"
+                  title="Direct sign in as Super Admin (baseurl/admin)"
                 >
                   <KeyRound className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Super Admin Login</span>
+                  <span>Super Admin Portal (/admin)</span>
                 </button>
               </div>
             </div>

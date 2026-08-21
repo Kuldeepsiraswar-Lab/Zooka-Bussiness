@@ -22,7 +22,8 @@ import {
   ShieldAlert,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  Crown
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -44,6 +45,7 @@ export const Sidebar: React.FC = () => {
     lockSession, 
     openAuthModal, 
     logout,
+    loginAsSuperAdmin,
     theme,
     resolvedTheme,
     toggleTheme
@@ -51,7 +53,17 @@ export const Sidebar: React.FC = () => {
 
   const lowStockCount = products.filter(p => !p.isService && p.currentStock <= p.minStockAlert).length;
 
+  const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
+
   const menuItems: SidebarItem[] = [
+    {
+      id: 'super_admin_dashboard' as ActiveTab,
+      label: 'Super Admin Portal',
+      icon: Crown,
+      badge: '/admin',
+      badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/40',
+      description: 'Master Platform Governance & Multi-Company Admin (/admin)'
+    },
     {
       id: 'dashboard',
       label: 'Dashboard',
@@ -164,12 +176,22 @@ export const Sidebar: React.FC = () => {
         {menuItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const hasAccess = item.id === 'users' ? true : can(item.id as any, 'view');
+          const hasAccess = item.id === 'super_admin_dashboard' ? true : item.id === 'users' ? true : can(item.id as any, 'view');
 
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === 'super_admin_dashboard') {
+                  if (currentUser.role !== 'SUPER_ADMIN') {
+                    loginAsSuperAdmin();
+                  } else {
+                    setActiveTab('super_admin_dashboard');
+                  }
+                } else {
+                  setActiveTab(item.id);
+                }
+              }}
               className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
                 isActive
                   ? 'text-white'

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AppUser, RoleType, UserPermissions } from '../../types';
-import { ROLE_DEFINITIONS, getUserEffectivePermissions } from '../../utils/rbacRules';
+import { ROLE_DEFINITIONS, COMPANY_ASSIGNABLE_ROLES, getUserEffectivePermissions } from '../../utils/rbacRules';
 import { 
   X, 
   UserPlus, 
@@ -261,7 +261,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(Object.keys(ROLE_DEFINITIONS) as RoleType[]).map(rKey => {
+              {COMPANY_ASSIGNABLE_ROLES.map(rKey => {
                 const roleDef = ROLE_DEFINITIONS[rKey];
                 const isSelected = formData.role === rKey;
 

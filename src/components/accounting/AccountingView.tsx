@@ -108,6 +108,7 @@ export const AccountingView: React.FC = () => {
     createAccountHead,
     updateAccountHead,
     deleteAccountHead,
+    clearAllLedgerData,
     journalEntries, 
     createJournalEntry, 
     updateJournalEntry,
@@ -118,6 +119,8 @@ export const AccountingView: React.FC = () => {
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'general_ledger' | 'daybook' | 'trial_balance' | 'pnl' | 'balance_sheet'>('overview');
+  const [showClearLedgerModal, setShowClearLedgerModal] = useState(false);
+  const [isClearingLedger, setIsClearingLedger] = useState(false);
   
   // Ledger Drilldown State
   const [selectedAccountId, setSelectedAccountId] = useState<string>('acc-2'); // Default to Bank
@@ -525,13 +528,6 @@ export const AccountingView: React.FC = () => {
     });
 
     // 6. Compute Dynamic Balances for each Account Head
-    const baseDefaultOpenings: { [key: string]: number } = {
-      'acc-1': 25000,   // Cash in Hand opening
-      'acc-2': 450000,  // HDFC Bank opening
-      'acc-4': 500000,  // Stock opening
-      'acc-12': 975000  // Owner Equity / Capital
-    };
-
     let totalTrialDebit = 0;
     let totalTrialCredit = 0;
 
@@ -543,7 +539,7 @@ export const AccountingView: React.FC = () => {
       const isAssetOrExpense = baseAcc.category === 'ASSET' || baseAcc.category === 'EXPENSE';
       const openBal = baseAcc.openingBalance !== undefined 
         ? Number(baseAcc.openingBalance) 
-        : (baseDefaultOpenings[baseAcc.id] || 0);
+        : (Number(baseAcc.balance) || 0);
 
       const sumDebit = postings.reduce((s, p) => s + p.debit, 0);
       const sumCredit = postings.reduce((s, p) => s + p.credit, 0);
@@ -871,11 +867,12 @@ export const AccountingView: React.FC = () => {
     }
   };
 
-  // Cash and Bank Balances
+  // Cash, Bank, Debtors, Creditors and Capital Balances
   const cashHead = dynamicAccountHeads.find(a => a.id === 'acc-1');
   const bankHead = dynamicAccountHeads.find(a => a.id === 'acc-2');
   const debtorsHead = dynamicAccountHeads.find(a => a.id === 'acc-3');
   const creditorsHead = dynamicAccountHeads.find(a => a.id === 'acc-8');
+  const capitalHead = dynamicAccountHeads.find(a => a.id === 'acc-12' || a.code === '3000' || a.category === 'EQUITY');
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
@@ -892,6 +889,15 @@ export const AccountingView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setShowClearLedgerModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Clear all journal entries and reset ledger accounts to zero baseline"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>Clear Ledger Data</span>
+          </button>
+
           <button
             onClick={() => setShowBankStatementImportModal(true)}
             className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
@@ -1842,7 +1848,7 @@ export const AccountingView: React.FC = () => {
                 <div className="font-bold text-slate-700">2. Owner's Equity & Retained Earnings:</div>
                 <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
                   <span className="text-slate-600">Owner Capital (Equity)</span>
-                  <span className="font-mono font-semibold">{formatINR(975000)}</span>
+                  <span className="font-mono font-semibold">{formatINR(Math.abs(capitalHead?.balance || 0))}</span>
                 </div>
                 <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
                   <span className="text-slate-600">Current Period Net Profit</span>
@@ -2283,6 +2289,76 @@ export const AccountingView: React.FC = () => {
                 className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer"
               >
                 Yes, Delete Voucher
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          CONFIRM CLEAR ALL LEDGER DATA MODAL
+         ========================================================================= */}
+      {showClearLedgerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-md w-full text-xs space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-slate-900 text-sm">
+                  Clear All Ledger & Journal Data?
+                </h3>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  This action will delete all manual journal entries, daybook vouchers, and reset custom ledger account opening balances to zero baseline. Standard Chart of Accounts structure will be preserved.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-100 text-[11px] text-rose-800 space-y-1">
+              <div className="font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Permanent ledger wipe</span>
+              </div>
+              <p className="text-rose-700">
+                {journalEntries.length} journal {journalEntries.length === 1 ? 'entry' : 'entries'} and account balances in Google Cloud Firestore will be reset.
+              </p>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={isClearingLedger}
+                onClick={() => setShowClearLedgerModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isClearingLedger}
+                onClick={async () => {
+                  try {
+                    setIsClearingLedger(true);
+                    await clearAllLedgerData();
+                    setShowClearLedgerModal(false);
+                  } finally {
+                    setIsClearingLedger(false);
+                  }
+                }}
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isClearingLedger ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Clearing Ledgers...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Clear All Ledgers</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

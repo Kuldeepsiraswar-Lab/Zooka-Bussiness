@@ -157,7 +157,7 @@ export const InvoiceTemplateManager: React.FC = () => {
   };
 
   const handleSetActiveTemplate = (templateId: string) => {
-    updateBusiness({ defaultTemplateId: templateId });
+    updateBusiness({ defaultTemplateId: templateId }, true);
     const match = allTemplates.find(t => t.id === templateId);
     if (match) setSelectedTemplateForPreview(match);
     showToast('success', 'Default Template Updated', `"${match?.name || templateId}" is now set as the active default invoice template.`);
@@ -197,7 +197,7 @@ export const InvoiceTemplateManager: React.FC = () => {
     updateBusiness({
       customTemplates: updatedList,
       defaultTemplateId: editingTemplate.id,
-    });
+    }, true);
 
     setSelectedTemplateForPreview(editingTemplate);
     setIsEditingCustom(false);
@@ -213,7 +213,7 @@ export const InvoiceTemplateManager: React.FC = () => {
       updateBusiness({
         customTemplates: updatedList,
         defaultTemplateId: newDefault,
-      });
+      }, true);
 
       const fallback = allTemplates.find(t => t.id === newDefault) || STANDARD_INVOICE_TEMPLATES[0];
       setSelectedTemplateForPreview(fallback);

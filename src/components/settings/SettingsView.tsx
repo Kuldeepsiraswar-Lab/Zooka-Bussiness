@@ -197,7 +197,6 @@ export const SettingsView: React.FC = () => {
   const handleSave = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     updateBusiness(formData);
-    showToast('success', 'Settings Saved', 'Business profile & product line preferences updated successfully.');
   };
 
   // JPG / Image Upload Handler

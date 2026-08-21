@@ -70,7 +70,7 @@ interface AppContextType {
 
   // Business Profile
   business: BusinessProfile;
-  updateBusiness: (profile: Partial<BusinessProfile>) => void;
+  updateBusiness: (profile: Partial<BusinessProfile>, silent?: boolean) => void;
   
   // Invoices & Billing
   invoices: Invoice[];
@@ -128,6 +128,7 @@ interface AppContextType {
   createAccountHead: (account: Omit<AccountHead, 'id'>) => AccountHead;
   updateAccountHead: (id: string, updates: Partial<AccountHead>) => void;
   deleteAccountHead: (id: string) => boolean;
+  clearAllLedgerData: () => Promise<void>;
   importBankStatementAutoEntries: (
     entries: BankStatementAutoEntry[],
     targetBankAccountId: string,
@@ -759,7 +760,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUserId(adminId);
     setAuditLogs([]);
 
-    showToast('success', 'Company Created Successfully', `Welcome to ${newCompany.tradeName || newCompany.name}! Admin login configured and synced to Google Cloud Firestore.`);
+    showToast('success', 'Company Created Successfully', `Welcome to ${newCompany.tradeName || newCompany.name}! Admin login configured.`);
     return newCompany;
   };
 
@@ -985,18 +986,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       setCloudSyncStatus('online');
       setLastCloudSyncTime(new Date());
-      showToast('success', 'Cloud DB Synced', 'All business data synced to Google Cloud Firestore.');
     } catch (e) {
       console.error('Manual cloud sync failed:', e);
       setCloudSyncStatus('error');
-      showToast('error', 'Cloud Sync Failed', 'Could not sync records to Google Cloud Firestore.');
     } finally {
       setIsCloudSyncing(false);
     }
   };
 
-  // Toast Helpers
+  // Toast Helpers & Deduplication
+  const recentToastsRef = useRef<Map<string, number>>(new Map());
+
   const showToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string, duration: number = 5000) => {
+    // Suppress any Firebase, Firestore, or Cloud DB background sync toast notifications
+    const normalizedTitle = (title || '').toLowerCase().trim();
+    const normalizedMsg = (message || '').toLowerCase().trim();
+    if (
+      normalizedTitle.includes('firebase') ||
+      normalizedTitle.includes('firestore') ||
+      normalizedTitle.includes('cloud db') ||
+      normalizedTitle.includes('cloud sync') ||
+      normalizedMsg.includes('firebase') ||
+      normalizedMsg.includes('firestore')
+    ) {
+      return;
+    }
+
+    // Deduplicate identical/similar notifications within 1.8 seconds
+    const dedupeKey = `${type}:${normalizedTitle}`;
+    const now = Date.now();
+    const lastTimestamp = recentToastsRef.current.get(dedupeKey);
+    if (lastTimestamp && now - lastTimestamp < 1800) {
+      return;
+    }
+    recentToastsRef.current.set(dedupeKey, now);
+
     const id = Math.random().toString(36).substr(2, 9);
     const newToast: ToastMessage = {
       id,
@@ -1004,9 +1028,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       title,
       message,
       duration,
-      createdAt: Date.now()
+      createdAt: now
     };
-    setToasts(prev => [...prev, newToast]);
+
+    setToasts(prev => {
+      // Remove any existing toast with identical title/type to prevent stacked duplicates
+      const filtered = prev.filter(t => t.title.toLowerCase().trim() !== normalizedTitle);
+      // Keep at most last 3 toasts
+      return [...filtered.slice(-2), newToast];
+    });
 
     if (duration > 0) {
       setTimeout(() => {
@@ -1227,7 +1257,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Business Profile Updates
-  const updateBusiness = (profile: Partial<BusinessProfile>) => {
+  const updateBusiness = (profile: Partial<BusinessProfile>, silent: boolean = false) => {
     setBusiness(prev => {
       const updated: BusinessProfile = normalizeBusinessProfile({
         ...prev,
@@ -1262,7 +1292,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
 
-    showToast('success', 'Settings Saved', 'Business & invoice configuration updated.');
+    if (!silent) {
+      showToast('success', 'Settings Saved', 'Business & invoice configuration updated.');
+    }
   };
 
   // Invoices & Billing
@@ -1965,6 +1997,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
+  const clearAllLedgerData = async () => {
+    // 1. Reset journal entries to empty
+    setJournalEntries([]);
+    localStorage.setItem(STORAGE_PREFIX + 'journalEntries', JSON.stringify([]));
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_journalEntries`, JSON.stringify([]));
+
+    // 2. Reset account heads to standard clean defaults with zero opening balances
+    setAccountHeads(cleanDefaultAccountHeads);
+    localStorage.setItem(STORAGE_PREFIX + 'accountHeads', JSON.stringify(cleanDefaultAccountHeads));
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_accountHeads`, JSON.stringify(cleanDefaultAccountHeads));
+
+    // 3. Clear cloud Firestore partitioned collections and re-seed baseline standard COA
+    try {
+      await cloudDb.clearCollection('journalEntries', currentCompanyId);
+      await cloudDb.clearCollection('accountHeads', currentCompanyId);
+      await cloudDb.syncEntireCollection('accountHeads', currentCompanyId, cleanDefaultAccountHeads);
+    } catch (e) {
+      console.warn('CloudDb: Failed clearing cloud ledger partitions:', e);
+    }
+
+    showToast('info', 'Ledgers Cleared', 'All journal entries and custom ledger balances have been reset to zero baseline.');
+  };
+
   // Bank Statement Auto Entry Bulk Processor
   const importBankStatementAutoEntries = (
     entriesToImport: BankStatementAutoEntry[],
@@ -2309,7 +2364,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setJournalEntries(parsed.journalEntries || []);
         if (parsed.users) setUsers(parsed.users);
         triggerCloudSync().catch(console.warn);
-        showToast('success', 'Data Restored', 'Database backup imported and saved to Google Cloud Firestore.');
+        showToast('success', 'Data Restored', 'Database backup imported successfully.');
         return true;
       }
       throw new Error('Invalid schema');
@@ -2376,6 +2431,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createAccountHead,
         updateAccountHead,
         deleteAccountHead,
+        clearAllLedgerData,
         importBankStatementAutoEntries,
         journalEntries,
         createJournalEntry,

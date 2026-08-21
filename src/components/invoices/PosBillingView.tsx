@@ -265,7 +265,6 @@ export const PosBillingView: React.FC = () => {
       origin: { y: 0.6 }
     });
 
-    showToast('success', 'Sale Complete', `Tax Invoice #${sequentialInvoiceNumber} created.`);
     setCart([]);
     setCashTendered(0);
     setSelectedInvoiceIdForPrint(invoice.id);

@@ -130,7 +130,7 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
   const handleSaveConfig = () => {
     updateBusiness({
       headerConfig: config
-    });
+    }, true);
     showToast('success', 'Header Settings Saved', 'Top navigation header customized successfully.');
     if (onSaved) onSaved();
   };

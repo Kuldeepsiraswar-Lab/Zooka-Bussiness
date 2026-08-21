@@ -303,7 +303,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
             type="button"
             onClick={() => {
               const newStatus = !isSignatureVisible;
-              updateBusiness({ showSignatureOnInvoice: newStatus });
+              updateBusiness({ showSignatureOnInvoice: newStatus }, true);
               showToast('info', newStatus ? 'Signature Enabled' : 'Signature Hidden', newStatus ? 'Authorized signature is now visible on sales invoices.' : 'Signature hidden on print.');
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${

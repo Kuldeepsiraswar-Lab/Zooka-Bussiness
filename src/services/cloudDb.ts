@@ -355,6 +355,19 @@ class CloudDbService {
     }
   }
 
+  async clearCollection(collectionName: string, companyId: string): Promise<void> {
+    try {
+      const collRef = collection(db, collectionName);
+      const q = query(collRef, where('companyId', '==', companyId));
+      const snap = await getDocs(q);
+      for (const d of snap.docs) {
+        await deleteDoc(d.ref);
+      }
+    } catch (e) {
+      console.error(`CloudDb: Error clearing collection ${collectionName} for company ${companyId}:`, e);
+    }
+  }
+
   async syncEntireCollection<T extends { id: string }>(collectionName: string, companyId: string, items: T[]): Promise<void> {
     try {
       // Save items

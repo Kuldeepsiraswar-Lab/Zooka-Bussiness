@@ -167,7 +167,7 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
 
     updateBusiness({
       bottomNavConfig: config
-    });
+    }, true);
 
     showToast('success', 'Navigation Settings Saved', 'Bottom navigation bar updated across all mobile & tablet views.');
     if (onSaved) onSaved();

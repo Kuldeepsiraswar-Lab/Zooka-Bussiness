@@ -186,8 +186,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
       <CreateCompanyModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={(newComp) => {
-          showToast('success', 'Company Created', `Switched active workspace to ${newComp.tradeName || newComp.name}`);
+        onSuccess={() => {
+          setIsOpen(false);
         }}
       />
     </div>

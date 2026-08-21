@@ -840,7 +840,7 @@ export const initialAccountHeads: AccountHead[] = [
   { id: 'acc-10', code: '2020', name: 'Output Tax Liability SGST', category: 'LIABILITY', balance: 12131.47, isSystem: true },
   { id: 'acc-11', code: '2030', name: 'Output Tax Liability IGST', category: 'LIABILITY', balance: 12787.38, isSystem: true },
   
-  { id: 'acc-12', code: '3000', name: 'Capital Account (Owner Equity)', category: 'EQUITY', balance: 1000000, isSystem: true },
+  { id: 'acc-12', code: '3000', name: 'Capital Account (Owner Equity)', category: 'EQUITY', balance: 0, isSystem: true },
   { id: 'acc-13', code: '3010', name: 'Retained Earnings', category: 'EQUITY', balance: 182390, isSystem: true },
 
   { id: 'acc-14', code: '4000', name: 'Sales Revenue (Goods & Services)', category: 'INCOME', balance: 206357.6, isSystem: true },

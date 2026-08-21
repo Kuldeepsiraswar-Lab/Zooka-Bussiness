@@ -383,14 +383,12 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
     if (isEditing && initialData?.id) {
       updateInvoice(initialData.id, invoicePayload);
-      showToast('success', 'Invoice Updated', `Invoice #${invoiceNumber} has been updated successfully.`);
       onClose();
       if (andPrint) {
         setSelectedInvoiceIdForPrint(initialData.id);
       }
     } else {
       const created = createInvoice(invoicePayload);
-      showToast('success', 'Invoice Created', `Invoice #${invoiceNumber} has been created successfully.`);
       onClose();
       if (andPrint && created?.id) {
         setSelectedInvoiceIdForPrint(created.id);

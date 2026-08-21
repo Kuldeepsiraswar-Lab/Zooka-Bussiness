@@ -814,8 +814,7 @@ export const LoginScreen: React.FC = () => {
       <CreateCompanyModal
         isOpen={isCreateCompanyOpen}
         onClose={() => setIsCreateCompanyOpen(false)}
-        onSuccess={(createdComp) => {
-          showToast('success', 'Company Registered', `Workspace created for ${createdComp.tradeName || createdComp.name}.`);
+        onSuccess={() => {
           setLoginStep('login_credentials');
         }}
       />

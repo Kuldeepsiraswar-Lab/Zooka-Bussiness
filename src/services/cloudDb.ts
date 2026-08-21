@@ -11,7 +11,8 @@ import {
   AccountHead, 
   JournalEntry, 
   AppUser, 
-  SecurityAuditLog 
+  SecurityAuditLog,
+  SuperAdminAuthData
 } from '../types';
 import { normalizeBusinessProfile } from '../utils/cleanDefaults';
 
@@ -117,12 +118,12 @@ class CloudDbService {
     }
   }
 
-  async fetchSuperAdminAuth(): Promise<{ password?: string; pin?: string; email?: string; lastChanged?: string } | null> {
+  async fetchSuperAdminAuth(): Promise<Partial<SuperAdminAuthData> | null> {
     try {
       const docRef = doc(db, 'systemState', 'superAdminAuth');
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        return snap.data() as { password?: string; pin?: string; email?: string; lastChanged?: string };
+        return snap.data() as Partial<SuperAdminAuthData>;
       }
     } catch (e) {
       console.warn('CloudDb: Failed reading Super Admin auth from Firestore:', e);
@@ -130,7 +131,7 @@ class CloudDbService {
     return null;
   }
 
-  async saveSuperAdminAuth(authData: { password?: string; pin?: string; email?: string; lastChanged?: string }): Promise<void> {
+  async saveSuperAdminAuth(authData: Partial<SuperAdminAuthData>): Promise<void> {
     try {
       const docRef = doc(db, 'systemState', 'superAdminAuth');
       const cleanData = sanitizeForFirestore({ ...authData, updatedAt: new Date().toISOString() });

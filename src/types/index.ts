@@ -597,6 +597,19 @@ export interface UserPermissions {
   };
 }
 
+export interface SuperAdminAuthData {
+  name: string;
+  email: string;
+  phone: string;
+  roleTitle: string;
+  department: string;
+  avatarBg?: string;
+  avatarText?: string;
+  password: string;
+  pin: string;
+  lastChanged?: string;
+}
+
 export interface AppUser {
   id: string;
   name: string;

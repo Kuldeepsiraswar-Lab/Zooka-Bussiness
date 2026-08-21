@@ -22,6 +22,7 @@ export const UserAuthModal: React.FC = () => {
   const { 
     users, 
     currentUser, 
+    superAdminUser,
     isAuthModalOpen, 
     authModalTargetUser, 
     closeAuthModal, 
@@ -58,7 +59,7 @@ export const UserAuthModal: React.FC = () => {
     authModalTargetUser?.role === 'SUPER_ADMIN';
 
   const targetUser: AppUser = isTargetingSuperAdmin 
-    ? DEFAULT_SUPER_ADMIN 
+    ? (superAdminUser || DEFAULT_SUPER_ADMIN) 
     : users.find(u => u.id === selectedUserId) || currentUser;
 
   const roleMeta = ROLE_DEFINITIONS[targetUser.role] || ROLE_DEFINITIONS.CUSTOM;
@@ -150,7 +151,7 @@ export const UserAuthModal: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
-                      <span>{DEFAULT_SUPER_ADMIN.name}</span>
+                      <span>{superAdminUser?.name || DEFAULT_SUPER_ADMIN.name}</span>
                       {currentUser.role === 'SUPER_ADMIN' && (
                         <span className="text-[10px] text-purple-700 font-semibold bg-purple-100 px-1.5 py-0.2 rounded-full">
                           Active
@@ -158,7 +159,7 @@ export const UserAuthModal: React.FC = () => {
                       )}
                     </div>
                     <div className="text-[11px] text-purple-700 font-medium truncate">
-                      Super Administrator (/admin)
+                      {superAdminUser?.roleTitle || 'Super Administrator (/admin)'}
                     </div>
                   </div>
                 </div>

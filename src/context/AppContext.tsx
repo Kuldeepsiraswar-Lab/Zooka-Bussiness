@@ -3,7 +3,7 @@ import {
   Invoice, Product, Party, PurchaseBill, Expense, JournalEntry, AccountHead, BusinessProfile, 
   EInvoiceDetails, EWayBillDetails, PaymentMethod, InvoiceStatus, PaymentRecord, PaymentType,
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
-  BankStatementAutoEntry, BankStatementImportResult
+  BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData
 } from '../types';
 import { 
   cleanDefaultCompany,
@@ -65,7 +65,12 @@ interface AppContextType {
   editBusinessProfile: (companyId: string, profileUpdates: Partial<BusinessProfile>, companyUpdates?: Partial<Company>) => void;
 
   // Super Admin Master Credentials & Governance
-  superAdminAuth: { email: string; password: string; pin: string; lastChanged?: string };
+  superAdminAuth: SuperAdminAuthData;
+  superAdminUser: AppUser;
+  updateSuperAdminProfile: (
+    updates: Partial<SuperAdminAuthData>,
+    currentAuth?: string
+  ) => { success: boolean; error?: string };
   updateSuperAdminPassword: (currentPassOrPin: string, newPassword?: string, newPin?: string) => { success: boolean; error?: string };
 
   // Business Profile
@@ -262,20 +267,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   // Super Admin Master Authentication State (Global Platform Governance)
-  const [superAdminAuth, setSuperAdminAuth] = useState<{
-    password: string;
-    pin: string;
-    email: string;
-    lastChanged?: string;
-  }>(() => {
+  const [superAdminAuth, setSuperAdminAuth] = useState<SuperAdminAuthData>(() => {
     try {
       const saved = localStorage.getItem('vyapar_superadmin_auth');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          name: parsed.name || DEFAULT_SUPER_ADMIN.name,
+          email: parsed.email || DEFAULT_SUPER_ADMIN.email,
+          phone: parsed.phone || DEFAULT_SUPER_ADMIN.phone || '+91 99999 88888',
+          roleTitle: parsed.roleTitle || DEFAULT_SUPER_ADMIN.roleTitle || 'Platform Super Administrator',
+          department: parsed.department || DEFAULT_SUPER_ADMIN.department || 'Executive Governance & Board',
+          avatarBg: parsed.avatarBg || DEFAULT_SUPER_ADMIN.avatarBg,
+          avatarText: parsed.avatarText || DEFAULT_SUPER_ADMIN.avatarText,
+          password: parsed.password || 'superadmin',
+          pin: parsed.pin || '9999',
+          lastChanged: parsed.lastChanged || '2026-01-01T00:00:00.000Z'
+        };
+      }
     } catch (e) {}
     return {
+      name: DEFAULT_SUPER_ADMIN.name,
+      email: DEFAULT_SUPER_ADMIN.email,
+      phone: DEFAULT_SUPER_ADMIN.phone || '+91 99999 88888',
+      roleTitle: DEFAULT_SUPER_ADMIN.roleTitle || 'Platform Super Administrator',
+      department: DEFAULT_SUPER_ADMIN.department || 'Executive Governance & Board',
+      avatarBg: DEFAULT_SUPER_ADMIN.avatarBg,
+      avatarText: DEFAULT_SUPER_ADMIN.avatarText,
       password: 'superadmin',
       pin: '9999',
-      email: 'superadmin@vyaparflow.in',
       lastChanged: '2026-01-01T00:00:00.000Z'
     };
   });
@@ -315,9 +335,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const superAdminUser: AppUser = useMemo(() => ({
     ...DEFAULT_SUPER_ADMIN,
+    name: superAdminAuth.name || DEFAULT_SUPER_ADMIN.name,
+    email: superAdminAuth.email || DEFAULT_SUPER_ADMIN.email,
+    phone: superAdminAuth.phone || DEFAULT_SUPER_ADMIN.phone,
+    roleTitle: superAdminAuth.roleTitle || DEFAULT_SUPER_ADMIN.roleTitle,
+    department: superAdminAuth.department || DEFAULT_SUPER_ADMIN.department,
+    avatarBg: superAdminAuth.avatarBg || DEFAULT_SUPER_ADMIN.avatarBg,
+    avatarText: superAdminAuth.avatarText || (superAdminAuth.name ? superAdminAuth.name.split(' ').map(w => w[0]).filter(Boolean).join('').slice(0, 2).toUpperCase() : 'SA'),
     password: superAdminAuth.password,
     pin: superAdminAuth.pin,
-    email: superAdminAuth.email,
   }), [superAdminAuth]);
 
   const currentUser = useMemo(() => {
@@ -399,13 +425,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Fetch Super Admin Master Auth credentials from cloud
         const cloudSuperAdminAuth = await cloudDb.fetchSuperAdminAuth();
         if (cloudSuperAdminAuth && isMounted) {
-          setSuperAdminAuth(prev => ({
-            ...prev,
-            password: cloudSuperAdminAuth.password || prev.password,
-            pin: cloudSuperAdminAuth.pin || prev.pin,
-            email: cloudSuperAdminAuth.email || prev.email,
-            lastChanged: cloudSuperAdminAuth.lastChanged || prev.lastChanged,
-          }));
+          setSuperAdminAuth(prev => {
+            const updated: SuperAdminAuthData = {
+              name: cloudSuperAdminAuth.name || prev.name,
+              email: cloudSuperAdminAuth.email || prev.email,
+              phone: cloudSuperAdminAuth.phone || prev.phone,
+              roleTitle: cloudSuperAdminAuth.roleTitle || prev.roleTitle,
+              department: cloudSuperAdminAuth.department || prev.department,
+              avatarBg: cloudSuperAdminAuth.avatarBg || prev.avatarBg,
+              avatarText: cloudSuperAdminAuth.avatarText || prev.avatarText,
+              password: cloudSuperAdminAuth.password || prev.password,
+              pin: cloudSuperAdminAuth.pin || prev.pin,
+              lastChanged: cloudSuperAdminAuth.lastChanged || prev.lastChanged,
+            };
+            try {
+              localStorage.setItem('vyapar_superadmin_auth', JSON.stringify(updated));
+            } catch (e) {}
+            return updated;
+          });
         }
 
         // Fetch all companies from Firestore
@@ -942,28 +979,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const updateSuperAdminPassword = (currentPassOrPin: string, newPassword?: string, newPin?: string): { success: boolean; error?: string } => {
-    const cleanAuth = currentPassOrPin.trim();
-    const isValidCurrent = 
-      cleanAuth === superAdminAuth.password || 
-      cleanAuth === superAdminAuth.pin || 
-      cleanAuth === 'superadmin' || 
-      cleanAuth === '9999' || 
-      cleanAuth === 'vyapar-admin-2026' ||
-      cleanAuth === 'SUPER-2026';
+  const updateSuperAdminProfile = (
+    updates: Partial<SuperAdminAuthData>,
+    currentAuth?: string
+  ): { success: boolean; error?: string } => {
+    if (currentAuth && currentAuth.trim()) {
+      const cleanAuth = currentAuth.trim();
+      const isValidCurrent = 
+        cleanAuth === superAdminAuth.password || 
+        cleanAuth === superAdminAuth.pin || 
+        cleanAuth === 'superadmin' || 
+        cleanAuth === '9999' || 
+        cleanAuth === 'vyapar-admin-2026' ||
+        cleanAuth === 'SUPER-2026' ||
+        verifySuperAdminKey(cleanAuth);
 
-    if (!isValidCurrent) {
-      return { success: false, error: 'Current Super Admin Password or Master PIN is incorrect.' };
+      if (!isValidCurrent) {
+        return { success: false, error: 'Current Super Admin Password or Master PIN is incorrect.' };
+      }
     }
 
-    if (!newPassword?.trim() && !newPin?.trim()) {
-      return { success: false, error: 'Please provide either a new password or a new 4-digit PIN.' };
+    if (updates.pin && updates.pin.trim() && !/^\d{4}$/.test(updates.pin.trim())) {
+      return { success: false, error: 'Master PIN must be exactly 4 numeric digits.' };
     }
 
-    const updated = {
+    const trimmedName = updates.name !== undefined ? updates.name.trim() : superAdminAuth.name;
+    const computedInitials = trimmedName
+      ? trimmedName.split(' ').map(w => w[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()
+      : 'SA';
+
+    const updated: SuperAdminAuthData = {
       ...superAdminAuth,
-      password: newPassword?.trim() ? newPassword.trim() : superAdminAuth.password,
-      pin: newPin?.trim() ? newPin.trim() : superAdminAuth.pin,
+      name: trimmedName || superAdminAuth.name,
+      email: updates.email !== undefined ? updates.email.trim() : superAdminAuth.email,
+      phone: updates.phone !== undefined ? updates.phone.trim() : superAdminAuth.phone,
+      roleTitle: updates.roleTitle !== undefined ? updates.roleTitle.trim() : superAdminAuth.roleTitle,
+      department: updates.department !== undefined ? updates.department.trim() : superAdminAuth.department,
+      avatarBg: updates.avatarBg !== undefined ? updates.avatarBg : superAdminAuth.avatarBg,
+      avatarText: updates.avatarText !== undefined && updates.avatarText.trim() ? updates.avatarText.trim() : (updates.name ? computedInitials : superAdminAuth.avatarText),
+      password: updates.password && updates.password.trim() ? updates.password.trim() : superAdminAuth.password,
+      pin: updates.pin && updates.pin.trim() ? updates.pin.trim() : superAdminAuth.pin,
       lastChanged: new Date().toISOString()
     };
 
@@ -972,9 +1027,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('vyapar_superadmin_auth', JSON.stringify(updated));
     } catch (e) {}
     cloudDb.saveSuperAdminAuth(updated).catch(console.warn);
-    logSecurityEvent('SUPER_ADMIN_PASSWORD_CHANGED', 'Security & Governance', 'Super Admin master credentials were updated.');
-    showToast('success', 'Master Credentials Updated', 'Super Admin master password and PIN have been saved securely.');
+    logSecurityEvent('SUPER_ADMIN_PROFILE_UPDATED', 'Security & Governance', `Super Admin details updated (${updated.name}, ${updated.email}).`);
+    showToast('success', 'Super Admin Details Updated', 'Super Admin name, profile details & master credentials have been saved.');
     return { success: true };
+  };
+
+  const updateSuperAdminPassword = (currentPassOrPin: string, newPassword?: string, newPin?: string): { success: boolean; error?: string } => {
+    return updateSuperAdminProfile(
+      {
+        ...(newPassword && newPassword.trim() ? { password: newPassword.trim() } : {}),
+        ...(newPin && newPin.trim() ? { pin: newPin.trim() } : {}),
+      },
+      currentPassOrPin
+    );
   };
 
   const logSecurityEvent = (action: string, module: string, details: string) => {
@@ -2417,6 +2482,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleCompanyStatus,
         editBusinessProfile,
         superAdminAuth,
+        superAdminUser,
+        updateSuperAdminProfile,
         updateSuperAdminPassword,
         business,
         updateBusiness,

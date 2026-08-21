@@ -36,6 +36,7 @@ export const LoginScreen: React.FC = () => {
     switchCompany,
     users, 
     currentUser, 
+    superAdminUser,
     authenticateAndSwitchUser, 
     loginAsSuperAdmin,
     showToast,
@@ -72,7 +73,7 @@ export const LoginScreen: React.FC = () => {
   }, [users, currentCompanyId, loginStep]);
 
   const targetUser: AppUser = loginStep === 'super_admin_credentials' || selectedUserId === DEFAULT_SUPER_ADMIN.id
-    ? DEFAULT_SUPER_ADMIN
+    ? (superAdminUser || DEFAULT_SUPER_ADMIN)
     : users.find(u => u.id === selectedUserId) || DEFAULT_SUPER_ADMIN;
   const roleMeta = ROLE_DEFINITIONS[targetUser?.role] || ROLE_DEFINITIONS.ADMIN;
 
@@ -667,13 +668,13 @@ export const LoginScreen: React.FC = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-black text-white text-lg tracking-tight truncate">{DEFAULT_SUPER_ADMIN.name}</h3>
+                    <h3 className="font-black text-white text-lg tracking-tight truncate">{superAdminUser?.name || DEFAULT_SUPER_ADMIN.name}</h3>
                     <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border bg-purple-500/30 text-purple-200 border-purple-400/40">
                       SUPER ADMIN
                     </span>
                   </div>
                   <p className="text-xs text-purple-300/80 truncate mt-0.5">
-                    System Master Authority • Multi-Company Provisioning & Audit
+                    {superAdminUser?.roleTitle || 'System Master Authority • Multi-Company Provisioning & Audit'}
                   </p>
                 </div>
               </div>

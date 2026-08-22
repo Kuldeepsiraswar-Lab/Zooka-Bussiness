@@ -6,7 +6,6 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   memoryLocalCache,
-  setLogLevel,
   collection, 
   doc, 
   getDocs, 
@@ -23,9 +22,6 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// Silence non-fatal offline/reconnect noise
-setLogLevel('error');
-
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
@@ -33,7 +29,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 let firestoreInstance;
 try {
   firestoreInstance = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
+    experimentalAutoDetectLongPolling: true,
     ignoreUndefinedProperties: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
@@ -43,7 +39,7 @@ try {
   try {
     // Fallback with memory local cache if indexedDB is restricted
     firestoreInstance = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
+      experimentalAutoDetectLongPolling: true,
       ignoreUndefinedProperties: true,
       localCache: memoryLocalCache()
     }, firebaseConfig.firestoreDatabaseId);

@@ -58,7 +58,8 @@ const MainContent: React.FC = () => {
     setSelectedInvoiceIdForPrint,
     can,
     currentUser,
-    isAuthenticated
+    isAuthenticated,
+    toggleSidebarCollapse
   } = useApp();
 
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -73,6 +74,11 @@ const MainContent: React.FC = () => {
         e.preventDefault();
         setIsQuickSearchOpen(prev => !prev);
       }
+      // Cmd/Ctrl + B => Toggle Collapsible Sidebar
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b' && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        toggleSidebarCollapse();
+      }
       // Escape => close editor or modal
       if (e.key === 'Escape') {
         if (selectedInvoiceIdForPrint) {
@@ -82,7 +88,7 @@ const MainContent: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedInvoiceIdForPrint, setSelectedInvoiceIdForPrint]);
+  }, [selectedInvoiceIdForPrint, setSelectedInvoiceIdForPrint, toggleSidebarCollapse]);
 
   // Mandate Login Screen when user is not authenticated
   if (!isAuthenticated) {

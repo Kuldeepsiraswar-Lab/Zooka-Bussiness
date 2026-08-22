@@ -17,7 +17,8 @@ import {
   FileSignature, 
   Edit3,
   Palette,
-  Layers
+  Layers,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Invoice } from '../../types';
 
@@ -38,6 +39,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
   );
   
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingJpg, setIsGeneratingJpg] = useState(false);
   const [fitToOnePage, setFitToOnePage] = useState(false);
 
   const activeTemplate = useMemo(() => {
@@ -217,6 +219,67 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
     }
   };
 
+  const handleDownloadJpg = async () => {
+    if (!invoiceRef.current) return;
+    setIsGeneratingJpg(true);
+    showToast('info', 'Generating A4 JPG', 'Rendering high-resolution A4 invoice image...');
+
+    try {
+      const element = invoiceRef.current;
+      
+      const canvas = await html2canvas(element, {
+        scale: 2.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: isThermal ? 360 : 1024,
+      });
+
+      let finalCanvas = canvas;
+
+      if (!isThermal) {
+        // Create standard A4 dimensions canvas (210mm x 297mm ratio = 1 : 1.4142)
+        const a4Canvas = document.createElement('canvas');
+        const a4Width = Math.max(canvas.width, 2480); // 300 DPI A4 width
+        const standardA4Height = Math.round(a4Width * (297 / 210)); // Exactly 3508px for 2480px A4
+        
+        const margin = Math.round(a4Width * 0.02);
+        const targetWidth = a4Width - (margin * 2);
+        const scale = targetWidth / canvas.width;
+        const targetHeight = canvas.height * scale;
+
+        // Ensure full content is accommodated while preserving A4 ratio minimum
+        const finalA4Height = Math.max(standardA4Height, Math.round(targetHeight + (margin * 2)));
+
+        a4Canvas.width = a4Width;
+        a4Canvas.height = finalA4Height;
+        const ctx = a4Canvas.getContext('2d');
+
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, a4Width, finalA4Height);
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, margin, margin, targetWidth, targetHeight);
+          finalCanvas = a4Canvas;
+        }
+      }
+
+      const imgData = finalCanvas.toDataURL('image/jpeg', 0.95);
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `Tax-Invoice-${invoice.invoiceNumber.replace(/\//g, '_')}-A4.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast('success', 'JPG Ready', 'Invoice downloaded successfully in A4 JPG format.');
+    } catch (error) {
+      console.error('JPG Generation Error:', error);
+      showToast('error', 'JPG Export Failed', 'Could not generate JPG. Please try downloading PDF.');
+    } finally {
+      setIsGeneratingJpg(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Action Bar */}
@@ -332,19 +395,39 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
           {/* Download PDF Button */}
           <button
             onClick={handleDownloadPdf}
-            disabled={isGeneratingPdf}
+            disabled={isGeneratingPdf || isGeneratingJpg}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50"
             title="Download formatted A4 PDF file"
           >
             {isGeneratingPdf ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                <span>Exporting...</span>
+                <span>Exporting PDF...</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4 text-indigo-600" />
                 <span>Download PDF</span>
+              </>
+            )}
+          </button>
+
+          {/* Download JPG (A4) Button */}
+          <button
+            onClick={handleDownloadJpg}
+            disabled={isGeneratingJpg || isGeneratingPdf}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+            title="Download invoice as High Quality A4 JPG image format"
+          >
+            {isGeneratingJpg ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                <span>Exporting JPG...</span>
+              </>
+            ) : (
+              <>
+                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <span>Download JPG (A4)</span>
               </>
             )}
           </button>

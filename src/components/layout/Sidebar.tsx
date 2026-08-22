@@ -195,52 +195,53 @@ export const Sidebar: React.FC = () => {
       } bg-slate-900 text-slate-300 h-screen sticky top-0 border-r border-slate-800 select-none transition-all duration-300 ease-in-out z-20 shrink-0`}
     >
       {/* Brand Header */}
-      <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center flex-col gap-2 py-4' : 'justify-between px-4 py-4'} border-b border-slate-800/80`}>
+      <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center flex-col gap-2.5 py-3.5 px-2' : 'justify-between px-4 py-3.5'} border-b border-slate-800/80 transition-all duration-200`}>
         {!isSidebarCollapsed ? (
           <>
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/30 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/30 shrink-0">
                 <Receipt className="w-5 h-5" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-white text-base tracking-tight truncate">
+                  <span className="font-extrabold text-white text-sm tracking-tight truncate">
                     Zooka<span className="text-cyan-400"> Business</span>
                   </span>
-                  <span className="text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30 shrink-0">
+                  <span className="text-[9px] uppercase font-extrabold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30 shrink-0">
                     PRO
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium truncate">GST & E-Invoicing</p>
+                <p className="text-[10.5px] text-slate-400 font-medium truncate">GST & E-Invoicing</p>
               </div>
             </div>
 
-            {/* Collapse Button */}
+            {/* Collapse Button from Sidebar Header */}
             <button
               onClick={toggleSidebarCollapse}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
-              title="Collapse sidebar (⌘B)"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700/60 transition-all duration-150 cursor-pointer shrink-0 group flex items-center gap-1"
+              title="Collapse sidebar (⌘B / Ctrl+B)"
               aria-label="Collapse sidebar"
             >
-              <PanelLeftClose className="w-4 h-4" />
+              <PanelLeftClose className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             </button>
           </>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/30 hover:scale-105 transition-transform cursor-pointer"
+              className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/30 hover:scale-105 transition-transform cursor-pointer"
               title="Zooka Business - Dashboard"
             >
               <Receipt className="w-5 h-5" />
             </button>
+            {/* Expand Button from Sidebar Header */}
             <button
               onClick={toggleSidebarCollapse}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Expand sidebar (⌘B)"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all duration-150 cursor-pointer group"
+              title="Expand sidebar (⌘B / Ctrl+B)"
               aria-label="Expand sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4" />
+              <PanelLeftOpen className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
         )}

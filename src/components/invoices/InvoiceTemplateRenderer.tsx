@@ -185,7 +185,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                   <div className="text-emerald-700">Warranty: {item.warranty}</div>
                 )}
                 {template.showDescription && item.description && (
-                  <div className="italic text-slate-500">{item.description}</div>
+                  <div className="italic text-slate-500 whitespace-pre-line">{item.description}</div>
                 )}
                 {template.showBatchNumber && item.batchNumber && (
                   <div>Batch: {item.batchNumber}</div>
@@ -446,7 +446,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                       
                       {/* Sub-item Details (Model, Serial Numbers, Warranty) in authentic Trade style */}
                       {item.description && (
-                        <div className="italic text-[9.5px] font-sans text-black">{item.description}</div>
+                        <div className="italic text-[9.5px] font-sans text-black whitespace-pre-line">{item.description}</div>
                       )}
                       {template.showSerialNumber && item.serialNumber && (
                         <div className="font-mono italic text-[9.5px] text-black">
@@ -911,7 +911,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                           </div>
                         )}
                         {template.showDescription && item.description && (
-                          <div className="italic text-slate-500 font-normal">{item.description}</div>
+                          <div className="italic text-slate-500 font-normal whitespace-pre-line">{item.description}</div>
                         )}
                         {template.showBatchNumber && item.batchNumber && (
                           <div className="text-slate-500">Batch: <strong className="font-mono">{item.batchNumber}</strong></div>

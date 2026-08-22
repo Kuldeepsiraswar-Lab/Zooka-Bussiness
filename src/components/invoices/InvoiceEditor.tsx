@@ -41,7 +41,14 @@ import {
   Sparkles,
   Check,
   AlertTriangle,
-  Ban
+  Ban,
+  Edit3,
+  RotateCcw,
+  Minus,
+  Percent,
+  SlidersHorizontal,
+  Calculator,
+  FileText
 } from 'lucide-react';
 import { 
   normalizeLowStockSettings, 
@@ -107,6 +114,21 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
   // Two Flexible Entry Modes: 'EXCLUSIVE' (Base Unit Rate) vs 'INCLUSIVE' (Total Line Sale Amount)
   const [priceEntryMode, setPriceEntryMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
+
+  // Dedicated Custom Item Sale Amount & Unit Rate Modal state
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [editPriceMode, setEditPriceMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
+  const [editRate, setEditRate] = useState<number>(0);
+  const [editTotal, setEditTotal] = useState<number>(0);
+  const [editQuantity, setEditQuantity] = useState<number>(1);
+  const [editUnit, setEditUnit] = useState<string>('PCS');
+  const [editDiscountPercent, setEditDiscountPercent] = useState<number>(0);
+  const [editGstRate, setEditGstRate] = useState<GstTaxRate>(18);
+  const [editCessRate, setEditCessRate] = useState<number>(0);
+  const [editDescription, setEditDescription] = useState<string>('');
+  const [editSerialNumber, setEditSerialNumber] = useState<string>('');
+  const [editWarranty, setEditWarranty] = useState<string>('');
+  const [editBatchNumber, setEditBatchNumber] = useState<string>('');
 
   // Inter-State vs Intra-State determination
   const isInterState = (placeOfSupplyStateCode || customerStateCode || business.stateCode) !== business.stateCode;
@@ -272,6 +294,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       updated[index] = {
         ...updated[index],
         productId: prod.id,
+        originalPrice: prod.sellingPrice,
         name: prod.name,
         description: prod.description || updated[index]?.description || '',
         warranty: updated[index]?.warranty || lineSettings.defaultWarranty || '1 Year Comprehensive',
@@ -284,6 +307,149 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       return updated;
     });
     setActiveSuggestIndex(null);
+  };
+
+  // Custom Item Amount & Unit Rate Modal Handlers
+  const handleOpenEditItem = (index: number) => {
+    const item = items[index];
+    if (!item) return;
+    setEditingItemIndex(index);
+    setEditPriceMode(priceEntryMode);
+    setEditRate(item.rate);
+    setEditTotal(item.totalAmount);
+    setEditQuantity(item.quantity || 1);
+    setEditUnit(item.unit || 'PCS');
+    setEditDiscountPercent(item.discountPercent || 0);
+    setEditGstRate(item.gstRate ?? 18);
+    setEditCessRate(item.cessRate || 0);
+    setEditDescription(item.description || '');
+    setEditSerialNumber(item.serialNumber || '');
+    setEditWarranty(item.warranty || '');
+    setEditBatchNumber(item.batchNumber || '');
+  };
+
+  const handleEditRateChange = (val: number) => {
+    const r = Math.max(0, val);
+    setEditRate(r);
+    const calcs = calculateItemGst(r, editQuantity, editDiscountPercent, editGstRate, isInterState, editCessRate);
+    setEditTotal(calcs.totalAmount);
+  };
+
+  const handleEditTotalChange = (val: number) => {
+    const t = Math.max(0, val);
+    setEditTotal(t);
+    const calculatedRate = calculateBaseRateFromInclusive(t, Math.max(0.0001, editQuantity), editDiscountPercent, editGstRate, editCessRate);
+    setEditRate(calculatedRate);
+  };
+
+  const handleEditQuantityChange = (qty: number) => {
+    const q = Math.max(0.01, qty);
+    setEditQuantity(q);
+    if (editPriceMode === 'INCLUSIVE') {
+      const calculatedRate = calculateBaseRateFromInclusive(editTotal, q, editDiscountPercent, editGstRate, editCessRate);
+      setEditRate(calculatedRate);
+    } else {
+      const calcs = calculateItemGst(editRate, q, editDiscountPercent, editGstRate, isInterState, editCessRate);
+      setEditTotal(calcs.totalAmount);
+    }
+  };
+
+  const handleEditDiscountChange = (disc: number) => {
+    const d = Math.max(0, Math.min(100, disc));
+    setEditDiscountPercent(d);
+    if (editPriceMode === 'INCLUSIVE') {
+      const calculatedRate = calculateBaseRateFromInclusive(editTotal, Math.max(0.0001, editQuantity), d, editGstRate, editCessRate);
+      setEditRate(calculatedRate);
+    } else {
+      const calcs = calculateItemGst(editRate, editQuantity, d, editGstRate, isInterState, editCessRate);
+      setEditTotal(calcs.totalAmount);
+    }
+  };
+
+  const handleEditGstChange = (gst: GstTaxRate) => {
+    setEditGstRate(gst);
+    if (editPriceMode === 'INCLUSIVE') {
+      const calculatedRate = calculateBaseRateFromInclusive(editTotal, Math.max(0.0001, editQuantity), editDiscountPercent, gst, editCessRate);
+      setEditRate(calculatedRate);
+    } else {
+      const calcs = calculateItemGst(editRate, editQuantity, editDiscountPercent, gst, isInterState, editCessRate);
+      setEditTotal(calcs.totalAmount);
+    }
+  };
+
+  const handleSaveEditedItem = () => {
+    if (editingItemIndex === null) return;
+    const target = items[editingItemIndex];
+    if (!target) return;
+
+    const finalRate = editPriceMode === 'INCLUSIVE'
+      ? calculateBaseRateFromInclusive(editTotal, Math.max(0.0001, editQuantity), editDiscountPercent, editGstRate, editCessRate)
+      : editRate;
+
+    const calcs = calculateItemGst(finalRate, editQuantity, editDiscountPercent, editGstRate, isInterState, editCessRate);
+
+    setItems(prev => {
+      const next = [...prev];
+      next[editingItemIndex] = {
+        ...target,
+        quantity: editQuantity,
+        unit: editUnit,
+        rate: finalRate,
+        discountPercent: editDiscountPercent,
+        gstRate: editGstRate,
+        cessRate: editCessRate,
+        description: editDescription,
+        serialNumber: editSerialNumber,
+        warranty: editWarranty,
+        batchNumber: editBatchNumber,
+        ...calcs,
+        totalAmount: editPriceMode === 'INCLUSIVE' ? editTotal : calcs.totalAmount
+      };
+      return next;
+    });
+
+    setEditingItemIndex(null);
+    showToast('success', 'Custom Rate Applied', `Applied custom rate of ₹${finalRate.toFixed(2)} to ${target.name || 'item'}.`);
+  };
+
+  const handleResetItemToMRP = (index: number) => {
+    const target = items[index];
+    if (!target) return;
+    const prod = products.find(p => p.id === target.productId);
+    const defaultRate = target.originalPrice ?? prod?.sellingPrice ?? target.rate;
+    
+    const calcs = calculateItemGst(defaultRate, target.quantity || 1, 0, prod?.gstRate ?? target.gstRate, isInterState, prod?.cessRate ?? target.cessRate);
+    
+    setItems(prev => {
+      const next = [...prev];
+      next[index] = {
+        ...target,
+        rate: defaultRate,
+        discountPercent: 0,
+        gstRate: prod?.gstRate ?? target.gstRate,
+        cessRate: prod?.cessRate ?? target.cessRate,
+        ...calcs
+      };
+      return next;
+    });
+    
+    showToast('info', 'Reset to Standard Rate', `Reset "${target.name || 'item'}" to standard rate ₹${defaultRate.toLocaleString('en-IN')}`);
+  };
+
+  const handleItemQtyStep = (index: number, delta: number) => {
+    setItems(prev => {
+      const next = [...prev];
+      const target = next[index];
+      if (!target) return prev;
+      const newQty = Math.max(0.01, Math.round(((target.quantity || 1) + delta) * 100) / 100);
+      const calcs = calculateItemGst(target.rate, newQty, target.discountPercent, target.gstRate, isInterState, target.cessRate);
+      next[index] = {
+        ...target,
+        quantity: newQty,
+        ...calcs
+      };
+      return next;
+    });
   };
 
   const handleProductSelect = (index: number, prodId: string) => {
@@ -949,6 +1115,39 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   </div>
                                 )}
                               </div>
+
+                              {/* Item Action & Custom Amount Toolbar */}
+                              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditItem(idx)}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] border border-indigo-200 transition-colors cursor-pointer"
+                                  title="Open Custom Amount (₹Rate) & Flexible Entry Editor"
+                                >
+                                  <Edit3 className="w-2.5 h-2.5" />
+                                  <span>Custom Amount (₹{item.rate.toLocaleString('en-IN')})</span>
+                                </button>
+
+                                {/* Visual Badges & Revert: Customized items display a Custom Rate badge with an instant ↺ Reset to MRP button */}
+                                {((item.originalPrice !== undefined && item.rate !== item.originalPrice) || 
+                                  (item.productId && products.find(p => p.id === item.productId)?.sellingPrice !== undefined && products.find(p => p.id === item.productId)!.sellingPrice !== item.rate)) && (
+                                  <>
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                      <Tag className="w-2.5 h-2.5 text-amber-600" />
+                                      Custom Rate
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleResetItemToMRP(idx)}
+                                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                                      title="Reset to standard MRP rate"
+                                    >
+                                      <RotateCcw className="w-2.5 h-2.5 text-slate-500" />
+                                      ↺ Reset to MRP (₹{(item.originalPrice ?? products.find(p => p.id === item.productId)?.sellingPrice)?.toLocaleString('en-IN')})
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </td>
 
                             <td className="py-2.5 px-2 align-top">
@@ -978,16 +1177,35 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                               </select>
                             </td>
 
+                            {/* Direct Quantity Input & Minus/Plus Stepper Buttons */}
                             <td className="py-2.5 px-2 align-top">
-                              <input
-                                type="number"
-                                min="0.01"
-                                step="any"
-                                value={item.quantity}
-                                onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                required
-                              />
+                              <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden shadow-2xs">
+                                <button
+                                  type="button"
+                                  onClick={() => handleItemQtyStep(idx, -1)}
+                                  className="px-1.5 py-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-bold transition-colors cursor-pointer shrink-0"
+                                  title="Decrease quantity by 1"
+                                >
+                                  <Minus className="w-2.5 h-2.5" />
+                                </button>
+                                <input
+                                  type="number"
+                                  min="0.01"
+                                  step="any"
+                                  value={item.quantity}
+                                  onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                                  className="w-12 py-1 bg-white text-xs font-bold text-center focus:outline-none"
+                                  required
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleItemQtyStep(idx, 1)}
+                                  className="px-1.5 py-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-bold transition-colors cursor-pointer shrink-0"
+                                  title="Increase quantity by 1"
+                                >
+                                  <Plus className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
                             </td>
 
                             <td className="py-2.5 px-2 align-top">
@@ -1020,20 +1238,46 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   required
                                 />
                               </div>
-                              <div className="text-[9px] text-slate-400 font-mono mt-0.5">
-                                Base Excl.
+                              <div className="text-[9px] text-slate-400 font-mono mt-0.5 flex items-center justify-between">
+                                <span>Base Excl.</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditItem(idx)}
+                                  className="text-indigo-600 hover:underline font-semibold text-[9px] cursor-pointer"
+                                >
+                                  Edit ₹
+                                </button>
                               </div>
                             </td>
 
+                            {/* Item-Level Discounts with Quick Presets */}
                             <td className="py-2.5 px-2 align-top">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={item.discountPercent}
-                                onChange={(e) => handleItemChange(idx, 'discountPercent', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              />
+                              <div className="space-y-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={item.discountPercent || ''}
+                                  onChange={(e) => handleItemChange(idx, 'discountPercent', parseFloat(e.target.value) || 0)}
+                                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  placeholder="0"
+                                />
+                                <div className="flex justify-center gap-1">
+                                  {[5, 10].map(disc => (
+                                    <button
+                                      key={disc}
+                                      type="button"
+                                      onClick={() => handleItemChange(idx, 'discountPercent', item.discountPercent === disc ? 0 : disc)}
+                                      className={`px-1 py-0.2 rounded text-[9px] font-bold cursor-pointer transition-colors ${
+                                        item.discountPercent === disc ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                      }`}
+                                      title={`Apply ${disc}% discount`}
+                                    >
+                                      {disc}%
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                             </td>
 
                             {/* ITEM-WISE GST RATE & BREAKDOWN */}
@@ -1474,6 +1718,412 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </div>
         </div>
       </div>
+
+      {/* Dedicated Custom Item Sale Amount & Unit Rate Modal */}
+      {editingItemIndex !== null && items[editingItemIndex] && (() => {
+        const currentItem = items[editingItemIndex];
+        const prod = products.find(p => p.id === currentItem.productId);
+        const standardMrp = currentItem.originalPrice ?? prod?.sellingPrice ?? currentItem.rate;
+        
+        const effectiveBaseRate = editPriceMode === 'INCLUSIVE'
+          ? calculateBaseRateFromInclusive(editTotal, Math.max(0.0001, editQuantity), editDiscountPercent, editGstRate, editCessRate)
+          : editRate;
+
+        const liveCalcs = calculateItemGst(
+          effectiveBaseRate,
+          editQuantity,
+          editDiscountPercent,
+          editGstRate,
+          isInterState,
+          editCessRate
+        );
+
+        const isCustomized = (currentItem.originalPrice !== undefined && effectiveBaseRate !== currentItem.originalPrice) ||
+          (prod?.sellingPrice !== undefined && effectiveBaseRate !== prod.sellingPrice);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">Custom Item Sale Amount & Rate Editor</h3>
+                    <p className="text-[11px] text-slate-400">
+                      Configure custom selling prices, inclusive line totals, quantities & GST breakdown
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingItemIndex(null)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto space-y-4">
+                {/* Selected Item Summary Card with Visual Badges & Revert */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-xs text-slate-900">
+                        {currentItem.name || 'Untitled Item'}
+                      </span>
+                      {currentItem.hsnCode && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
+                          HSN: {currentItem.hsnCode}
+                        </span>
+                      )}
+                      {isCustomized ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                          <Tag className="w-2.5 h-2.5 text-amber-600" />
+                          Custom Rate Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          Standard MRP
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                      <span>Standard MRP / Rate: <strong className="text-slate-700 font-mono">₹{standardMrp.toLocaleString('en-IN')}</strong></span>
+                      {prod && <span>• Stock: <strong className="text-slate-700">{prod.currentStock} {prod.unit}</strong></span>}
+                    </div>
+                  </div>
+
+                  {/* Instant Reset to MRP Button */}
+                  {isCustomized && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleEditRateChange(standardMrp);
+                        setEditDiscountPercent(0);
+                        showToast('info', 'Reset to Standard Rate', `Reset rate to MRP ₹${standardMrp.toLocaleString('en-IN')}`);
+                      }}
+                      className="shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs transition-colors cursor-pointer"
+                      title="Reset to MRP / Default selling price"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>↺ Reset to MRP (₹{standardMrp.toLocaleString('en-IN')})</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Two Flexible Entry Modes Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                    Select Pricing Entry Mode:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditPriceMode('EXCLUSIVE');
+                        setEditRate(effectiveBaseRate);
+                      }}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
+                        editPriceMode === 'EXCLUSIVE'
+                          ? 'bg-white text-indigo-900 shadow-sm border border-indigo-200'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'EXCLUSIVE' ? 'bg-indigo-600' : 'bg-slate-300'}`}></span>
+                        <span>Base Unit Rate (Tax Exclusive)</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-normal ml-3.5">
+                        Enter custom selling rate directly before tax
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditPriceMode('INCLUSIVE');
+                        setEditTotal(liveCalcs.totalAmount);
+                      }}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
+                        editPriceMode === 'INCLUSIVE'
+                          ? 'bg-white text-indigo-900 shadow-sm border border-indigo-200'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'INCLUSIVE' ? 'bg-indigo-600' : 'bg-slate-300'}`}></span>
+                        <span>Total Line Sale (Tax Inclusive)</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-normal ml-3.5">
+                        Enter flat final customer amount (e.g. ₹1,000 all incl.)
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mode-Specific Price Input */}
+                {editPriceMode === 'EXCLUSIVE' ? (
+                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 border border-indigo-100">
+                    <label className="block text-xs font-bold text-indigo-950">
+                      Custom Base Selling Rate (₹ Excl. Tax):
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editRate || ''}
+                        onChange={(e) => handleEditRateChange(parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white border-2 border-indigo-400 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Quick Rate Preset Chips */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      <span className="text-[10px] text-slate-500 font-bold">Quick Rates:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleEditRateChange(standardMrp)}
+                        className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                      >
+                        Standard MRP (₹{standardMrp.toLocaleString('en-IN')})
+                      </button>
+                      {[5, 10, 15].map(pct => {
+                        const discounted = Math.round(standardMrp * (1 - pct / 100));
+                        return (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => handleEditRateChange(discounted)}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                          >
+                            {pct}% Off (₹{discounted.toLocaleString('en-IN')})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 border border-indigo-100">
+                    <label className="block text-xs font-bold text-indigo-950">
+                      Flat Line Sale Amount (₹ Total Inclusive of GST):
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editTotal || ''}
+                        onChange={(e) => handleEditTotalChange(parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white border-2 border-indigo-500 rounded-xl text-indigo-950 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                        autoFocus
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-500">
+                      System automatically computes base selling rate: <strong className="text-slate-800 font-mono">₹{effectiveBaseRate.toFixed(2)}</strong> and extracts exact GST amounts.
+                    </p>
+
+                    {/* Quick Inclusive Total Presets */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      <span className="text-[10px] text-slate-500 font-bold">Quick Totals:</span>
+                      {[500, 1000, 2000, 5000, 10000].map(amt => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => handleEditTotalChange(amt)}
+                          className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                        >
+                          ₹{amt.toLocaleString('en-IN')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity Input & Stepper + Unit */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Quantity (Units):
+                    </label>
+                    <div className="flex items-center border border-slate-300 rounded-xl bg-slate-50 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => handleEditQuantityChange(Math.max(0.01, editQuantity - 1))}
+                        className="px-3 py-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-bold transition-colors cursor-pointer"
+                        title="Decrease quantity"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="any"
+                        value={editQuantity}
+                        onChange={(e) => handleEditQuantityChange(parseFloat(e.target.value) || 1)}
+                        className="w-full py-2 bg-white text-xs font-bold font-mono text-center focus:outline-none"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleEditQuantityChange(editQuantity + 1)}
+                        className="px-3 py-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-bold transition-colors cursor-pointer"
+                        title="Increase quantity"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Unit of Measure:</label>
+                    <select
+                      value={editUnit}
+                      onChange={(e) => setEditUnit(e.target.value)}
+                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      {STANDARD_UNITS.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Item-Level Discounts & GST Selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Item Discount (%):
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editDiscountPercent || ''}
+                        onChange={(e) => handleEditDiscountChange(parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="w-full px-3 py-2 text-xs font-bold font-mono bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <div className="flex gap-1 shrink-0">
+                        {[5, 10, 15, 20].map(disc => (
+                          <button
+                            key={disc}
+                            type="button"
+                            onClick={() => handleEditDiscountChange(disc)}
+                            className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
+                              editDiscountPercent === disc
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {disc}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {liveCalcs.discountAmount > 0 && (
+                      <div className="text-[10px] text-emerald-600 font-semibold mt-1">
+                        Discount Amount: -₹{liveCalcs.discountAmount.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                    <select
+                      value={editGstRate}
+                      onChange={(e) => handleEditGstChange(Number(e.target.value) as GstTaxRate)}
+                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value={0}>0% (Tax Exempt / Nil)</option>
+                      <option value={5}>5% (Essential Goods)</option>
+                      <option value={12}>12% (Standard)</option>
+                      <option value={18}>18% (Standard Goods & Services)</option>
+                      <option value={28}>28% (Luxury / Higher Bracket)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Real-Time Tax Breakdown Box */}
+                <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Calculator className="w-3.5 h-3.5 text-cyan-400" />
+                      Real-Time Tax Breakdown
+                    </span>
+                    <span className={`px-2 py-0.5 text-[9px] font-bold rounded ${
+                      isInterState ? 'bg-indigo-950 text-cyan-300 border border-cyan-500/30' : 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
+                    }`}>
+                      {isInterState ? 'IGST Regime' : 'CGST + SGST Regime'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                      <div className="text-[10px] text-slate-400">Base Unit Rate</div>
+                      <div className="font-bold text-slate-200">₹{effectiveBaseRate.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                      <div className="text-[10px] text-slate-400">Taxable Value</div>
+                      <div className="font-bold text-slate-200">₹{liveCalcs.taxableAmount.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                      <div className="text-[10px] text-slate-400">Total GST ({editGstRate}%)</div>
+                      <div className="font-bold text-cyan-300">
+                        ₹{(isInterState ? liveCalcs.igstAmount : (liveCalcs.cgstAmount + liveCalcs.sgstAmount)).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                      <div className="text-[10px] text-slate-400">Net Line Total</div>
+                      <div className="font-extrabold text-emerald-400 text-sm">
+                        ₹{liveCalcs.totalAmount.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800">
+                    {isInterState ? (
+                      <span>Integrated GST (IGST {editGstRate}%): ₹{liveCalcs.igstAmount.toFixed(2)}</span>
+                    ) : (
+                      <span>Central GST (CGST {liveCalcs.cgstRate}%): ₹{liveCalcs.cgstAmount.toFixed(2)} + State GST (SGST {liveCalcs.sgstRate}%): ₹{liveCalcs.sgstAmount.toFixed(2)}</span>
+                    )}
+                    <span>Qty: {editQuantity} {editUnit}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEditingItemIndex(null)}
+                  className="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditedItem}
+                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Apply & Save Custom Rate</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -30,6 +30,7 @@ export interface InvoiceItem {
   cessRate?: number;
   cessAmount?: number;
   totalAmount: number;
+  originalPrice?: number;
   batchNumber?: string;
   expiryDate?: string;
 }

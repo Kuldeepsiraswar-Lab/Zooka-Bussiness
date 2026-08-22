@@ -10,8 +10,6 @@ import {
   Crown,
   Maximize2,
   Minimize2,
-  PanelLeftClose,
-  PanelLeftOpen,
   Sun,
   Moon
 } from 'lucide-react';
@@ -31,8 +29,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     products, 
     can,
     loginAsSuperAdmin,
-    isSidebarCollapsed,
-    toggleSidebarCollapse,
     resolvedTheme,
     toggleTheme
   } = useApp();
@@ -98,22 +94,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      {/* Left: Collapsible Sidebar Trigger & Company Identity */}
+      {/* Left: Company Identity */}
       <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Desktop Collapsible Sidebar Icon Toggle */}
-        <button
-          onClick={toggleSidebarCollapse}
-          className="hidden lg:flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
-          title={isSidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'}
-          aria-label="Toggle Sidebar"
-        >
-          {isSidebarCollapsed ? (
-            <PanelLeftOpen className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
-          ) : (
-            <PanelLeftClose className="w-4 h-4" />
-          )}
-        </button>
-
         <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${getThemeBg(currentCompany?.themeColor)} text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs shrink-0 ring-1 ring-black/5 dark:ring-white/10`}>
           <Building2 className="w-5 h-5" />
         </div>

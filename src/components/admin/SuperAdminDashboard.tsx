@@ -546,6 +546,30 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
     normalizeLowStockSettings(company.lowStockSettings || DEFAULT_LOW_STOCK_SETTINGS)
   );
 
+  // Synchronize and bind company & facility profile data whenever company changes or modal opens
+  useEffect(() => {
+    if (isOpen && company) {
+      setName(company.name || '');
+      setTradeName(company.tradeName || '');
+      setGstin(company.gstin || '');
+      setPan(company.pan || '');
+      setState(company.state || 'Maharashtra');
+      setStateCode(company.stateCode || '27');
+      setCity(company.city || '');
+      setAddress(company.address || '');
+      setPincode(company.pincode || '');
+      setPhone(company.phone || '');
+      setEmail(company.email || '');
+      setFinancialYear(company.financialYear || '2026-2027');
+      setThemeColor(company.themeColor || 'indigo');
+      setIsActive(company.isActive ?? true);
+      setDisabledReason(company.disabledReason || '');
+      setModalHeaderConfig(normalizeHeaderConfig(company.headerConfig || DEFAULT_HEADER_CONFIG));
+      setModalLowStockSettings(normalizeLowStockSettings(company.lowStockSettings || DEFAULT_LOW_STOCK_SETTINGS));
+      setModalTab('profile');
+    }
+  }, [isOpen, company]);
+
   if (!isOpen) return null;
 
   const handleStateChange = (selectedState: string) => {

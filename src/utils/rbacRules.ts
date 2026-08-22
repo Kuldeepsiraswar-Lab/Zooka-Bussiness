@@ -692,9 +692,166 @@ export const initialAuditLogs: SecurityAuditLog[] = [
   },
 ];
 
-export const getUserEffectivePermissions = (user?: AppUser | null): UserPermissions => {
+export interface ActionDefinition {
+  key: string;
+  label: string;
+  description: string;
+}
+
+export interface ModuleDefinition {
+  key: keyof UserPermissions;
+  label: string;
+  description: string;
+  actions: ActionDefinition[];
+}
+
+export const MODULE_DEFINITIONS: ModuleDefinition[] = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard & Analytics',
+    description: 'Executive summaries, sales counters, revenue analytics and metrics',
+    actions: [
+      { key: 'view', label: 'View Dashboard', description: 'Access main dashboard summary cards' },
+      { key: 'viewFinancialMetrics', label: 'Financial Metrics & Net Profit', description: 'View net profit margins, taxable revenue, and financial KPIs' },
+      { key: 'exportReports', label: 'Export Analytics', description: 'Export charts, sales reports, and summary datasets' },
+    ],
+  },
+  {
+    key: 'invoices',
+    label: 'Sales & Tax Invoices',
+    description: 'Tax Invoices, Bills of Supply, Proformas, e-Way bills & E-Invoicing',
+    actions: [
+      { key: 'view', label: 'View Invoices', description: 'View sales invoices list and details' },
+      { key: 'create', label: 'Create Invoice', description: 'Create and generate new sales invoices' },
+      { key: 'edit', label: 'Edit Invoices', description: 'Modify existing saved invoices' },
+      { key: 'delete', label: 'Delete Invoices', description: 'Permanently remove invoice records' },
+      { key: 'generateIRN', label: 'Generate E-Invoice & IRN', description: 'Submit and generate official GST IRN & QR codes' },
+      { key: 'cancelInvoice', label: 'Cancel Invoices', description: 'Mark invoices as cancelled and credit balance' },
+      { key: 'printDownload', label: 'Print & Download', description: 'Print and export invoice PDF / JPG documents' },
+    ],
+  },
+  {
+    key: 'pos_billing',
+    label: 'Point of Sale (POS)',
+    description: 'Rapid barcode billing, retail counter terminal, and thermal receipts',
+    actions: [
+      { key: 'view', label: 'Access POS Terminal', description: 'Open retail POS counter window' },
+      { key: 'createSale', label: 'Execute POS Sale', description: 'Process rapid item scans and cash/UPI checkout' },
+      { key: 'giveCustomDiscount', label: 'Custom Price & Discount Override', description: 'Apply manual line or bill level discounts' },
+      { key: 'reprintReceipt', label: 'Reprint Thermal Slip', description: 'Print duplicate 80mm/58mm thermal slips' },
+    ],
+  },
+  {
+    key: 'payments',
+    label: 'Payments & Collections',
+    description: 'Inward cash/bank receipts, outward payments, and contra vouchers',
+    actions: [
+      { key: 'view', label: 'View Payments', description: 'View inward/outward payment registers' },
+      { key: 'recordPaymentIn', label: 'Record Collection (Payment In)', description: 'Receive customer invoice payments and cash' },
+      { key: 'recordPaymentOut', label: 'Record Vendor Payment (Payment Out)', description: 'Disburse supplier/expense payments' },
+      { key: 'recordContra', label: 'Record Contra Entries', description: 'Transfer funds between bank accounts & cash counter' },
+      { key: 'deletePayment', label: 'Delete Payment Records', description: 'Void or remove payment vouchers' },
+    ],
+  },
+  {
+    key: 'inventory',
+    label: 'Inventory & Items Catalog',
+    description: 'Products master, stock levels, buying cost visibility, and adjustments',
+    actions: [
+      { key: 'view', label: 'View Products Catalog', description: 'Browse items list, stock on hand, and selling prices' },
+      { key: 'viewPurchaseCost', label: 'View Purchase Buying Price', description: 'Expose confidential wholesale cost & purchase rates' },
+      { key: 'createProduct', label: 'Add New Products', description: 'Create new catalog items, barcodes, and HSN codes' },
+      { key: 'editProduct', label: 'Edit Products & Rates', description: 'Update item descriptions, MRP, and tax slabs' },
+      { key: 'deleteProduct', label: 'Delete Products', description: 'Remove catalog item master records' },
+      { key: 'adjustStock', label: 'Adjust Physical Stock', description: 'Perform physical stock audits and count adjustments' },
+    ],
+  },
+  {
+    key: 'parties',
+    label: 'Parties & Customers/Vendors',
+    description: 'Customer directory, vendor ledger, credit limits, and contact books',
+    actions: [
+      { key: 'viewCustomers', label: 'View Customers', description: 'Access customer contact book and addresses' },
+      { key: 'viewVendors', label: 'View Vendors & Suppliers', description: 'Access supplier records and purchase ledgers' },
+      { key: 'createParty', label: 'Create New Party', description: 'Onboard new client or vendor profiles' },
+      { key: 'editParty', label: 'Edit Party Master', description: 'Update GSTIN, billing addresses, and credit terms' },
+      { key: 'deleteParty', label: 'Delete Party Records', description: 'Remove customer/vendor contact accounts' },
+      { key: 'viewLedgerStatement', label: 'View Statement of Accounts', description: 'Generate client ledger statements and running balance' },
+      { key: 'bulkImport', label: 'Bulk Import CSV Contacts', description: 'Upload bulk contacts and ledger balances via CSV' },
+    ],
+  },
+  {
+    key: 'purchases',
+    label: 'Purchases & Vendor Bills',
+    description: 'Purchase invoices, inward GRN receiving, vendor bills, and ITC registers',
+    actions: [
+      { key: 'view', label: 'View Purchase Bills', description: 'View purchase invoices and inward logs' },
+      { key: 'createBill', label: 'Record Purchase Bill', description: 'Log inward vendor invoices and update stock' },
+      { key: 'editBill', label: 'Edit Purchase Bills', description: 'Modify recorded purchase invoices' },
+      { key: 'deleteBill', label: 'Delete Purchase Bills', description: 'Void or delete vendor purchase records' },
+      { key: 'viewITCReports', label: 'View Input Tax Credit (ITC)', description: 'Check eligible ITC tax breakdowns for GSTR-3B' },
+    ],
+  },
+  {
+    key: 'accounting',
+    label: 'Accounting & Ledgers',
+    description: 'Double-entry journals, Chart of Accounts, Trial Balance, P&L, and Balance Sheet',
+    actions: [
+      { key: 'viewJournals', label: 'View Journal Entries', description: 'Inspect general journal postings and ledger debits/credits' },
+      { key: 'createJournal', label: 'Create Journal Entries', description: 'Post manual journal entries and adjustments' },
+      { key: 'viewChartOfAccounts', label: 'View Chart of Accounts', description: 'Browse master asset, liability, and equity heads' },
+      { key: 'viewBalanceSheet', label: 'View Balance Sheet', description: 'Access financial position and balance sheet report' },
+      { key: 'viewProfitAndLoss', label: 'View Profit & Loss Account', description: 'Access comprehensive P&L financial statement' },
+      { key: 'viewTrialBalance', label: 'View Trial Balance', description: 'Inspect periodic debit/credit balance verification' },
+    ],
+  },
+  {
+    key: 'gst_returns',
+    label: 'GST Returns & Compliance',
+    description: 'GSTR-1, GSTR-3B, Tax registers, HSN summaries, and government portal JSON exports',
+    actions: [
+      { key: 'view', label: 'Access GST Hub', description: 'Open GST compliance and filing section' },
+      { key: 'viewGstr1', label: 'View GSTR-1 Sales Return', description: 'Inspect B2B, B2C, HSN, and doc issue summaries' },
+      { key: 'viewGstr3b', label: 'View GSTR-3B Tax Summary', description: 'Check outward tax liabilities and eligible ITC' },
+      { key: 'viewTaxRegisters', label: 'View Tax & HSN Registers', description: 'Examine detailed tax collection registries' },
+      { key: 'exportGstJson', label: 'Export GST Portal JSON', description: 'Download offline utility JSON for GST portal upload' },
+    ],
+  },
+  {
+    key: 'settings',
+    label: 'Company Settings & Security',
+    description: 'Legal company profile, banks, user RBAC management, backups, and resets',
+    actions: [
+      { key: 'view', label: 'View Settings', description: 'Access configuration parameters' },
+      { key: 'editCompanyProfile', label: 'Edit Business Profile', description: 'Modify trade name, GSTIN, PAN, and facility addresses' },
+      { key: 'editBankAndUPI', label: 'Manage Bank & UPI Accounts', description: 'Configure settlement bank details and QR codes' },
+      { key: 'manageUsersAndRoles', label: 'Manage Users & Permissions Matrix', description: 'Create staff accounts and customize RBAC permissions matrix' },
+      { key: 'backupAndRestore', label: 'Data Backup & Export', description: 'Download complete system snapshots' },
+      { key: 'resetDatabase', label: 'System Factory Reset', description: 'Clear all transactional data and reset to defaults' },
+    ],
+  },
+];
+
+export const getDefaultRolePermissionsMap = (): Record<RoleType, UserPermissions> => {
+  return {
+    SUPER_ADMIN: JSON.parse(JSON.stringify(SUPER_ADMIN_PERMISSIONS)),
+    ADMIN: JSON.parse(JSON.stringify(ADMIN_PERMISSIONS)),
+    ACCOUNTANT: JSON.parse(JSON.stringify(ACCOUNTANT_PERMISSIONS)),
+    SALESPERSON: JSON.parse(JSON.stringify(SALESPERSON_PERMISSIONS)),
+    INVENTORY_MANAGER: JSON.parse(JSON.stringify(INVENTORY_MANAGER_PERMISSIONS)),
+    AUDITOR: JSON.parse(JSON.stringify(AUDITOR_PERMISSIONS)),
+    CUSTOM: JSON.parse(JSON.stringify(SALESPERSON_PERMISSIONS)),
+  };
+};
+
+export const getUserEffectivePermissions = (
+  user?: AppUser | null,
+  customRolePermissions?: Partial<Record<RoleType, UserPermissions>>
+): UserPermissions => {
   if (!user) return SALESPERSON_PERMISSIONS;
-  const roleBase = ROLE_DEFINITIONS[user.role]?.defaultPermissions || SALESPERSON_PERMISSIONS;
+  if (user.role === 'SUPER_ADMIN') return SUPER_ADMIN_PERMISSIONS;
+
+  const roleBase = customRolePermissions?.[user.role] || ROLE_DEFINITIONS[user.role]?.defaultPermissions || SALESPERSON_PERMISSIONS;
   if (!user.customPermissions) return roleBase;
 
   // Deep merge custom override permissions
@@ -714,12 +871,14 @@ export const getUserEffectivePermissions = (user?: AppUser | null): UserPermissi
 export const hasUserPermission = (
   user: AppUser | null | undefined,
   module: keyof UserPermissions,
-  action?: string
+  action?: string,
+  customRolePermissions?: Partial<Record<RoleType, UserPermissions>>
 ): boolean => {
   if (!user) return false;
-  if (user.role === 'ADMIN') return true; // Admins bypass all checks
+  if (user.role === 'SUPER_ADMIN') return true;
+  if (user.role === 'ADMIN' && !customRolePermissions?.ADMIN) return true; // Default admins bypass all checks
 
-  const perms = getUserEffectivePermissions(user);
+  const perms = getUserEffectivePermissions(user, customRolePermissions);
   const modulePerms = perms[module] as any;
   if (!modulePerms) return false;
 

@@ -172,6 +172,10 @@ interface AppContextType {
   users: AppUser[];
   currentUser: AppUser;
   effectivePermissions: UserPermissions;
+  customRolePermissions: Partial<Record<RoleType, UserPermissions>>;
+  updateRolePermissions: (role: RoleType, permissions: UserPermissions) => void;
+  updateAllRolePermissions: (matrix: Partial<Record<RoleType, UserPermissions>>) => void;
+  resetRolePermissions: (role?: RoleType) => void;
   isAuthenticated: boolean;
   isSessionLocked: boolean;
   isAuthModalOpen: boolean;
@@ -352,6 +356,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [auditLogs, setAuditLogs] = useState<SecurityAuditLog[]>(() => loadState('auditLogs', []));
 
+  // Customizable Permission Matrix State per Role
+  const [customRolePermissions, setCustomRolePermissions] = useState<Partial<Record<RoleType, UserPermissions>>>(() => {
+    return loadState<Partial<Record<RoleType, UserPermissions>>>('customRolePermissions', {});
+  });
+
+  // Persist customized role permissions
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_PREFIX + 'customRolePermissions', JSON.stringify(customRolePermissions));
+      if (currentCompanyId) {
+        localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_customRolePermissions`, JSON.stringify(customRolePermissions));
+      }
+    } catch (e) {
+      console.warn('Error saving customRolePermissions:', e);
+    }
+  }, [customRolePermissions, currentCompanyId]);
+
   // Authentication & Locking
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
@@ -379,8 +400,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [users, currentUserId, superAdminUser]);
 
   const effectivePermissions = useMemo(() => {
-    return getUserEffectivePermissions(currentUser);
-  }, [currentUser]);
+    return getUserEffectivePermissions(currentUser, customRolePermissions);
+  }, [currentUser, customRolePermissions]);
 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [selectedInvoiceIdForPrint, setSelectedInvoiceIdForPrint] = useState<string | null>(null);
@@ -1166,7 +1187,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const can = (module: keyof UserPermissions, action: string = 'view'): boolean => {
-    return hasUserPermission(currentUser, module, action);
+    return hasUserPermission(currentUser, module, action, customRolePermissions);
+  };
+
+  const updateRolePermissions = (role: RoleType, permissions: UserPermissions) => {
+    const isAuthorized = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorized) {
+      showToast('error', 'Permission Denied', 'Only Administrator or Super Administrator can customize the permission matrix.');
+      logSecurityEvent('SECURITY_VIOLATION', 'RBAC Matrix', `Unauthorized attempt to edit ${role} permission matrix by ${currentUser?.name}`);
+      return;
+    }
+
+    setCustomRolePermissions(prev => ({
+      ...prev,
+      [role]: permissions,
+    }));
+    logSecurityEvent('RBAC_ROLE_MATRIX_UPDATED', 'RBAC Matrix', `Customized permissions matrix for role ${role} by ${currentUser?.name}`);
+    showToast('success', 'Role Matrix Saved', `Custom permissions applied for ${role} role.`);
+  };
+
+  const updateAllRolePermissions = (matrix: Partial<Record<RoleType, UserPermissions>>) => {
+    const isAuthorized = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorized) {
+      showToast('error', 'Permission Denied', 'Only Administrator or Super Administrator can customize the permission matrix.');
+      logSecurityEvent('SECURITY_VIOLATION', 'RBAC Matrix', `Unauthorized attempt to edit permissions matrix by ${currentUser?.name}`);
+      return;
+    }
+
+    setCustomRolePermissions(matrix);
+    logSecurityEvent('RBAC_MATRIX_CUSTOMIZED', 'RBAC Matrix', `Updated customizable permissions matrix across roles by ${currentUser?.name}`);
+    showToast('success', 'Permissions Matrix Saved', 'Customizable permission matrix saved and active.');
+  };
+
+  const resetRolePermissions = (role?: RoleType) => {
+    const isAuthorized = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorized) {
+      showToast('error', 'Permission Denied', 'Only Administrator or Super Administrator can reset the permission matrix.');
+      return;
+    }
+
+    if (role) {
+      setCustomRolePermissions(prev => {
+        const next = { ...prev };
+        delete next[role];
+        return next;
+      });
+      logSecurityEvent('RBAC_ROLE_MATRIX_RESET', 'RBAC Matrix', `Reset permissions matrix to defaults for role ${role}`);
+      showToast('info', 'Role Reset', `Permissions for ${role} restored to system defaults.`);
+    } else {
+      setCustomRolePermissions({});
+      logSecurityEvent('RBAC_ROLE_MATRIX_RESET_ALL', 'RBAC Matrix', 'Reset all role permission matrices to system defaults');
+      showToast('info', 'Matrix Reset', 'All role permissions restored to default RBAC standards.');
+    }
   };
 
   const lockSession = () => {
@@ -1356,8 +1428,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteUser = (id: string): boolean => {
+    // RBAC Security Check: ONLY Admins and Super Admins have authority to delete staff accounts
+    const isCurrentAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isCurrentAdmin) {
+      showToast('error', 'Permission Denied', 'RBAC Enforcement: Only Administrator accounts can delete other staff members.');
+      logSecurityEvent('SECURITY_VIOLATION', 'RBAC', `Unauthorized staff deletion attempt on user ${id} by ${currentUser?.name} (${currentUser?.role})`);
+      return false;
+    }
+
     if (users.length <= 1) {
-      showToast('error', 'Cannot Delete', 'At least one user account must remain active.');
+      showToast('error', 'Cannot Delete', 'At least one administrative user account must remain active.');
       return false;
     }
     if (id === currentUserId) {
@@ -1367,8 +1447,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const target = users.find(u => u.id === id);
     setUsers(prev => prev.filter(u => u.id !== id));
     cloudDb.deleteEntityDoc('users', currentCompanyId, id).catch(console.warn);
-    logSecurityEvent('USER_DELETED', 'Auth', `Deleted user account ${target?.name} (${id})`);
-    showToast('info', 'User Removed', `Account for ${target?.name || id} was deleted.`);
+    logSecurityEvent('USER_DELETED', 'Auth & RBAC', `Deleted staff account ${target?.name || id} (${target?.role || 'USER'}) by Admin ${currentUser?.name}`);
+    showToast('info', 'Staff Account Removed', `Account for ${target?.name || id} was deleted.`);
     return true;
   };
 
@@ -2783,6 +2863,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         users,
         currentUser,
         effectivePermissions,
+        customRolePermissions,
+        updateRolePermissions,
+        updateAllRolePermissions,
+        resetRolePermissions,
         isAuthenticated,
         logout,
         logoutSuperAdmin,

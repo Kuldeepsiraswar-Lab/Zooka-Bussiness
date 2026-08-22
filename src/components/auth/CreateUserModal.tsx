@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AppUser, RoleType, UserPermissions } from '../../types';
 import { ROLE_DEFINITIONS, COMPANY_ASSIGNABLE_ROLES, getUserEffectivePermissions } from '../../utils/rbacRules';
@@ -44,7 +44,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   onClose,
   userToEdit,
 }) => {
-  const { createUser, updateUser, deleteUser, currentUser, showToast } = useApp();
+  const { createUser, updateUser, deleteUser, currentUser, customRolePermissions, showToast } = useApp();
+  const isCurrentUserAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -64,11 +65,50 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   });
 
   const [customPerms, setCustomPerms] = useState<UserPermissions>(() => {
-    return getUserEffectivePermissions(userToEdit);
+    return getUserEffectivePermissions(userToEdit, customRolePermissions);
   });
 
   const [showAdvancedPerms, setShowAdvancedPerms] = useState(false);
   const [activePermModule, setActivePermModule] = useState<keyof UserPermissions>('invoices');
+
+  // Re-bind profile data cleanly whenever userToEdit or isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      if (userToEdit) {
+        setFormData({
+          name: userToEdit.name || '',
+          email: userToEdit.email || '',
+          phone: userToEdit.phone || '',
+          department: userToEdit.department || 'Operations & Accounts',
+          roleTitle: userToEdit.roleTitle || '',
+          role: (userToEdit.role || 'SALESPERSON') as RoleType,
+          avatarBg: userToEdit.avatarBg || 'bg-indigo-600',
+          isActive: userToEdit.isActive ?? true,
+          password: userToEdit.password || '',
+          pin: userToEdit.pin || '',
+        });
+        setCustomPerms(getUserEffectivePermissions(userToEdit, customRolePermissions));
+      } else {
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          department: 'Operations & Accounts',
+          roleTitle: '',
+          role: 'SALESPERSON',
+          avatarBg: BG_AVATAR_COLORS[Math.floor(Math.random() * BG_AVATAR_COLORS.length)],
+          isActive: true,
+          password: '',
+          pin: '',
+        });
+        const initialBase = customRolePermissions?.SALESPERSON || ROLE_DEFINITIONS.SALESPERSON.defaultPermissions;
+        setCustomPerms(JSON.parse(JSON.stringify(initialBase)));
+      }
+      setShowDeleteConfirm(false);
+      setShowPassword(false);
+      setShowPin(false);
+    }
+  }, [isOpen, userToEdit, customRolePermissions]);
 
   if (!isOpen) return null;
 
@@ -78,8 +118,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       role: newRole,
       roleTitle: prev.roleTitle || ROLE_DEFINITIONS[newRole]?.name || ''
     }));
-    // Sync permissions from role defaults
-    const defaults = ROLE_DEFINITIONS[newRole]?.defaultPermissions || ROLE_DEFINITIONS.SALESPERSON.defaultPermissions;
+    // Sync permissions from role defaults (respecting customized role matrix)
+    const defaults = customRolePermissions?.[newRole] || ROLE_DEFINITIONS[newRole]?.defaultPermissions || ROLE_DEFINITIONS.SALESPERSON.defaultPermissions;
     setCustomPerms(JSON.parse(JSON.stringify(defaults)));
   };
 
@@ -439,7 +479,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           {/* Footer Submit & Delete */}
           <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              {userToEdit && userToEdit.id !== currentUser.id && (
+              {isCurrentUserAdmin && userToEdit && userToEdit.id !== currentUser.id && (
                 showDeleteConfirm ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-rose-600 font-bold">Confirm delete?</span>

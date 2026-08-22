@@ -12,6 +12,7 @@ import {
 import { INDIAN_STATES, COMMON_HSN_CODES, STANDARD_UNITS } from '../../utils/constants';
 import { 
   calculateItemGst, 
+  calculateBaseRateFromInclusive,
   recalculateInvoiceTotals, 
   suggestRateForHsn,
   getStateInfoByCode 
@@ -103,6 +104,9 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     initialData?.placeOfSupplyStateCode || customerStateCode || business.stateCode
   );
   const [isReverseCharge, setIsReverseCharge] = useState<boolean>(initialData?.isReverseCharge || false);
+
+  // Two Flexible Entry Modes: 'EXCLUSIVE' (Base Unit Rate) vs 'INCLUSIVE' (Total Line Sale Amount)
+  const [priceEntryMode, setPriceEntryMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
 
   // Inter-State vs Intra-State determination
   const isInterState = (placeOfSupplyStateCode || customerStateCode || business.stateCode) !== business.stateCode;
@@ -313,6 +317,33 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       updated[index] = {
         ...target,
         ...calcs
+      };
+      return updated;
+    });
+  };
+
+  // Direct Total Line Sale Amount (Tax Inclusive) Change Handler
+  // Back-calculates Base Unit Rate, Taxable Value, and item-wise CGST/SGST/IGST breakdown
+  const handleItemInclusiveTotalChange = (index: number, val: number) => {
+    const totalInclusive = Math.max(0, val);
+    setItems(prev => {
+      const updated = [...prev];
+      const target = updated[index];
+      if (!target) return prev;
+
+      const qty = Math.max(0.0001, target.quantity || 1);
+      const disc = Math.max(0, Math.min(100, target.discountPercent || 0));
+      const gst = target.gstRate || 0;
+      const cess = target.cessRate || 0;
+
+      const calculatedRate = calculateBaseRateFromInclusive(totalInclusive, qty, disc, gst, cess);
+      const calcs = calculateItemGst(calculatedRate, qty, disc, gst, isInterState, cess);
+
+      updated[index] = {
+        ...target,
+        rate: calculatedRate,
+        ...calcs,
+        totalAmount: totalInclusive
       };
       return updated;
     });
@@ -702,13 +733,42 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   3. Line Items & Products
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Add products, services, quantities and applicable GST tax rates
+                  Add products, services, custom selling rates, and item-wise GST tax rates
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px]">
-                  <span className="px-2 text-slate-500 font-medium">Quick Apply Rate:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Two Flexible Entry Modes Selector */}
+                <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
+                  <span className="px-2 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">Entry Mode:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPriceEntryMode('EXCLUSIVE')}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      priceEntryMode === 'EXCLUSIVE'
+                        ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="Enter custom selling rate directly before tax (Tax Exclusive)"
+                  >
+                    Rate (Excl. Tax)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPriceEntryMode('INCLUSIVE')}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      priceEntryMode === 'INCLUSIVE'
+                        ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="Enter flat final customer amount inclusive of GST (Tax Inclusive)"
+                  >
+                    Line Total (Incl. Tax)
+                  </button>
+                </div>
+
+                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px]">
+                  <span className="px-2 text-slate-500 font-medium">Quick Apply GST:</span>
                   {([0, 5, 12, 18, 28] as GstTaxRate[]).map((rate) => (
                     <button
                       key={rate}
@@ -754,19 +814,29 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left text-xs border-collapse min-w-[780px]">
+                <table className="w-full text-left text-xs border-collapse min-w-[840px]">
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-600 font-semibold bg-slate-50/80">
                       <th className="py-2.5 px-3">Item Particulars & Details</th>
                       <th className="py-2.5 px-2 w-28">HSN/SAC</th>
-                      <th className="py-2.5 px-2 w-16">Qty</th>
+                      <th className="py-2.5 px-2 w-16 text-center">Qty</th>
                       <th className="py-2.5 px-2 w-20">Unit</th>
-                      <th className="py-2.5 px-2 w-24">Rate (₹)</th>
-                      <th className="py-2.5 px-2 w-16">Disc %</th>
-                      <th className="py-2.5 px-2 w-44">
-                        Suggested Tax ({isInterState ? 'IGST' : 'CGST+SGST'})
+                      <th className={`py-2.5 px-2 w-28 ${priceEntryMode === 'EXCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                        <div className="flex items-center gap-1">
+                          <span>Rate (₹ Excl.)</span>
+                          {priceEntryMode === 'EXCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                        </div>
                       </th>
-                      <th className="py-2.5 px-3 text-right">Amount (₹)</th>
+                      <th className="py-2.5 px-2 w-16 text-center">Disc %</th>
+                      <th className="py-2.5 px-2 w-48">
+                        Item GST ({isInterState ? 'IGST' : 'CGST+SGST'})
+                      </th>
+                      <th className={`py-2.5 px-3 text-right w-32 ${priceEntryMode === 'INCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                        <div className="flex items-center justify-end gap-1">
+                          {priceEntryMode === 'INCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                          <span>Line Total (₹ Incl.)</span>
+                        </div>
+                      </th>
                       <th className="py-2.5 px-2 w-10 text-center"></th>
                     </tr>
                   </thead>
@@ -915,7 +985,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 step="any"
                                 value={item.quantity}
                                 onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                 required
                               />
                             </td>
@@ -932,16 +1002,27 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                               </select>
                             </td>
 
+                            {/* Base Unit Rate (Tax Exclusive) Column */}
                             <td className="py-2.5 px-2 align-top">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={item.rate}
-                                onChange={(e) => handleItemChange(idx, 'rate', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                required
-                              />
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={item.rate}
+                                  onChange={(e) => handleItemChange(idx, 'rate', parseFloat(e.target.value) || 0)}
+                                  className={`w-full px-2 py-1.5 rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
+                                    priceEntryMode === 'EXCLUSIVE'
+                                      ? 'bg-white border-2 border-indigo-400 text-indigo-950 shadow-2xs font-bold'
+                                      : 'bg-slate-50 border border-slate-200 text-slate-800'
+                                  }`}
+                                  placeholder="0.00"
+                                  required
+                                />
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-mono mt-0.5">
+                                Base Excl.
+                              </div>
                             </td>
 
                             <td className="py-2.5 px-2 align-top">
@@ -951,15 +1032,16 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 max="100"
                                 value={item.discountPercent}
                                 onChange={(e) => handleItemChange(idx, 'discountPercent', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
                               />
                             </td>
 
+                            {/* ITEM-WISE GST RATE & BREAKDOWN */}
                             <td className="py-2.5 px-2 align-top">
                               <div className="space-y-1">
                                 <select
                                   value={item.gstRate}
-                                  onChange={(e) => handleItemChange(idx, 'gstRate', parseInt(e.target.value))}
+                                  onChange={(e) => handleItemChange(idx, 'gstRate', parseInt(e.target.value) as GstTaxRate)}
                                   className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
                                 >
                                   <option value="0">0% (Nil / Exempt)</option>
@@ -969,7 +1051,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   <option value="28">28% (Luxury / De-merit)</option>
                                 </select>
 
-                                {/* Dynamic Tax Split Suggestion Tag */}
+                                {/* Dynamic Item-Wise Tax Split Tag */}
                                 <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium leading-tight ${
                                   isInterState ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
                                 }`}>
@@ -982,9 +1064,24 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                               </div>
                             </td>
 
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800 align-top">
-                              {formatCurrency(item.totalAmount, business.currencySymbol)}
-                              <div className="text-[10px] text-slate-400 font-normal">
+                            {/* Total Line Sale Amount (Tax Inclusive) Column */}
+                            <td className="py-2.5 px-3 text-right font-mono align-top">
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={item.totalAmount}
+                                  onChange={(e) => handleItemInclusiveTotalChange(idx, parseFloat(e.target.value) || 0)}
+                                  className={`w-full px-2 py-1.5 text-right rounded-lg text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
+                                    priceEntryMode === 'INCLUSIVE'
+                                      ? 'bg-white border-2 border-indigo-500 text-indigo-700 font-extrabold shadow-2xs'
+                                      : 'bg-slate-50 border border-slate-200 text-slate-900 font-bold'
+                                  }`}
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                                 Taxable: {formatCurrency(item.taxableAmount, business.currencySymbol)}
                               </div>
                             </td>
@@ -1180,23 +1277,48 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
             {/* Payment settlement options */}
             <div className="pt-3 border-t border-slate-800 space-y-3">
-              <label className="block text-xs font-semibold text-slate-300">
-                Payment Collection
-              </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-300">
+                  Payment Collection & Settlement
+                </label>
+                {paymentStatus === 'PARTIALLY_PAID' && (
+                  <span className="text-[10px] font-bold text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800">
+                    Partial Settlement
+                  </span>
+                )}
+              </div>
+
+              {/* 3-Way Settlement Selector */}
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
                     setPaymentStatus('PAID');
                     setAmountPaid(totals.grandTotal);
                   }}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`py-2 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
                     paymentStatus === 'PAID'
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
-                  Fully Paid Now
+                  Fully Paid (100%)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentStatus('PARTIALLY_PAID');
+                    if (amountPaid <= 0 || amountPaid >= totals.grandTotal) {
+                      setAmountPaid(Math.round(totals.grandTotal / 2));
+                    }
+                  }}
+                  className={`py-2 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                    paymentStatus === 'PARTIALLY_PAID'
+                      ? 'bg-amber-600 text-white shadow-md'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  Custom Settlement
                 </button>
                 <button
                   type="button"
@@ -1204,7 +1326,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     setPaymentStatus('UNPAID');
                     setAmountPaid(0);
                   }}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`py-2 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
                     paymentStatus === 'UNPAID'
                       ? 'bg-rose-600 text-white shadow-md'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -1214,9 +1336,60 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 </button>
               </div>
 
-              {paymentStatus === 'PAID' && (
+              {/* Custom Partial Settlement Controls */}
+              {paymentStatus === 'PARTIALLY_PAID' && (
+                <div className="p-3 rounded-xl bg-slate-800/90 border border-amber-500/40 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">Partial Amount Paid:</span>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={totals.grandTotal}
+                        value={amountPaid || ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setAmountPaid(Math.min(totals.grandTotal, Math.max(0, val)));
+                        }}
+                        className="w-32 pl-6 pr-2.5 py-1.5 text-xs font-mono font-bold bg-slate-900 border border-amber-400/60 rounded-lg text-white text-right focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset Quick Chips */}
+                  <div className="flex items-center gap-1.5 justify-end">
+                    {[0.25, 0.5, 0.75].map((ratio) => {
+                      const presetAmt = Math.round(totals.grandTotal * ratio);
+                      return (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => setAmountPaid(presetAmt)}
+                          className="px-2 py-1 rounded text-[10px] font-semibold bg-slate-700 hover:bg-slate-600 text-amber-300 border border-slate-600 cursor-pointer"
+                        >
+                          {ratio * 100}% ({business.currencySymbol}{presetAmt})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pending Balance Due calculation */}
+                  <div className="pt-2 border-t border-slate-700 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">Pending Balance Due:</span>
+                    <span className="font-mono font-bold text-amber-400 text-sm">
+                      {formatCurrency(Math.max(0, totals.grandTotal - amountPaid), business.currencySymbol)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {(paymentStatus === 'PAID' || paymentStatus === 'PARTIALLY_PAID') && (
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Payment Method</label>
+                  <label className="block text-[11px] text-slate-400 mb-1">
+                    Settlement Payment Method
+                  </label>
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
@@ -1226,6 +1399,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
                     <option value="CASH">Cash</option>
                     <option value="CREDIT_CARD">Credit / Debit Card</option>
+                    <option value="CHEQUE">Cheque</option>
                   </select>
                 </div>
               )}

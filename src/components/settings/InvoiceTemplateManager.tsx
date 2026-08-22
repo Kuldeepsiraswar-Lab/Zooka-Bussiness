@@ -636,6 +636,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                   <label className="block text-xs font-bold text-slate-700">Header Style</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
+                      { id: 'TRADE_CLASSIC', label: 'Classic Trade / Retail (TM Style)', desc: 'Indian hardware, electrical & consumer trade format' },
                       { id: 'BANNER', label: 'Solid Banner', desc: 'Colored full-width top banner' },
                       { id: 'MODERN_SPLIT', label: 'Modern Split Bar', desc: 'Two-column clean top bar' },
                       { id: 'MINIMAL_BORDERED', label: 'Bordered Box', desc: 'Standard boxed accounting header' },
@@ -692,6 +693,16 @@ export const InvoiceTemplateManager: React.FC = () => {
                 <div className="space-y-2 pt-2 border-t border-slate-100">
                   <label className="block text-xs font-bold text-slate-700">Section Visibility & Print Controls</label>
                   <div className="grid grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingTemplate.showPaymentMode !== false}
+                        onChange={(e) => setEditingTemplate(prev => ({ ...prev, showPaymentMode: e.target.checked }))}
+                        className="rounded text-indigo-600 cursor-pointer"
+                      />
+                      <span>Mode of Payment (Cash/UPI/Bank)</span>
+                    </label>
+
                     <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
                       <input
                         type="checkbox"

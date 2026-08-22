@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { PurchaseBill, PurchaseBillItem, Expense, GstTaxRate, PaymentMethod } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { STANDARD_UNITS, COMMON_HSN_CODES } from '../../utils/constants';
+import { calculateBaseRateFromInclusive } from '../../utils/gstCalculations';
 import { 
   Truck, 
   Search, 
@@ -56,6 +57,8 @@ export const PurchasesView: React.FC = () => {
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
   const [itcEligibility, setItcEligibility] = useState<PurchaseBill['itcEligibility']>('ELIGIBLE_ALL');
   const [isInterState, setIsInterState] = useState(false);
+  // Two Flexible Entry Modes: Base Cost Rate (Tax Exclusive) vs Total Line Amount (Tax Inclusive)
+  const [purchasePriceMode, setPurchasePriceMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
 
   // Purchase items state
   const [pItems, setPItems] = useState<PurchaseBillItem[]>([
@@ -207,6 +210,39 @@ export const PurchasesView: React.FC = () => {
       next[index] = recalculateItem(updatedItem, isInterState);
       return next;
     });
+  };
+
+  // Direct Total Line Purchase Amount (Tax Inclusive) Change Handler
+  // Back-calculates Base Unit Cost Rate, Taxable Value, and item-wise CGST/SGST/IGST breakdown
+  const handleItemInclusiveTotalChange = (index: number, val: number) => {
+    const totalInclusive = Math.max(0, val);
+    setPItems(prev => {
+      const next = [...prev];
+      const target = next[index];
+      if (!target) return prev;
+
+      const qty = Math.max(0.0001, target.quantity || 1);
+      const gst = target.gstRate || 0;
+
+      const calculatedRate = calculateBaseRateFromInclusive(totalInclusive, qty, 0, gst, 0);
+      const updatedItem: PurchaseBillItem = {
+        ...target,
+        rate: calculatedRate,
+        totalAmount: totalInclusive
+      };
+      next[index] = recalculateItem(updatedItem, isInterState);
+      return next;
+    });
+  };
+
+  const applyGstRateToAllPurchaseItems = (rate: GstTaxRate) => {
+    setPItems(prev => {
+      return prev.map(item => {
+        const updated = { ...item, gstRate: rate };
+        return recalculateItem(updated, isInterState);
+      });
+    });
+    showToast('info', 'Tax Rate Applied', `Applied ${rate}% GST (${isInterState ? 'IGST' : 'CGST+SGST'}) to all purchase bill items.`);
   };
 
   const handleAddItemRow = () => {
@@ -716,21 +752,67 @@ export const PurchasesView: React.FC = () => {
 
               {/* Line Items & Stock Inward Table */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">Purchase Items & Stock Addition</span>
                     <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold rounded border border-emerald-200">
                       ⚡ Stock Auto-Increments
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAddItemRow}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Item Row</span>
-                  </button>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Two Flexible Entry Modes Selector */}
+                    <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
+                      <span className="px-2 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">Mode:</span>
+                      <button
+                        type="button"
+                        onClick={() => setPurchasePriceMode('EXCLUSIVE')}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                          purchasePriceMode === 'EXCLUSIVE'
+                            ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                        title="Enter supplier cost rate directly before tax (Tax Exclusive)"
+                      >
+                        Cost Rate (Excl.)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPurchasePriceMode('INCLUSIVE')}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                          purchasePriceMode === 'INCLUSIVE'
+                            ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                        title="Enter total purchase bill line amount inclusive of GST (Tax Inclusive)"
+                      >
+                        Line Total (Incl.)
+                      </button>
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px]">
+                      <span className="px-2 text-slate-500 font-medium">Quick GST:</span>
+                      {([0, 5, 12, 18, 28] as GstTaxRate[]).map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => applyGstRateToAllPurchaseItems(rate)}
+                          className="px-2 py-0.5 rounded-lg font-bold bg-white text-slate-700 hover:text-indigo-600 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                        >
+                          {rate}%
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddItemRow}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Item Row</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
@@ -740,11 +822,23 @@ export const PurchasesView: React.FC = () => {
                         <th className="py-2.5 px-3">Item / Product Name</th>
                         <th className="py-2.5 px-2 text-center w-24">HSN</th>
                         <th className="py-2.5 px-2 text-center w-28">Batch / Exp</th>
-                        <th className="py-2.5 px-2 text-center w-20">Qty</th>
+                        <th className="py-2.5 px-2 text-center w-18">Qty</th>
                         <th className="py-2.5 px-2 text-center w-18">Unit</th>
-                        <th className="py-2.5 px-2 text-right w-24">Cost Rate (₹)</th>
-                        <th className="py-2.5 px-2 text-center w-20">GST %</th>
-                        <th className="py-2.5 px-3 text-right w-28">Total (₹)</th>
+                        <th className={`py-2.5 px-2 w-28 ${purchasePriceMode === 'EXCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                          <div className="flex items-center gap-1">
+                            <span>Cost Rate (₹ Excl.)</span>
+                            {purchasePriceMode === 'EXCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                          </div>
+                        </th>
+                        <th className="py-2.5 px-2 w-36">
+                          Item GST ({isInterState ? 'IGST' : 'CGST+SGST'})
+                        </th>
+                        <th className={`py-2.5 px-3 text-right w-32 ${purchasePriceMode === 'INCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                          <div className="flex items-center justify-end gap-1">
+                            {purchasePriceMode === 'INCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                            <span>Total (₹ Incl.)</span>
+                          </div>
+                        </th>
                         <th className="py-2.5 px-2 text-center w-10"></th>
                       </tr>
                     </thead>
@@ -821,7 +915,8 @@ export const PurchasesView: React.FC = () => {
                             <td className="py-2.5 px-2 text-center align-top">
                               <input
                                 type="number"
-                                min="1"
+                                min="0.01"
+                                step="any"
                                 value={item.quantity || ''}
                                 onChange={(e) => handleItemFieldChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
                                 className="w-full px-2 py-1 text-xs font-bold text-center border border-slate-200 rounded-lg bg-emerald-50/40 text-emerald-900"
@@ -842,39 +937,76 @@ export const PurchasesView: React.FC = () => {
                               </select>
                             </td>
 
-                            {/* Cost Rate */}
+                            {/* Base Cost Rate (Tax Exclusive) Column */}
                             <td className="py-2.5 px-2 text-right align-top">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={item.rate || ''}
-                                onChange={(e) => handleItemFieldChange(idx, 'rate', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1 text-xs font-mono font-semibold text-right border border-slate-200 rounded-lg"
-                                required
-                              />
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={item.rate || ''}
+                                  onChange={(e) => handleItemFieldChange(idx, 'rate', parseFloat(e.target.value) || 0)}
+                                  className={`w-full px-2 py-1 text-xs font-mono font-semibold text-right rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
+                                    purchasePriceMode === 'EXCLUSIVE'
+                                      ? 'bg-white border-2 border-indigo-400 text-indigo-950 shadow-2xs font-bold'
+                                      : 'bg-slate-50 border border-slate-200 text-slate-800'
+                                  }`}
+                                  placeholder="0.00"
+                                  required
+                                />
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-mono mt-0.5 text-right">
+                                Cost Excl.
+                              </div>
                             </td>
 
-                            {/* GST Rate */}
-                            <td className="py-2.5 px-2 text-center align-top">
-                              <select
-                                value={item.gstRate}
-                                onChange={(e) => handleItemFieldChange(idx, 'gstRate', parseInt(e.target.value) as GstTaxRate)}
-                                className="w-full px-1 py-1 text-xs border border-slate-200 rounded-lg bg-slate-50 font-medium"
-                              >
-                                <option value="0">0%</option>
-                                <option value="5">5%</option>
-                                <option value="12">12%</option>
-                                <option value="18">18%</option>
-                                <option value="28">28%</option>
-                              </select>
+                            {/* ITEM-WISE GST RATE & BREAKDOWN */}
+                            <td className="py-2.5 px-2 align-top">
+                              <div className="space-y-1">
+                                <select
+                                  value={item.gstRate}
+                                  onChange={(e) => handleItemFieldChange(idx, 'gstRate', parseInt(e.target.value) as GstTaxRate)}
+                                  className="w-full px-1 py-1 text-xs border border-slate-200 rounded-lg bg-slate-50 font-medium cursor-pointer"
+                                >
+                                  <option value="0">0% (Nil / Exempt)</option>
+                                  <option value="5">5% (Essential)</option>
+                                  <option value="12">12% (Standard 12)</option>
+                                  <option value="18">18% (Standard 18)</option>
+                                  <option value="28">28% (Luxury 28)</option>
+                                </select>
+
+                                {/* Dynamic Item-Wise Tax Split Tag */}
+                                <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium leading-tight ${
+                                  isInterState ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                                }`}>
+                                  {isInterState ? (
+                                    <span>IGST: {formatCurrency(item.igstAmount, '')}</span>
+                                  ) : (
+                                    <span>CGST+SGST: {formatCurrency(item.cgstAmount + item.sgstAmount, '')}</span>
+                                  )}
+                                </div>
+                              </div>
                             </td>
 
-                            {/* Total */}
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900 align-top">
-                              {formatCurrency(item.totalAmount, '')}
-                              <div className="text-[10px] font-normal text-slate-400">
-                                Tax: {formatCurrency(item.cgstAmount + item.sgstAmount + item.igstAmount, '')}
+                            {/* Total Line Purchase Amount (Tax Inclusive) Column */}
+                            <td className="py-2.5 px-3 text-right font-mono align-top">
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={item.totalAmount || ''}
+                                  onChange={(e) => handleItemInclusiveTotalChange(idx, parseFloat(e.target.value) || 0)}
+                                  className={`w-full px-2 py-1 text-xs font-mono font-bold text-right rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
+                                    purchasePriceMode === 'INCLUSIVE'
+                                      ? 'bg-white border-2 border-indigo-500 text-indigo-700 font-extrabold shadow-2xs'
+                                      : 'bg-slate-50 border border-slate-200 text-slate-900 font-bold'
+                                  }`}
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div className="text-[10px] font-normal text-slate-400 mt-0.5">
+                                Taxable: {formatCurrency(item.taxableAmount, '')}
                               </div>
                             </td>
 

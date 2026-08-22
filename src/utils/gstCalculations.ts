@@ -109,6 +109,20 @@ export const suggestRateForHsn = (hsnCode: string): GstTaxRate | undefined => {
   return undefined;
 };
 
+export const calculateBaseRateFromInclusive = (
+  totalInclusiveAmount: number,
+  quantity: number,
+  discountPercent: number = 0,
+  gstRate: number = 0,
+  cessRate: number = 0
+): number => {
+  const qty = Math.max(0.0001, quantity);
+  const discountFactor = Math.max(0.0001, 1 - (discountPercent / 100));
+  const taxFactor = 1 + ((gstRate + cessRate) / 100);
+  const baseRate = totalInclusiveAmount / (qty * discountFactor * taxFactor);
+  return Number(baseRate.toFixed(2));
+};
+
 export const calculateItemGst = (
   rate: number,
   quantity: number,

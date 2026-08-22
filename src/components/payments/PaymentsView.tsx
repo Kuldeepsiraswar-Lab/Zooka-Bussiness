@@ -47,7 +47,7 @@ export const PaymentsView: React.FC = () => {
   } = useApp();
 
   // Active Tab Filter
-  const [activeTab, setActiveTab] = useState<'ALL' | 'PAYMENT_IN' | 'PAYMENT_OUT' | 'CONTRA_TRANSFER'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'PAYMENT_IN' | 'PAYMENT_OUT' | 'CONTRA_TRANSFER' | 'PENDING_RECEIVABLES' | 'PENDING_PAYABLES'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterMethod, setFilterMethod] = useState<string>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
@@ -59,6 +59,50 @@ export const PaymentsView: React.FC = () => {
   const [voucherToPrint, setVoucherToPrint] = useState<PaymentRecord | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [showBankStatementModal, setShowBankStatementModal] = useState<boolean>(false);
+
+  // Pending Invoices (Receivables from Customers)
+  const pendingInvoices = useMemo(() => {
+    return invoices
+      .filter(i => (i.amountDue > 0 || (i.status !== 'PAID' && (i.amountDue === undefined || i.amountDue > 0))) && i.status !== 'CANCELLED')
+      .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime());
+  }, [invoices]);
+
+  const totalPendingReceivables = useMemo(() => {
+    return pendingInvoices.reduce((sum, i) => sum + (i.amountDue !== undefined ? i.amountDue : i.grandTotal), 0);
+  }, [pendingInvoices]);
+
+  // Pending Purchase Bills (Payables to Vendors)
+  const pendingBills = useMemo(() => {
+    return purchaseBills
+      .filter(b => (b.amountDue > 0 || (b.status !== 'PAID' && (b.amountDue === undefined || b.amountDue > 0))))
+      .sort((a, b) => new Date(b.billDate).getTime() - new Date(a.billDate).getTime());
+  }, [purchaseBills]);
+
+  const totalPendingPayables = useMemo(() => {
+    return pendingBills.reduce((sum, b) => sum + (b.amountDue !== undefined ? b.amountDue : b.grandTotal), 0);
+  }, [pendingBills]);
+
+  // Filtered Pending Invoices
+  const filteredPendingInvoices = useMemo(() => {
+    if (!searchQuery.trim()) return pendingInvoices;
+    const q = searchQuery.toLowerCase();
+    return pendingInvoices.filter(i => 
+      i.invoiceNumber.toLowerCase().includes(q) ||
+      (i.customerName && i.customerName.toLowerCase().includes(q)) ||
+      (i.customerPhone && i.customerPhone.includes(q))
+    );
+  }, [pendingInvoices, searchQuery]);
+
+  // Filtered Pending Purchase Bills
+  const filteredPendingBills = useMemo(() => {
+    if (!searchQuery.trim()) return pendingBills;
+    const q = searchQuery.toLowerCase();
+    return pendingBills.filter(b => 
+      b.billNumber.toLowerCase().includes(q) ||
+      (b.vendorName && b.vendorName.toLowerCase().includes(q)) ||
+      (b.vendorPhone && b.vendorPhone.includes(q))
+    );
+  }, [pendingBills, searchQuery]);
 
   // Form State for Recording / Editing Payment
   const [formData, setFormData] = useState({
@@ -190,6 +234,72 @@ export const PaymentsView: React.FC = () => {
       fromAccount: 'Cash in Hand (acc-1)',
       toAccount: 'HDFC Current Bank Account (acc-2)',
       notes: ''
+    });
+    setIsRecordModalOpen(true);
+  };
+
+  // Open Record Modal pre-filled for a specific pending invoice
+  const handleOpenCollectInvoice = (inv: Invoice) => {
+    setEditingPayment(null);
+    setRecordModalType('PAYMENT_IN');
+    const num = Math.floor(100 + Math.random() * 900);
+    const defaultVoucher = `RCPT-2026-${num}`;
+    const party = parties.find(p => p.id === inv.customerId || p.name.toLowerCase() === (inv.customerName || '').toLowerCase());
+    const dueAmt = inv.amountDue !== undefined ? inv.amountDue : inv.grandTotal;
+
+    setFormData({
+      voucherNumber: defaultVoucher,
+      type: 'PAYMENT_IN',
+      date: new Date().toISOString().split('T')[0],
+      partyId: party?.id || inv.customerId || '',
+      partyName: inv.customerName || party?.name || 'Customer',
+      partyType: 'CUSTOMER',
+      amount: dueAmt,
+      paymentMethod: 'BANK_TRANSFER',
+      bankAccountId: 'acc-2',
+      bankAccountName: 'HDFC Current Bank Account',
+      referenceNo: '',
+      chequeDate: '',
+      linkedInvoiceId: inv.id,
+      linkedInvoiceNumber: inv.invoiceNumber,
+      linkedBillId: '',
+      linkedBillNumber: '',
+      fromAccount: 'Cash in Hand (acc-1)',
+      toAccount: 'HDFC Current Bank Account (acc-2)',
+      notes: `Payment receipt against Invoice #${inv.invoiceNumber}`
+    });
+    setIsRecordModalOpen(true);
+  };
+
+  // Open Record Modal pre-filled for a specific pending purchase bill
+  const handleOpenPayBill = (bill: PurchaseBill) => {
+    setEditingPayment(null);
+    setRecordModalType('PAYMENT_OUT');
+    const num = Math.floor(100 + Math.random() * 900);
+    const defaultVoucher = `PMT-2026-${num}`;
+    const party = parties.find(p => p.id === bill.vendorId || p.name.toLowerCase() === (bill.vendorName || '').toLowerCase());
+    const dueAmt = bill.amountDue !== undefined ? bill.amountDue : bill.grandTotal;
+
+    setFormData({
+      voucherNumber: defaultVoucher,
+      type: 'PAYMENT_OUT',
+      date: new Date().toISOString().split('T')[0],
+      partyId: party?.id || bill.vendorId || '',
+      partyName: bill.vendorName || party?.name || 'Vendor',
+      partyType: 'VENDOR',
+      amount: dueAmt,
+      paymentMethod: 'BANK_TRANSFER',
+      bankAccountId: 'acc-2',
+      bankAccountName: 'HDFC Current Bank Account',
+      referenceNo: '',
+      chequeDate: '',
+      linkedInvoiceId: '',
+      linkedInvoiceNumber: '',
+      linkedBillId: bill.id,
+      linkedBillNumber: bill.billNumber,
+      fromAccount: 'HDFC Current Bank Account (acc-2)',
+      toAccount: 'Vendor Bank / Cash',
+      notes: `Payment disbursed for Purchase Bill #${bill.billNumber}`
     });
     setIsRecordModalOpen(true);
   };
@@ -439,72 +549,94 @@ export const PaymentsView: React.FC = () => {
       </div>
 
       {/* Metric Cards Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Total Money In */}
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">Money In (Received)</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg">Money In</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <ArrowDownLeft className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-slate-900">{formatINR(metrics.totalIn)}</div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span className="font-semibold text-emerald-600">{metrics.inCount}</span> receipts recorded from customers
+          <div className="mt-2.5">
+            <div className="text-xl font-black text-slate-900">{formatINR(metrics.totalIn)}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+              <span className="font-semibold text-emerald-600">{metrics.inCount}</span> receipts
             </div>
           </div>
         </div>
 
         {/* Total Money Out */}
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg">Money Out (Paid)</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
-              <ArrowUpRight className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg">Money Out</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-slate-900">{formatINR(metrics.totalOut)}</div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span className="font-semibold text-rose-600">{metrics.outCount}</span> payments made to vendors/expenses
+          <div className="mt-2.5">
+            <div className="text-xl font-black text-slate-900">{formatINR(metrics.totalOut)}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+              <span className="font-semibold text-rose-600">{metrics.outCount}</span> disbursements
             </div>
           </div>
         </div>
 
-        {/* Net Flow */}
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+        {/* Pending Customer Receivables (Unpaid Invoices) */}
+        <div 
+          onClick={() => setActiveTab('PENDING_RECEIVABLES')}
+          className="bg-white p-4 rounded-2xl border border-amber-200/80 hover:border-amber-400 shadow-sm relative overflow-hidden cursor-pointer transition-all hover:shadow-md group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">Net Cash Flow</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg">Pending Receivables</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className={`text-2xl font-black ${metrics.netCashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {formatINR(metrics.netCashflow)}
-            </div>
-            <div className="text-xs text-slate-500 mt-1">
-              {metrics.netCashflow >= 0 ? 'Positive net liquidity' : 'Net cash outflow'}
+          <div className="mt-2.5">
+            <div className="text-xl font-black text-amber-700">{formatINR(totalPendingReceivables)}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+              <span><strong className="text-amber-700">{pendingInvoices.length}</strong> unpaid invoices</span>
+              <span className="text-indigo-600 font-semibold group-hover:underline">View & Collect →</span>
             </div>
           </div>
         </div>
 
-        {/* Bank & Cash Balances */}
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+        {/* Pending Vendor Payables (Unpaid Bills) */}
+        <div 
+          onClick={() => setActiveTab('PENDING_PAYABLES')}
+          className="bg-white p-4 rounded-2xl border border-rose-200/80 hover:border-rose-400 shadow-sm relative overflow-hidden cursor-pointer transition-all hover:shadow-md group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">Liquid Balances</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-              <Landmark className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800 bg-rose-50 px-2 py-0.5 rounded-lg">Pending Payables</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Building2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-2.5 space-y-1">
+          <div className="mt-2.5">
+            <div className="text-xl font-black text-rose-700">{formatINR(totalPendingPayables)}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+              <span><strong className="text-rose-700">{pendingBills.length}</strong> unpaid bills</span>
+              <span className="text-indigo-600 font-semibold group-hover:underline">View & Pay →</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Liquid Balances */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg">Liquid Balances</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+              <Landmark className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 space-y-0.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Bank (HDFC):</span>
+              <span className="text-slate-500">Bank:</span>
               <span className="font-bold text-slate-800">{formatINR(metrics.bankBalance)}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Cash in Hand:</span>
+              <span className="text-slate-500">Cash:</span>
               <span className="font-bold text-slate-800">{formatINR(metrics.cashBalance)}</span>
             </div>
           </div>
@@ -515,10 +647,10 @@ export const PaymentsView: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 space-y-4">
         {/* Navigation Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl flex-wrap">
             <button
               onClick={() => setActiveTab('ALL')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'ALL'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -528,36 +660,58 @@ export const PaymentsView: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('PAYMENT_IN')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'PAYMENT_IN'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-emerald-700 hover:bg-emerald-50'
               }`}
             >
               <ArrowDownLeft className="w-3.5 h-3.5" />
-              <span>Received / Money In ({metrics.inCount})</span>
+              <span>Received ({metrics.inCount})</span>
             </button>
             <button
               onClick={() => setActiveTab('PAYMENT_OUT')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'PAYMENT_OUT'
                   ? 'bg-rose-600 text-white shadow-sm'
                   : 'text-rose-700 hover:bg-rose-50'
               }`}
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>Paid / Money Out ({metrics.outCount})</span>
+              <span>Paid ({metrics.outCount})</span>
             </button>
             <button
               onClick={() => setActiveTab('CONTRA_TRANSFER')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'CONTRA_TRANSFER'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-blue-700 hover:bg-blue-50'
               }`}
             >
               <ArrowLeftRight className="w-3.5 h-3.5" />
-              <span>Contra Transfers ({payments.filter(p => p.type === 'CONTRA_TRANSFER').length})</span>
+              <span>Contra ({payments.filter(p => p.type === 'CONTRA_TRANSFER').length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('PENDING_RECEIVABLES')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'PENDING_RECEIVABLES'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'text-amber-800 bg-amber-50 hover:bg-amber-100'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Pending Receivables ({pendingInvoices.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('PENDING_PAYABLES')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'PENDING_PAYABLES'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'text-rose-800 bg-rose-50 hover:bg-rose-100'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Pending Payables ({pendingBills.length})</span>
             </button>
           </div>
 
@@ -567,7 +721,7 @@ export const PaymentsView: React.FC = () => {
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs">
               <button
                 onClick={() => setDateFilter('ALL')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
                   dateFilter === 'ALL' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-600'
                 }`}
               >
@@ -575,7 +729,7 @@ export const PaymentsView: React.FC = () => {
               </button>
               <button
                 onClick={() => setDateFilter('THIS_MONTH')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
                   dateFilter === 'THIS_MONTH' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-600'
                 }`}
               >
@@ -583,7 +737,7 @@ export const PaymentsView: React.FC = () => {
               </button>
               <button
                 onClick={() => setDateFilter('LAST_MONTH')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
                   dateFilter === 'LAST_MONTH' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-600'
                 }`}
               >
@@ -601,36 +755,229 @@ export const PaymentsView: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search by Voucher #, Party Name, Cheque/UTR Ref, Linked Invoice/Bill..."
+              placeholder={
+                activeTab === 'PENDING_RECEIVABLES' 
+                  ? "Search pending invoices by Invoice #, Customer Name, Phone..." 
+                  : activeTab === 'PENDING_PAYABLES'
+                  ? "Search pending purchase bills by Bill #, Vendor Name..."
+                  : "Search by Voucher #, Party Name, Cheque/UTR Ref, Linked Invoice/Bill..."
+              }
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
-              value={filterMethod}
-              onChange={e => setFilterMethod(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            >
-              <option value="ALL">All Payment Methods</option>
-              <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS/IMPS)</option>
-              <option value="UPI">UPI / QR Code</option>
-              <option value="CASH">Cash</option>
-              <option value="CHEQUE">Cheque</option>
-              <option value="CREDIT_CARD">Credit/Debit Card</option>
-            </select>
-          </div>
+          {activeTab !== 'PENDING_RECEIVABLES' && activeTab !== 'PENDING_PAYABLES' && (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select
+                value={filterMethod}
+                onChange={e => setFilterMethod(e.target.value)}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              >
+                <option value="ALL">All Payment Methods</option>
+                <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS/IMPS)</option>
+                <option value="UPI">UPI / QR Code</option>
+                <option value="CASH">Cash</option>
+                <option value="CHEQUE">Cheque</option>
+                <option value="CREDIT_CARD">Credit/Debit Card</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Transactions Table */}
+        {/* Render Pending Customer Receivables Table */}
+        {activeTab === 'PENDING_RECEIVABLES' && (
+          <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white">
+            <div className="bg-amber-50/70 p-3 border-b border-amber-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-700" />
+                <span className="text-xs font-bold text-amber-900">Unsettled Customer Invoices (Pending Receivables)</span>
+              </div>
+              <span className="text-xs font-bold text-amber-800">
+                Total Due: {formatINR(totalPendingReceivables)}
+              </span>
+            </div>
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-3.5">Invoice Date</th>
+                  <th className="py-3 px-3.5">Invoice #</th>
+                  <th className="py-3 px-3.5">Customer Name & Phone</th>
+                  <th className="py-3 px-3.5 text-right">Total Invoice</th>
+                  <th className="py-3 px-3.5 text-right">Amount Paid</th>
+                  <th className="py-3 px-3.5 text-right font-bold text-amber-800">Pending Due</th>
+                  <th className="py-3 px-3.5 text-center">Status</th>
+                  <th className="py-3 px-3.5 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredPendingInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-10 text-slate-400">
+                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                      <p className="font-semibold text-slate-700">No pending receivables!</p>
+                      <p className="text-xs text-slate-400">All customer invoices are fully settled.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPendingInvoices.map(inv => {
+                    const dueAmt = inv.amountDue !== undefined ? inv.amountDue : inv.grandTotal;
+                    const paidAmt = inv.amountPaid || (inv.grandTotal - dueAmt);
+
+                    return (
+                      <tr key={inv.id} className="hover:bg-amber-50/40 transition-colors">
+                        <td className="py-3.5 px-3.5 font-medium text-slate-700 whitespace-nowrap">
+                          {formatDate(inv.invoiceDate, 'short')}
+                          {inv.dueDate && (
+                            <div className="text-[10px] text-slate-400">Due: {formatDate(inv.dueDate, 'short')}</div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3.5">
+                          <span className="font-mono font-bold text-indigo-600">{inv.invoiceNumber}</span>
+                        </td>
+                        <td className="py-3.5 px-3.5">
+                          <div className="font-semibold text-slate-900">{inv.customerName || 'Customer'}</div>
+                          {inv.customerPhone && (
+                            <div className="text-[11px] text-slate-500 font-mono">{inv.customerPhone}</div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-medium text-slate-700">
+                          {formatINR(inv.grandTotal)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-medium text-emerald-600">
+                          {formatINR(paidAmt)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-black text-amber-700 text-sm">
+                          {formatINR(dueAmt)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                            dueAmt === inv.grandTotal 
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200' 
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}>
+                            {dueAmt === inv.grandTotal ? 'UNPAID' : 'PARTIAL DUE'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3.5 text-center">
+                          <button
+                            onClick={() => handleOpenCollectInvoice(inv)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
+                          >
+                            <ArrowDownLeft className="w-3.5 h-3.5" />
+                            <span>Collect (Settle)</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Render Pending Vendor Payables Table */}
+        {activeTab === 'PENDING_PAYABLES' && (
+          <div className="overflow-x-auto rounded-xl border border-rose-200 bg-white">
+            <div className="bg-rose-50/70 p-3 border-b border-rose-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-rose-700" />
+                <span className="text-xs font-bold text-rose-900">Unsettled Purchase Bills (Pending Payables to Vendors)</span>
+              </div>
+              <span className="text-xs font-bold text-rose-800">
+                Total Due: {formatINR(totalPendingPayables)}
+              </span>
+            </div>
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-3.5">Bill Date</th>
+                  <th className="py-3 px-3.5">Bill #</th>
+                  <th className="py-3 px-3.5">Vendor Name & Phone</th>
+                  <th className="py-3 px-3.5 text-right">Total Bill</th>
+                  <th className="py-3 px-3.5 text-right">Amount Paid</th>
+                  <th className="py-3 px-3.5 text-right font-bold text-rose-800">Pending Due</th>
+                  <th className="py-3 px-3.5 text-center">Status</th>
+                  <th className="py-3 px-3.5 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredPendingBills.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-10 text-slate-400">
+                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                      <p className="font-semibold text-slate-700">No pending vendor payables!</p>
+                      <p className="text-xs text-slate-400">All supplier bills are fully settled.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPendingBills.map(bill => {
+                    const dueAmt = bill.amountDue !== undefined ? bill.amountDue : bill.grandTotal;
+                    const paidAmt = bill.amountPaid || (bill.grandTotal - dueAmt);
+
+                    return (
+                      <tr key={bill.id} className="hover:bg-rose-50/40 transition-colors">
+                        <td className="py-3.5 px-3.5 font-medium text-slate-700 whitespace-nowrap">
+                          {formatDate(bill.billDate, 'short')}
+                          {bill.dueDate && (
+                            <div className="text-[10px] text-slate-400">Due: {formatDate(bill.dueDate, 'short')}</div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3.5">
+                          <span className="font-mono font-bold text-purple-700">{bill.billNumber}</span>
+                        </td>
+                        <td className="py-3.5 px-3.5">
+                          <div className="font-semibold text-slate-900">{bill.vendorName || 'Vendor'}</div>
+                          {bill.vendorPhone && (
+                            <div className="text-[11px] text-slate-500 font-mono">{bill.vendorPhone}</div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-medium text-slate-700">
+                          {formatINR(bill.grandTotal)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-medium text-emerald-600">
+                          {formatINR(paidAmt)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-right font-black text-rose-700 text-sm">
+                          {formatINR(dueAmt)}
+                        </td>
+                        <td className="py-3.5 px-3.5 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                            dueAmt === bill.grandTotal 
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200' 
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}>
+                            {dueAmt === bill.grandTotal ? 'UNPAID' : 'PARTIAL DUE'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3.5 text-center">
+                          <button
+                            onClick={() => handleOpenPayBill(bill)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
+                          >
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                            <span>Pay Bill (Settle)</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Standard Transactions Table (for ALL, PAYMENT_IN, PAYMENT_OUT, CONTRA_TRANSFER) */}
+        {activeTab !== 'PENDING_RECEIVABLES' && activeTab !== 'PENDING_PAYABLES' && (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-600 uppercase font-semibold border-b border-slate-200">
@@ -779,6 +1126,7 @@ export const PaymentsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* RECORD / EDIT PAYMENT MODAL */}

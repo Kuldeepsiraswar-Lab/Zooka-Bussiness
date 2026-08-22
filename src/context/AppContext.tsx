@@ -109,6 +109,7 @@ interface AppContextType {
   bulkCreateParties: (newParties: Omit<Party, 'id' | 'createdAt' | 'currentBalance'>[], updateExisting?: boolean) => { added: number; updated: number };
   updateParty: (id: string, party: Partial<Party>) => void;
   deleteParty: (id: string) => void;
+  syncBillingParties: () => { newCustomersAdded: number; newVendorsAdded: number };
   
   // Purchases & Expenses
   purchaseBills: PurchaseBill[];
@@ -1415,8 +1416,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Invoices & Billing
   const createInvoice = (invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>): Invoice => {
     const invoiceNumber = invoiceData.invoiceNumber || `${business.invoicePrefix}${business.nextInvoiceNumber.toString().padStart(3, '0')}`;
+    
+    // Auto-create or link customer party in parties master if not existing
+    let finalCustomerId = invoiceData.customerId;
+    const cleanCustomerName = (invoiceData.customerName || '').trim();
+    if (cleanCustomerName && cleanCustomerName.toLowerCase() !== 'walk-in customer') {
+      const existingParty = parties.find(p => 
+        (finalCustomerId && p.id === finalCustomerId) ||
+        p.name.trim().toLowerCase() === cleanCustomerName.toLowerCase() ||
+        (invoiceData.customerPhone && p.phone && p.phone.replace(/[^0-9]/g, '').slice(-10) === invoiceData.customerPhone.replace(/[^0-9]/g, '').slice(-10))
+      );
+
+      if (existingParty) {
+        finalCustomerId = existingParty.id;
+        // Update balance and contact details if available
+        setParties(prev => prev.map(p => {
+          if (p.id === existingParty.id) {
+            const updatedParty = {
+              ...p,
+              phone: p.phone || invoiceData.customerPhone || '',
+              email: p.email || invoiceData.customerEmail || '',
+              gstin: p.gstin || (invoiceData.customerGstin ? invoiceData.customerGstin.toUpperCase().trim() : undefined),
+              billingAddress: p.billingAddress || invoiceData.customerAddress || '',
+              city: p.city || invoiceData.customerCity || business.city,
+              state: p.state || invoiceData.customerState || business.state,
+              stateCode: p.stateCode || invoiceData.customerStateCode || business.stateCode,
+              currentBalance: p.currentBalance + (invoiceData.amountDue || 0)
+            };
+            cloudDb.syncEntityDoc('parties', currentCompanyId, updatedParty).catch(console.warn);
+            return updatedParty;
+          }
+          return p;
+        }));
+      } else {
+        const newPartyId = 'party-cust-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+        finalCustomerId = newPartyId;
+        const newParty: Party = {
+          id: newPartyId,
+          type: 'CUSTOMER',
+          name: cleanCustomerName,
+          phone: invoiceData.customerPhone || '',
+          email: invoiceData.customerEmail || '',
+          gstin: invoiceData.customerGstin ? invoiceData.customerGstin.toUpperCase().trim() : undefined,
+          billingAddress: invoiceData.customerAddress || 'Address not provided',
+          city: invoiceData.customerCity || business.city,
+          state: invoiceData.customerState || business.state,
+          stateCode: invoiceData.customerStateCode || business.stateCode,
+          pincode: invoiceData.customerPincode || business.pincode,
+          openingBalance: 0,
+          currentBalance: invoiceData.amountDue || 0,
+          creditLimit: 100000,
+          creditPeriodDays: 30,
+          createdAt: new Date().toISOString()
+        };
+        setParties(prev => [newParty, ...prev]);
+        cloudDb.syncEntityDoc('parties', currentCompanyId, newParty).catch(console.warn);
+      }
+    }
+
     const newInvoice: Invoice = {
       ...invoiceData,
+      customerId: finalCustomerId || invoiceData.customerId,
       id: 'inv-' + Date.now(),
       invoiceNumber,
       createdAt: new Date().toISOString(),
@@ -1433,8 +1493,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
 
-    // Auto update Party Balance if unpaid / partially paid
-    if (newInvoice.customerId && newInvoice.amountDue > 0) {
+    // Auto update Party Balance if unpaid / partially paid (if not already updated above)
+    if (newInvoice.customerId && newInvoice.amountDue > 0 && (!cleanCustomerName || cleanCustomerName.toLowerCase() === 'walk-in customer')) {
       setParties(prev => prev.map(p => {
         if (p.id === newInvoice.customerId) {
           const updatedParty = { ...p, currentBalance: p.currentBalance + newInvoice.amountDue };
@@ -1863,8 +1923,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Purchases
   const createPurchaseBill = (billData: Omit<PurchaseBill, 'id' | 'createdAt'>): PurchaseBill => {
+    // Auto-create or link vendor party in parties master if not existing
+    let finalVendorId = billData.vendorId;
+    const cleanVendorName = (billData.vendorName || '').trim();
+    if (cleanVendorName) {
+      const existingVendor = parties.find(p => 
+        (finalVendorId && p.id === finalVendorId) ||
+        p.name.trim().toLowerCase() === cleanVendorName.toLowerCase() ||
+        (billData.vendorPhone && p.phone && p.phone.replace(/[^0-9]/g, '').slice(-10) === billData.vendorPhone.replace(/[^0-9]/g, '').slice(-10))
+      );
+
+      if (existingVendor) {
+        finalVendorId = existingVendor.id;
+        // Update balance and contact details if available
+        setParties(prev => prev.map(p => {
+          if (p.id === existingVendor.id) {
+            const updatedParty = {
+              ...p,
+              phone: p.phone || billData.vendorPhone || '',
+              email: p.email || billData.vendorEmail || '',
+              gstin: p.gstin || (billData.vendorGstin ? billData.vendorGstin.toUpperCase().trim() : undefined),
+              billingAddress: p.billingAddress || billData.vendorAddress || '',
+              city: p.city || billData.vendorCity || business.city,
+              state: p.state || billData.vendorState || business.state,
+              stateCode: p.stateCode || billData.vendorStateCode || business.stateCode,
+              currentBalance: p.currentBalance - (billData.amountDue || 0)
+            };
+            cloudDb.syncEntityDoc('parties', currentCompanyId, updatedParty).catch(console.warn);
+            return updatedParty;
+          }
+          return p;
+        }));
+      } else {
+        const newPartyId = 'party-vend-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+        finalVendorId = newPartyId;
+        const newParty: Party = {
+          id: newPartyId,
+          type: 'VENDOR',
+          name: cleanVendorName,
+          phone: billData.vendorPhone || '',
+          email: billData.vendorEmail || '',
+          gstin: billData.vendorGstin ? billData.vendorGstin.toUpperCase().trim() : undefined,
+          billingAddress: billData.vendorAddress || 'Address not provided',
+          city: billData.vendorCity || business.city,
+          state: billData.vendorState || business.state,
+          stateCode: billData.vendorStateCode || business.stateCode,
+          pincode: business.pincode,
+          openingBalance: 0,
+          currentBalance: -(billData.amountDue || 0),
+          creditLimit: 100000,
+          creditPeriodDays: 30,
+          createdAt: new Date().toISOString()
+        };
+        setParties(prev => [newParty, ...prev]);
+        cloudDb.syncEntityDoc('parties', currentCompanyId, newParty).catch(console.warn);
+      }
+    }
+
     const newBill: PurchaseBill = {
       ...billData,
+      vendorId: finalVendorId || billData.vendorId,
       id: 'pb-' + Date.now(),
       createdAt: new Date().toISOString()
     };
@@ -1887,6 +2005,96 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast('success', 'Purchase Bill Logged', `Bill ${newBill.billNumber} recorded.`);
     return newBill;
+  };
+
+  // Sync Parties from all previous invoices and purchase bills
+  const syncBillingParties = () => {
+    let newCustomersAdded = 0;
+    let newVendorsAdded = 0;
+    const existingPartyNames = new Set(parties.map(p => p.name.trim().toLowerCase()));
+    const existingPartyIds = new Set(parties.map(p => p.id));
+    const partiesToAdd: Party[] = [];
+
+    // Check all invoices
+    invoices.forEach(inv => {
+      if (inv.customerName && inv.customerName.trim() && inv.customerName.toLowerCase() !== 'walk-in customer') {
+        const cName = inv.customerName.trim();
+        const cKey = cName.toLowerCase();
+        const cId = inv.customerId;
+        const exists = existingPartyNames.has(cKey) || (cId && existingPartyIds.has(cId));
+        if (!exists) {
+          existingPartyNames.add(cKey);
+          const newId = cId && !cId.startsWith('party-retail') ? cId : `party-cust-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          existingPartyIds.add(newId);
+          const newP: Party = {
+            id: newId,
+            type: 'CUSTOMER',
+            name: cName,
+            phone: inv.customerPhone || '',
+            email: inv.customerEmail || '',
+            gstin: inv.customerGstin ? inv.customerGstin.toUpperCase().trim() : undefined,
+            billingAddress: inv.customerAddress || 'Address not provided',
+            city: inv.customerCity || business.city,
+            state: inv.customerState || business.state,
+            stateCode: inv.customerStateCode || business.stateCode,
+            pincode: inv.customerPincode || business.pincode,
+            openingBalance: 0,
+            currentBalance: inv.amountDue || 0,
+            creditLimit: 100000,
+            creditPeriodDays: 30,
+            createdAt: inv.createdAt || new Date().toISOString()
+          };
+          partiesToAdd.push(newP);
+          newCustomersAdded++;
+        }
+      }
+    });
+
+    // Check all purchase bills
+    purchaseBills.forEach(bill => {
+      if (bill.vendorName && bill.vendorName.trim()) {
+        const vName = bill.vendorName.trim();
+        const vKey = vName.toLowerCase();
+        const vId = bill.vendorId;
+        const exists = existingPartyNames.has(vKey) || (vId && existingPartyIds.has(vId));
+        if (!exists) {
+          existingPartyNames.add(vKey);
+          const newId = vId || `party-vend-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          existingPartyIds.add(newId);
+          const newP: Party = {
+            id: newId,
+            type: 'VENDOR',
+            name: vName,
+            phone: bill.vendorPhone || '',
+            email: bill.vendorEmail || '',
+            gstin: bill.vendorGstin ? bill.vendorGstin.toUpperCase().trim() : undefined,
+            billingAddress: bill.vendorAddress || 'Address not provided',
+            city: bill.vendorCity || business.city,
+            state: bill.vendorState || business.state,
+            stateCode: bill.vendorStateCode || business.stateCode,
+            pincode: business.pincode,
+            openingBalance: 0,
+            currentBalance: -(bill.amountDue || 0),
+            creditLimit: 100000,
+            creditPeriodDays: 30,
+            createdAt: bill.createdAt || new Date().toISOString()
+          };
+          partiesToAdd.push(newP);
+          newVendorsAdded++;
+        }
+      }
+    });
+
+    if (partiesToAdd.length > 0) {
+      setParties(prev => [...partiesToAdd, ...prev]);
+      partiesToAdd.forEach(p => {
+        cloudDb.syncEntityDoc('parties', currentCompanyId, p).catch(console.warn);
+      });
+      showToast('success', 'Contacts & Vendors Synced', `Added ${newCustomersAdded} customers & ${newVendorsAdded} vendors from billing records.`);
+    } else {
+      showToast('info', 'All Contacts Up to Date', 'All billing customers and vendors are already present in Contacts.');
+    }
+    return { newCustomersAdded, newVendorsAdded };
   };
 
   const updatePurchaseBill = (id: string, billData: Partial<PurchaseBill>) => {
@@ -2535,6 +2743,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bulkCreateParties,
         updateParty,
         deleteParty,
+        syncBillingParties,
         purchaseBills,
         createPurchaseBill,
         updatePurchaseBill,

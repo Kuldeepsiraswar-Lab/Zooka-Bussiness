@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Party } from '../../types';
 import { formatCurrency, formatDate, validateGstin } from '../../utils/formatters';
@@ -22,7 +22,8 @@ import {
   Clock,
   FileSpreadsheet,
   Download,
-  ShoppingCart
+  ShoppingCart,
+  RefreshCw
 } from 'lucide-react';
 
 export const PartiesView: React.FC = () => {
@@ -35,9 +36,28 @@ export const PartiesView: React.FC = () => {
     bulkCreateParties, 
     updateParty, 
     deleteParty, 
+    syncBillingParties,
     setSelectedInvoiceIdForPrint,
     showToast 
   } = useApp();
+
+  // Run a one-time check on mount to ensure all billing customers and vendors are synchronized
+  useEffect(() => {
+    const hasUnsyncedCustomers = invoices.some(inv => 
+      inv.customerName && 
+      inv.customerName.trim() && 
+      inv.customerName.toLowerCase() !== 'walk-in customer' && 
+      !parties.some(p => p.name.trim().toLowerCase() === inv.customerName.trim().toLowerCase() || p.id === inv.customerId)
+    );
+    const hasUnsyncedVendors = purchaseBills.some(b => 
+      b.vendorName && 
+      b.vendorName.trim() && 
+      !parties.some(p => p.name.trim().toLowerCase() === b.vendorName.trim().toLowerCase() || p.id === b.vendorId)
+    );
+    if (hasUnsyncedCustomers || hasUnsyncedVendors) {
+      syncBillingParties();
+    }
+  }, [invoices.length, purchaseBills.length, parties.length]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [partyTypeFilter, setPartyTypeFilter] = useState<'ALL' | 'CUSTOMER' | 'VENDOR' | 'POS_CUSTOMER'>('ALL');
@@ -205,7 +225,17 @@ export const PartiesView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Sync Invoiced Customers & Vendors */}
+          <button
+            onClick={() => syncBillingParties()}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl shadow-xs transition-all cursor-pointer"
+            title="Auto-sync all customer & vendor names from your invoices and bills into contacts master"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-teal-600" />
+            <span>Sync Invoiced Contacts</span>
+          </button>
+
           {/* Bulk Import CSV Action */}
           <button
             onClick={() => setIsBulkUploadOpen(true)}

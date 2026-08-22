@@ -217,6 +217,12 @@ export interface PurchaseBill {
   vendorId: string;
   vendorName: string;
   vendorGstin?: string;
+  vendorPhone?: string;
+  vendorEmail?: string;
+  vendorAddress?: string;
+  vendorCity?: string;
+  vendorState?: string;
+  vendorStateCode?: string;
   billDate: string;
   dueDate: string;
   status: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
@@ -394,10 +400,12 @@ export interface InvoiceTemplateConfig {
   themeColor: string; // Primary accent color (hex or tailwind base)
   secondaryColor?: string;
   headerColor?: string;
-  headerStyle: 'BANNER' | 'MODERN_SPLIT' | 'CENTERED' | 'MINIMAL_BORDERED' | 'THERMAL';
+  headerStyle: 'BANNER' | 'MODERN_SPLIT' | 'CENTERED' | 'MINIMAL_BORDERED' | 'THERMAL' | 'TRADE_CLASSIC';
   fontFamily: 'sans' | 'serif' | 'mono';
   tableStyle: 'BORDERED' | 'STRIPED' | 'MINIMAL' | 'BOXED';
   showLogo: boolean;
+  showPaymentMode?: boolean;
+  showCashDetails?: boolean;
   showUpiQr: boolean;
   showBankDetails: boolean;
   showSignature: boolean;

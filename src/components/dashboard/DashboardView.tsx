@@ -78,8 +78,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
     loginAsSuperAdmin
   } = useApp();
 
-  // Selected Day for Daily Sales & Purchases (Default to today '2026-08-19')
-  const [selectedDay, setSelectedDay] = useState<string>('2026-08-19');
+  // Dynamic Today Date String
+  const getTodayDateString = () => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Selected Day for Daily Sales & Purchases (Default to real today date)
+  const [selectedDay, setSelectedDay] = useState<string>(() => getTodayDateString());
 
   // Chart Controls for Monthly Sales Trend
   const [chartViewMode, setChartViewMode] = useState<'sales_only' | 'sales_and_purchases' | 'net_margin'>('sales_and_purchases');
@@ -565,7 +574,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 <Calendar className="w-4 h-4" />
               </span>
               <h2 className="text-base font-bold text-slate-900">Daily Sale & Purchase Tracker</h2>
-              {selectedDay === '2026-08-19' && (
+              {selectedDay === getTodayDateString() && (
                 <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
                   Today
                 </span>
@@ -607,10 +616,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
             <button
               type="button"
-              onClick={() => setSelectedDay('2026-08-19')}
+              onClick={() => setSelectedDay(getTodayDateString())}
               className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-                selectedDay === '2026-08-19'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                selectedDay === getTodayDateString()
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold'
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
               }`}
             >

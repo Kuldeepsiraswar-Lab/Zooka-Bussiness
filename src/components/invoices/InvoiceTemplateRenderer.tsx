@@ -37,6 +37,75 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
       ? 'font-mono'
       : 'font-sans';
 
+  // Payment Method Info Helper
+  const paymentInfo = (() => {
+    switch (invoice.paymentMethod) {
+      case 'CASH':
+        return { 
+          label: 'Cash Payment', 
+          short: 'Cash', 
+          icon: '💵', 
+          code: 'CASH', 
+          description: 'Settled via Counter Cash',
+          badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+        };
+      case 'UPI':
+        return { 
+          label: 'UPI / QR Code', 
+          short: 'UPI', 
+          icon: '⚡', 
+          code: 'UPI', 
+          description: 'Settled via UPI Instant QR',
+          badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300' 
+        };
+      case 'BANK_TRANSFER':
+        return { 
+          label: 'Bank Transfer (NEFT/RTGS/IMPS)', 
+          short: 'Bank Transfer', 
+          icon: '🏛️', 
+          code: 'BANK_TRANSFER', 
+          description: 'Direct Bank Remittance',
+          badgeColor: 'bg-blue-100 text-blue-800 border-blue-300' 
+        };
+      case 'CREDIT_CARD':
+        return { 
+          label: 'Credit / Debit Card', 
+          short: 'Card', 
+          icon: '💳', 
+          code: 'CARD', 
+          description: 'POS Card Payment',
+          badgeColor: 'bg-purple-100 text-purple-800 border-purple-300' 
+        };
+      case 'CHEQUE':
+        return { 
+          label: 'Cheque Payment', 
+          short: 'Cheque', 
+          icon: '📝', 
+          code: 'CHEQUE', 
+          description: 'Cheque Deposit',
+          badgeColor: 'bg-amber-100 text-amber-800 border-amber-300' 
+        };
+      case 'OTHER':
+        return { 
+          label: 'Other Mode', 
+          short: 'Other', 
+          icon: '🏷️', 
+          code: 'OTHER', 
+          description: 'Recorded Mode',
+          badgeColor: 'bg-slate-100 text-slate-800 border-slate-300' 
+        };
+      default:
+        return { 
+          label: 'Cash / UPI / Bank Transfer', 
+          short: 'Cash / UPI / Bank', 
+          icon: '💳', 
+          code: 'MULTI', 
+          description: 'Multiple Channels Accepted',
+          badgeColor: 'bg-slate-100 text-slate-800 border-slate-300' 
+        };
+    }
+  })();
+
   // Format HSN Summary Table
   const hsnSummaryMap = new Map<string, {
     hsnCode: string;
@@ -159,8 +228,22 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
             <span>GRAND TOTAL:</span>
             <span>{formatCurrency(invoice.grandTotal, business.currencySymbol)}</span>
           </div>
+          <div className="flex justify-between text-[10px] text-slate-800 font-bold pt-0.5">
+            <span>Mode of Payment:</span>
+            <span className="uppercase">{paymentInfo.icon} {invoice.paymentMethod ? invoice.paymentMethod.replace(/_/g, ' ') : 'CASH / UPI / BANK'}</span>
+          </div>
+          <div className="flex justify-between text-[10px] text-emerald-700 font-medium">
+            <span>Amount Paid:</span>
+            <span className="font-bold">{formatCurrency(invoice.amountPaid || 0, business.currencySymbol)}</span>
+          </div>
+          {invoice.amountDue > 0 && (
+            <div className="flex justify-between text-[10px] text-rose-700 font-bold">
+              <span>Balance Due:</span>
+              <span>{formatCurrency(invoice.amountDue, business.currencySymbol)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-[10px] text-slate-600">
-            <span>Status:</span>
+            <span>Payment Status:</span>
             <span className="font-bold">{invoice.status}</span>
           </div>
         </div>
@@ -175,6 +258,375 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
 
         <div className="text-center text-[9px] text-slate-500 pt-1 border-t border-dotted border-slate-300">
           {template.footerDeclaration || 'Thank you for your business!'}
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // AUTHENTIC INDIAN TRADE / RETAIL GST FORMAT
+  // (As shown in TM Electricals & Hardware Invoices)
+  // ==========================================
+  if (template.headerStyle === 'TRADE_CLASSIC' || template.id === 'TRADE_CLASSIC_TM') {
+    const totalQuantity = invoice.items.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0);
+    const dominantUnit = invoice.items[0]?.unit || 'Pcs.';
+    const copyTypeText = printCopyType === 'ORIGINAL' 
+      ? 'Original Copy' 
+      : printCopyType === 'DUPLICATE' 
+        ? 'Duplicate Copy' 
+        : 'Triplicate Copy';
+
+    // Tax Breakdown by GST Rate
+    const taxRateBreakdown = Array.from(
+      invoice.items.reduce((acc, item) => {
+        const rate = item.gstRate || 0;
+        const existing = acc.get(rate) || {
+          rate,
+          taxable: 0,
+          cgst: 0,
+          sgst: 0,
+          igst: 0,
+          totalTax: 0,
+        };
+        existing.taxable += item.taxableAmount;
+        existing.cgst += item.cgstAmount;
+        existing.sgst += item.sgstAmount;
+        existing.igst += item.igstAmount;
+        existing.totalTax += (item.cgstAmount + item.sgstAmount + item.igstAmount);
+        acc.set(rate, existing);
+        return acc;
+      }, new Map<number, { rate: number; taxable: number; cgst: number; sgst: number; igst: number; totalTax: number }>())
+    ).map(([_, val]) => val);
+
+    const invoiceDateTimeStr = `${formatDate(invoice.invoiceDate)} ( ${
+      invoice.createdAt
+        ? new Date(invoice.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : '12:21 PM'
+    } )`;
+
+    return (
+      <div className="bg-white text-black font-sans text-[11px] leading-tight border-2 border-black w-full min-h-[960px] flex flex-col justify-between select-text print:border-black print:text-black">
+        {/* Top Outer Container */}
+        <div>
+          {/* Header Copy Type Indicator */}
+          <div className="flex justify-end px-3 pt-1">
+            <span className="italic font-serif text-[11px] font-semibold text-slate-800 tracking-wide">
+              {copyTypeText}
+            </span>
+          </div>
+
+          {/* Business Brand & Details Header */}
+          <div className="px-4 pb-2 pt-0.5 relative flex items-center justify-between">
+            {/* Logo Left */}
+            <div className="w-20 shrink-0 flex items-center justify-start">
+              {template.showLogo && business.logoUrl ? (
+                <img src={business.logoUrl} alt="Logo" className="max-h-16 max-w-full object-contain" />
+              ) : (
+                <div className="w-14 h-14 rounded-full border-2 border-cyan-500 bg-white flex items-center justify-center text-cyan-600 font-black text-xl tracking-tighter shadow-2xs">
+                  <span className="text-red-500">T</span><span className="text-cyan-600">M</span>
+                </div>
+              )}
+            </div>
+
+            {/* Centralized Business Details */}
+            <div className="flex-1 text-center space-y-0.5 px-2">
+              <div className="font-bold text-xs uppercase tracking-widest text-slate-900">
+                TAX INVOICE
+              </div>
+              <h1 className="text-2xl font-black uppercase tracking-tight text-black font-sans">
+                {business.tradeName || business.name}
+              </h1>
+              <p className="text-[10px] md:text-[10.5px] font-semibold uppercase text-slate-800 max-w-xl mx-auto leading-tight">
+                {business.address}, {business.city}, {business.state} ({business.stateCode})
+              </p>
+              <div className="flex items-center justify-center gap-2 text-[10.5px] font-bold text-black pt-0.5">
+                <span>GSTIN : <span className="font-mono">{business.gstin}</span></span>
+              </div>
+              <div className="text-[10.5px] font-bold text-black">
+                MOBILE : <span className="font-mono">{business.phone}</span>
+              </div>
+            </div>
+
+            {/* Empty balance right spacer */}
+            <div className="w-20 shrink-0"></div>
+          </div>
+
+          {/* Party Details & Invoice Information Split Box */}
+          <div className="border-t border-b border-black grid grid-cols-12 divide-x divide-black text-[11px]">
+            {/* Left Box: Party Details */}
+            <div className="col-span-7 p-2.5 space-y-1">
+              <div className="font-bold italic text-[11px] text-black">
+                Party Details :
+              </div>
+              <div className="font-bold text-xs uppercase text-black">
+                {invoice.customerName}
+              </div>
+              <div className="text-[10.5px] uppercase text-black font-medium leading-tight whitespace-pre-line">
+                {invoice.customerAddress || `${invoice.customerCity || ''} ${invoice.customerState || ''}`.trim() || 'LOCAL'}
+              </div>
+              {invoice.customerState && invoice.customerState !== invoice.customerAddress && (
+                <div className="text-[10.5px] uppercase text-black font-medium">
+                  {invoice.customerState}
+                </div>
+              )}
+
+              <div className="pt-2 space-y-0.5 text-[10.5px]">
+                <div className="flex">
+                  <span className="w-32 text-black font-medium">Party Mobile No</span>
+                  <span className="mr-2">:</span>
+                  <strong className="font-mono text-black">{invoice.customerPhone || 'N/A'}</strong>
+                </div>
+                <div className="flex">
+                  <span className="w-32 text-black font-medium">GSTIN / UIN</span>
+                  <span className="mr-2">:</span>
+                  <strong className="font-mono text-black">{invoice.customerGstin || ''}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Box: Invoice Metadata */}
+            <div className="col-span-5 p-2.5 space-y-1.5 text-[10.5px]">
+              <div className="flex items-center">
+                <span className="w-28 text-black font-medium">Invoice No.</span>
+                <span className="mr-2">:</span>
+                <strong className="font-mono font-bold text-xs text-black">{invoice.invoiceNumber}</strong>
+              </div>
+              <div className="flex items-center">
+                <span className="w-28 text-black font-medium">Dated</span>
+                <span className="mr-2">:</span>
+                <strong className="text-black">{invoiceDateTimeStr}</strong>
+              </div>
+              <div className="flex items-center">
+                <span className="w-28 text-black font-medium">Place of Supply</span>
+                <span className="mr-2">:</span>
+                <strong className="text-black">
+                  {invoice.placeOfSupplyState} ({invoice.placeOfSupplyStateCode})
+                </strong>
+              </div>
+              <div className="flex items-center">
+                <span className="w-28 text-black font-medium">Reverse Charge</span>
+                <span className="mr-2">:</span>
+                <strong className="text-black">{invoice.isReverseCharge ? 'Y' : 'N'}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Continuous Full-Height Grid Table */}
+          <div className="w-full">
+            <table className="w-full border-collapse text-[10.5px] text-black">
+              <thead>
+                <tr className="border-b border-black text-black font-bold text-[10px]">
+                  <th className="border-r border-black py-1.5 px-1 text-center w-8">S.N.</th>
+                  <th className="border-r border-black py-1.5 px-2 text-left">Description of Goods</th>
+                  <th className="border-r border-black py-1.5 px-1 text-center w-16">HSN/SAC<br />Code</th>
+                  <th className="border-r border-black py-1.5 px-1 text-center w-14">Qty. Unit</th>
+                  <th className="border-r border-black py-1.5 px-1.5 text-right w-20">Price</th>
+                  {!invoice.isInterState ? (
+                    <>
+                      <th className="border-r border-black py-1.5 px-1 text-center w-12">CGST<br />Rate</th>
+                      <th className="border-r border-black py-1.5 px-1 text-right w-16">CGST<br />Amount</th>
+                      <th className="border-r border-black py-1.5 px-1 text-center w-12">SGST<br />Rate</th>
+                      <th className="border-r border-black py-1.5 px-1 text-right w-16">SGST<br />Amount</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="border-r border-black py-1.5 px-1 text-center w-14">IGST<br />Rate</th>
+                      <th className="border-r border-black py-1.5 px-1.5 text-right w-24">IGST<br />Amount</th>
+                    </>
+                  )}
+                  <th className="py-1.5 px-2 text-right w-24">Amount(₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.items.map((item, idx) => (
+                  <tr key={item.id || idx} className="align-top">
+                    <td className="border-r border-black py-1.5 px-1 text-center font-mono">{idx + 1}.</td>
+                    <td className="border-r border-black py-1.5 px-2 space-y-0.5">
+                      <div className="font-bold uppercase text-[10.5px] text-black">{item.name}</div>
+                      
+                      {/* Sub-item Details (Model, Serial Numbers, Warranty) in authentic Trade style */}
+                      {item.description && (
+                        <div className="italic text-[9.5px] font-sans text-black">{item.description}</div>
+                      )}
+                      {template.showSerialNumber && item.serialNumber && (
+                        <div className="font-mono italic text-[9.5px] text-black">
+                          {item.serialNumber}
+                        </div>
+                      )}
+                      {template.showWarranty && item.warranty && (
+                        <div className="italic uppercase text-[8.5px] font-semibold text-black">
+                          {item.warranty}
+                        </div>
+                      )}
+                      {template.showBatchNumber && item.batchNumber && (
+                        <div className="italic text-[8.5px] text-black font-mono">
+                          Batch: {item.batchNumber}
+                        </div>
+                      )}
+                    </td>
+                    <td className="border-r border-black py-1.5 px-1 text-center font-mono">{item.hsnCode || ''}</td>
+                    <td className="border-r border-black py-1.5 px-1 text-center font-medium">
+                      {Number(item.quantity).toFixed(2)} {item.unit || 'Pcs.'}
+                    </td>
+                    <td className="border-r border-black py-1.5 px-1.5 text-right font-mono font-medium">
+                      {formatCurrency(item.rate, '')}
+                    </td>
+                    {!invoice.isInterState ? (
+                      <>
+                        <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px]">
+                          {(item.gstRate / 2).toFixed(2)} %
+                        </td>
+                        <td className="border-r border-black py-1.5 px-1 text-right font-mono">
+                          {formatCurrency(item.cgstAmount, '')}
+                        </td>
+                        <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px]">
+                          {(item.gstRate / 2).toFixed(2)} %
+                        </td>
+                        <td className="border-r border-black py-1.5 px-1 text-right font-mono">
+                          {formatCurrency(item.sgstAmount, '')}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px]">
+                          {item.gstRate.toFixed(2)} %
+                        </td>
+                        <td className="border-r border-black py-1.5 px-1.5 text-right font-mono">
+                          {formatCurrency(item.igstAmount, '')}
+                        </td>
+                      </>
+                    )}
+                    <td className="py-1.5 px-2 text-right font-mono font-bold text-black">
+                      {formatCurrency(item.totalAmount, '')}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* Vertical Column Padding to Maintain Tall Column Lines */}
+                {Array.from({ length: Math.max(0, 4 - invoice.items.length) }).map((_, emptyIdx) => (
+                  <tr key={`empty-${emptyIdx}`} className="h-6">
+                    <td className="border-r border-black"></td>
+                    <td className="border-r border-black"></td>
+                    <td className="border-r border-black"></td>
+                    <td className="border-r border-black"></td>
+                    <td className="border-r border-black"></td>
+                    {!invoice.isInterState ? (
+                      <>
+                        <td className="border-r border-black"></td>
+                        <td className="border-r border-black"></td>
+                        <td className="border-r border-black"></td>
+                        <td className="border-r border-black"></td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border-r border-black"></td>
+                        <td className="border-r border-black"></td>
+                      </>
+                    )}
+                    <td></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Grand Total Row */}
+          <div className="border-t border-b border-black grid grid-cols-12 text-[11px] font-bold text-black bg-white">
+            <div className="col-span-4 py-1 px-3 flex justify-end items-center pr-6">
+              Grand Total
+            </div>
+            <div className="col-span-2 py-1 px-1 text-center font-mono">
+              {totalQuantity.toFixed(2)} {dominantUnit}
+            </div>
+            <div className="col-span-3"></div>
+            <div className="col-span-3 border-l border-black py-1 px-3 flex justify-between items-center font-mono text-xs">
+              <span>₹</span>
+              <span className="font-bold">{formatCurrency(invoice.grandTotal, '')}</span>
+            </div>
+          </div>
+
+          {/* Mini Tax Breakdown Matrix */}
+          <div className="p-2 border-b border-black">
+            <div className="max-w-md">
+              <table className="w-full text-[10px] text-black border-collapse">
+                <thead>
+                  <tr className="font-bold text-[9.5px] border-b border-black text-left">
+                    <th className="py-0.5 px-1">Tax Rate</th>
+                    <th className="py-0.5 px-1 text-right">Taxable Amt.</th>
+                    {!invoice.isInterState ? (
+                      <>
+                        <th className="py-0.5 px-1 text-right">CGST</th>
+                        <th className="py-0.5 px-1 text-right">SGST</th>
+                      </>
+                    ) : (
+                      <th className="py-0.5 px-1 text-right">IGST</th>
+                    )}
+                    <th className="py-0.5 px-1 text-right font-bold">Total Tax</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono">
+                  {taxRateBreakdown.map((tb, tIdx) => (
+                    <tr key={tIdx} className="border-b border-slate-200 last:border-0">
+                      <td className="py-0.5 px-1 font-sans">{tb.rate}%</td>
+                      <td className="py-0.5 px-1 text-right">{formatCurrency(tb.taxable, '')}</td>
+                      {!invoice.isInterState ? (
+                        <>
+                          <td className="py-0.5 px-1 text-right">{formatCurrency(tb.cgst, '')}</td>
+                          <td className="py-0.5 px-1 text-right">{formatCurrency(tb.sgst, '')}</td>
+                        </>
+                      ) : (
+                        <td className="py-0.5 px-1 text-right">{formatCurrency(tb.igst, '')}</td>
+                      )}
+                      <td className="py-0.5 px-1 text-right font-bold">{formatCurrency(tb.totalTax, '')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Amount in Words */}
+          <div className="py-1 px-3 border-b border-black font-bold text-xs text-black">
+            Rupees {numberToIndianWords(invoice.grandTotal)}
+          </div>
+        </div>
+
+        {/* Bottom Dual-Box Footer: Terms on Left, Signatures on Right */}
+        <div className="border-t border-black grid grid-cols-12 divide-x divide-black text-[10px] text-black">
+          {/* Left Column: Terms & Conditions */}
+          <div className="col-span-6 p-2 space-y-1">
+            <div className="font-bold underline text-[10.5px]">Terms & Conditions</div>
+            <div className="font-bold text-[10px]">E.& O.E.</div>
+            <ol className="list-decimal pl-3.5 space-y-0.5 text-[9.5px] leading-tight text-slate-900">
+              <li>Goods once sold will not be taken back.</li>
+              <li>Interest @ 18% p.a. will be charged if the payment is not made with in the stipulated time.</li>
+              <li>Subject to '{business.state || 'Local'}' Jurisdiction only.</li>
+            </ol>
+          </div>
+
+          {/* Right Column: Receiver's Signature & Authorized Signatory */}
+          <div className="col-span-6 flex flex-col justify-between p-2 min-h-[120px]">
+            <div className="font-bold text-[10.5px]">
+              Receiver's Signature :
+            </div>
+
+            {/* Signatory Box */}
+            <div className="text-right space-y-1 pt-4">
+              <div className="font-bold text-[10.5px]">
+                for <span className="uppercase font-black">{business.tradeName || business.name}</span>
+              </div>
+              
+              {showSig && activeSignatureUrl && (
+                <div className="flex justify-end py-0.5">
+                  <img src={activeSignatureUrl} alt="Signature" className="max-h-12 max-w-[130px] object-contain" />
+                </div>
+              )}
+
+              <div className="font-bold text-[10.5px] pt-1">
+                Authorised Signatory
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -360,7 +812,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
               className="text-[9.5px] font-extrabold uppercase tracking-wider mb-1 flex justify-between"
               style={{ color: themeHex }}
             >
-              <span>{invoice.hasDifferentShippingAddress ? 'Shipped To (Delivery):' : 'Invoice Details:'}</span>
+              <span>{invoice.hasDifferentShippingAddress ? 'Shipped To (Delivery):' : 'Invoice & Payment Details:'}</span>
               <span className="text-[9px] font-semibold text-slate-500">POS: {invoice.placeOfSupplyStateCode}</span>
             </div>
             {invoice.hasDifferentShippingAddress ? (
@@ -368,6 +820,16 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                 <div className="font-bold text-slate-900 text-xs">{invoice.shippingName || invoice.customerName}</div>
                 <div className="text-[11px] text-slate-600 leading-snug">{invoice.shippingAddress}</div>
                 <div className="text-[10px] text-slate-500">State: {invoice.shippingState} ({invoice.shippingStateCode})</div>
+                <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                  <span className="text-slate-500">Payment:</span>
+                  <span className="font-bold text-slate-800 flex items-center gap-1">
+                    <span>{paymentInfo.icon}</span>
+                    <span>{paymentInfo.short}</span>
+                    <span className={`ml-1 px-1.5 py-0.2 rounded text-[9px] ${invoice.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {invoice.status}
+                    </span>
+                  </span>
+                </div>
               </>
             ) : (
               <div className="space-y-1 text-[11px]">
@@ -377,16 +839,29 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Supply Classification:</span>
-                  <span className="font-semibold text-slate-800">{invoice.isInterState ? 'Inter-State Supply' : 'Intra-State Supply'}</span>
+                  <span className="font-semibold text-slate-800">{invoice.isInterState ? 'Inter-State Supply (IGST)' : 'Intra-State Supply (CGST+SGST)'}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Payment Status:</span>
-                  <span className={`font-bold px-1.5 py-0.2 rounded text-[10px] ${
-                    invoice.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {invoice.status}
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Mode of Payment:</span>
+                  <span className="font-bold text-slate-900 flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[10px]">
+                    <span>{paymentInfo.icon}</span>
+                    <span>{paymentInfo.label}</span>
                   </span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Payment Status:</span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                    invoice.status === 'PAID' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  }`}>
+                    {invoice.status === 'PAID' ? '✅ FULLY PAID' : (invoice.status === 'PARTIALLY_PAID' ? '⚠️ PARTIALLY PAID' : '⏳ UNPAID / CREDIT')}
+                  </span>
+                </div>
+                {invoice.paymentReference && (
+                  <div className="flex justify-between text-[10px] text-slate-600">
+                    <span>Payment Ref / UTR:</span>
+                    <span className="font-mono font-bold text-slate-800">{invoice.paymentReference}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -565,7 +1040,14 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
               </div>
 
               {/* Payment Summary */}
-              <div className="pt-1.5 space-y-0.5 text-[10px]">
+              <div className="pt-1.5 space-y-1 text-[10px]">
+                <div className="flex justify-between items-center text-slate-700">
+                  <span className="font-medium">Mode of Payment:</span>
+                  <span className="font-bold flex items-center gap-1">
+                    <span>{paymentInfo.icon}</span>
+                    <span>{paymentInfo.short}</span>
+                  </span>
+                </div>
                 <div className="flex justify-between text-emerald-700 font-medium">
                   <span>Amount Paid:</span>
                   <span className="font-mono font-bold">{formatCurrency(invoice.amountPaid || 0, business.currencySymbol)}</span>

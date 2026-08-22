@@ -165,8 +165,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...company, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
-      console.error('CloudDb: Error saving company:', e);
-      throw e;
+      console.warn('CloudDb: Note saving company to Firestore:', e);
     }
   }
 
@@ -195,7 +194,7 @@ class CloudDbService {
         await this.clearCollection(collName, companyId);
       }
     } catch (e) {
-      console.error('CloudDb: Error deleting company:', e);
+      console.warn('CloudDb: Note deleting company:', e);
     }
   }
 
@@ -221,8 +220,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...profile, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
-      console.error('CloudDb: Error saving business profile:', e);
-      throw e;
+      console.warn('CloudDb: Note saving business profile:', e);
     }
   }
 
@@ -337,8 +335,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
-      console.error(`CloudDb: Error syncing ${collectionName}/${item.id}:`, e);
-      throw e;
+      console.warn(`CloudDb: Note syncing ${collectionName}/${item.id}:`, e);
     }
   }
 
@@ -348,8 +345,7 @@ class CloudDbService {
       const docRef = doc(db, collectionName, `${companyId}_${itemId}`);
       await deleteDoc(docRef);
     } catch (e) {
-      console.error(`CloudDb: Error deleting ${collectionName}/${itemId}:`, e);
-      throw e;
+      console.warn(`CloudDb: Note deleting ${collectionName}/${itemId}:`, e);
     }
   }
 
@@ -368,7 +364,7 @@ class CloudDbService {
         await batch.commit();
       }
     } catch (e) {
-      console.error(`CloudDb: Error clearing collection ${collectionName} for company ${companyId}:`, e);
+      console.warn(`CloudDb: Note clearing collection ${collectionName} for company ${companyId}:`, e);
     }
   }
 
@@ -387,8 +383,7 @@ class CloudDbService {
         await batch.commit();
       }
     } catch (e) {
-      console.error(`CloudDb: Error syncing entire collection ${collectionName}:`, e);
-      throw e;
+      console.warn(`CloudDb: Note syncing entire collection ${collectionName}:`, e);
     }
   }
 }

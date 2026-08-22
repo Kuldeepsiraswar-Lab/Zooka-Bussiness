@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Product, PaymentMethod, InvoiceItem, Party } from '../../types';
+import { Product, PaymentMethod, InvoiceItem, Party, InvoiceStatus, GstTaxRate } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import { calculateItemGst, recalculateInvoiceTotals } from '../../utils/gstCalculations';
 import confetti from 'canvas-confetti';
@@ -30,7 +30,14 @@ import {
   Check,
   AlertTriangle,
   Ban,
-  ShieldAlert
+  ShieldAlert,
+  Edit3,
+  Tag,
+  SlidersHorizontal,
+  RotateCcw,
+  Receipt,
+  PlusCircle,
+  Calculator
 } from 'lucide-react';
 import { 
   normalizeLowStockSettings, 
@@ -42,6 +49,8 @@ import {
 
 interface CartItem extends InvoiceItem {
   maxStock: number;
+  originalPrice?: number;
+  isCustomItem?: boolean;
 }
 
 export const PosBillingView: React.FC = () => {
@@ -66,6 +75,33 @@ export const PosBillingView: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [cashTendered, setCashTendered] = useState<number>(0);
   const [discountOverall, setDiscountOverall] = useState<number>(0);
+
+  // Settlement & Partial Payment State
+  const [settlementType, setSettlementType] = useState<'FULL' | 'PARTIAL' | 'CREDIT'>('FULL');
+  const [partialAmount, setPartialAmount] = useState<number>(0);
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
+
+  // Custom Item & Custom Sale Amount Modal States
+  const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
+  const [editPriceMode, setEditPriceMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
+  const [editUnitRate, setEditUnitRate] = useState<number>(0);
+  const [editTotalAmount, setEditTotalAmount] = useState<number>(0);
+  const [editQuantity, setEditQuantity] = useState<number>(1);
+  const [editDiscountPercent, setEditDiscountPercent] = useState<number>(0);
+  const [editGstRate, setEditGstRate] = useState<GstTaxRate>(18);
+  const [editDescription, setEditDescription] = useState<string>('');
+
+  // Add Brand-New Custom / Open Sale Item Modal State
+  const [showCustomItemModal, setShowCustomItemModal] = useState(false);
+  const [customItemName, setCustomItemName] = useState('Custom Service / Item');
+  const [customItemHsn, setCustomItemHsn] = useState('9987');
+  const [customItemUnit, setCustomItemUnit] = useState('Pcs');
+  const [customItemPriceMode, setCustomItemPriceMode] = useState<'EXCLUSIVE' | 'INCLUSIVE'>('EXCLUSIVE');
+  const [customItemPrice, setCustomItemPrice] = useState<number>(500);
+  const [customItemQty, setCustomItemQty] = useState<number>(1);
+  const [customItemGstRate, setCustomItemGstRate] = useState<GstTaxRate>(18);
+  const [customItemDiscount, setCustomItemDiscount] = useState<number>(0);
+  const [customItemNotes, setCustomItemNotes] = useState('');
 
   // Close party dropdown on outside click
   useEffect(() => {
@@ -149,17 +185,19 @@ export const PosBillingView: React.FC = () => {
           return prev;
         }
         const updatedQty = existing.quantity + 1;
-        const calcs = calculateItemGst(product.sellingPrice, updatedQty, existing.discountPercent, product.gstRate, false);
+        const calcs = calculateItemGst(existing.rate, updatedQty, existing.discountPercent, existing.gstRate, false);
         return prev.map(item => item.productId === product.id ? { ...item, ...calcs } : item);
       } else {
         const calcs = calculateItemGst(product.sellingPrice, 1, 0, product.gstRate, false);
         const newItem: CartItem = {
-          id: 'pos-' + Date.now() + Math.random(),
+          id: 'pos-' + Date.now() + Math.random().toString(36).substring(2, 7),
           productId: product.id,
           name: product.name,
           hsnCode: product.hsnCode,
           unit: product.unit,
           maxStock: product.currentStock,
+          originalPrice: product.sellingPrice,
+          isCustomItem: false,
           ...calcs
         };
         return [...prev, newItem];
@@ -167,11 +205,11 @@ export const PosBillingView: React.FC = () => {
     });
   };
 
-  const handleUpdateQty = (productId: string, delta: number) => {
+  const handleUpdateQty = (itemId: string, delta: number) => {
     setCart(prev => {
       return prev.map(item => {
-        if (item.productId === productId) {
-          const newQty = item.quantity + delta;
+        if (item.id === itemId || item.productId === itemId) {
+          const newQty = Math.max(0, item.quantity + delta);
           if (newQty <= 0) return null as any;
           if (item.maxStock && newQty > item.maxStock) {
             showToast('warning', 'Max Stock Reached', `Available stock is ${item.maxStock}`);
@@ -185,8 +223,137 @@ export const PosBillingView: React.FC = () => {
     });
   };
 
-  const handleRemoveFromCart = (productId: string) => {
-    setCart(prev => prev.filter(i => i.productId !== productId));
+  const handleDirectQtyChange = (itemId: string, newQty: number) => {
+    if (isNaN(newQty) || newQty <= 0) return;
+    setCart(prev => {
+      return prev.map(item => {
+        if (item.id === itemId) {
+          if (item.maxStock && newQty > item.maxStock && stockSettings.blockBillingOnOutOfStock) {
+            showToast('warning', 'Stock Exceeded', `Available stock is only ${item.maxStock}`);
+            newQty = item.maxStock;
+          }
+          const calcs = calculateItemGst(item.rate, newQty, item.discountPercent, item.gstRate, false);
+          return { ...item, ...calcs };
+        }
+        return item;
+      });
+    });
+  };
+
+  const handleRemoveFromCart = (itemId: string) => {
+    setCart(prev => prev.filter(i => i.id !== itemId && i.productId !== itemId));
+  };
+
+  // Open Edit Item Sale Price Modal
+  const handleOpenEditItem = (item: CartItem) => {
+    setEditingCartItem(item);
+    setEditPriceMode('EXCLUSIVE');
+    setEditUnitRate(item.rate);
+    setEditTotalAmount(item.totalAmount);
+    setEditQuantity(item.quantity);
+    setEditDiscountPercent(item.discountPercent || 0);
+    setEditGstRate(item.gstRate);
+    setEditDescription(item.description || '');
+  };
+
+  // Reset Cart Item Rate to original master price
+  const handleResetItemPrice = (itemId: string) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === itemId && item.originalPrice !== undefined) {
+        const calcs = calculateItemGst(item.originalPrice, item.quantity, item.discountPercent, item.gstRate, false);
+        return {
+          ...item,
+          rate: item.originalPrice,
+          ...calcs
+        };
+      }
+      return item;
+    }));
+    showToast('info', 'Price Reset', 'Reset item to original catalog selling price.');
+  };
+
+  // Save changes from Edit Custom Sale Price Modal
+  const handleSaveItemEdit = () => {
+    if (!editingCartItem) return;
+
+    let computedRate = editUnitRate;
+    const qty = Math.max(0.01, editQuantity);
+    const disc = Math.max(0, Math.min(100, editDiscountPercent));
+    const gst = editGstRate;
+
+    if (editPriceMode === 'INCLUSIVE') {
+      // Back calculate base unit rate from inclusive gross total
+      // total = rate * qty * (1 - disc/100) * (1 + gst/100)
+      const discountFactor = (1 - disc / 100);
+      const taxFactor = (1 + gst / 100);
+      if (discountFactor > 0 && taxFactor > 0 && qty > 0) {
+        computedRate = Number((editTotalAmount / (qty * discountFactor * taxFactor)).toFixed(2));
+      }
+    }
+
+    const calcs = calculateItemGst(computedRate, qty, disc, gst, false);
+
+    setCart(prev => prev.map(item => {
+      if (item.id === editingCartItem.id) {
+        return {
+          ...item,
+          rate: computedRate,
+          gstRate: gst,
+          discountPercent: disc,
+          description: editDescription.trim() || undefined,
+          ...calcs
+        };
+      }
+      return item;
+    }));
+
+    showToast('success', 'Custom Amount Applied', `Item sale rate updated to ${formatCurrency(computedRate, business.currencySymbol)}`);
+    setEditingCartItem(null);
+  };
+
+  // Add Brand-New Custom / Open Sale Item into Cart
+  const handleAddCustomSaleItem = () => {
+    if (!customItemName.trim()) {
+      showToast('error', 'Item Name Required', 'Please enter a name for the custom sale item.');
+      return;
+    }
+
+    const qty = Math.max(0.01, customItemQty);
+    const disc = Math.max(0, Math.min(100, customItemDiscount));
+    const gst = customItemGstRate;
+    let computedRate = customItemPrice;
+
+    if (customItemPriceMode === 'INCLUSIVE') {
+      const discountFactor = (1 - disc / 100);
+      const taxFactor = (1 + gst / 100);
+      if (discountFactor > 0 && taxFactor > 0 && qty > 0) {
+        computedRate = Number((customItemPrice / (qty * discountFactor * taxFactor)).toFixed(2));
+      }
+    }
+
+    const calcs = calculateItemGst(computedRate, qty, disc, gst, false);
+
+    const customCartItem: CartItem = {
+      id: 'custom-' + Date.now() + Math.random().toString(36).substring(2, 7),
+      name: customItemName.trim(),
+      hsnCode: customItemHsn.trim() || '9987',
+      unit: customItemUnit.trim() || 'Pcs',
+      maxStock: 99999,
+      originalPrice: computedRate,
+      isCustomItem: true,
+      description: customItemNotes.trim() || undefined,
+      ...calcs
+    };
+
+    setCart(prev => [...prev, customCartItem]);
+    showToast('success', 'Custom Item Added', `Added "${customItemName}" to sale cart.`);
+
+    // Reset custom item modal
+    setCustomItemName('Custom Service / Item');
+    setCustomItemPrice(500);
+    setCustomItemQty(1);
+    setCustomItemNotes('');
+    setShowCustomItemModal(false);
   };
 
   const handleCompleteSale = () => {
@@ -235,6 +402,16 @@ export const PosBillingView: React.FC = () => {
       finalPartyId = walkinParty?.id || 'party-retail-walkin';
     }
 
+    // Calculate settlement amounts
+    let calculatedPaid = totals.grandTotal;
+    if (settlementType === 'CREDIT') {
+      calculatedPaid = 0;
+    } else if (settlementType === 'PARTIAL') {
+      calculatedPaid = Math.min(totals.grandTotal, Math.max(0, partialAmount));
+    }
+    const calculatedDue = Math.max(0, totals.grandTotal - calculatedPaid);
+    const invoiceStatus = (calculatedDue === 0 ? 'PAID' : (calculatedPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID')) as InvoiceStatus;
+
     // Continue the exact consecutive Tax Invoice numbering series
     const sequentialInvoiceNumber = `${business.invoicePrefix}${String(business.nextInvoiceNumber).padStart(3, '0')}`;
     
@@ -243,7 +420,7 @@ export const PosBillingView: React.FC = () => {
       invoiceType: 'TAX_INVOICE',
       invoiceDate: new Date().toISOString().split('T')[0],
       dueDate: new Date().toISOString().split('T')[0],
-      status: 'PAID',
+      status: invoiceStatus,
       sellerGstin: business.gstin,
       sellerStateCode: business.stateCode,
       sellerState: business.state,
@@ -270,10 +447,14 @@ export const PosBillingView: React.FC = () => {
       totalDiscount: totals.totalDiscount,
       roundOff: totals.roundOff,
       grandTotal: totals.grandTotal,
-      amountPaid: totals.grandTotal,
-      amountDue: 0,
+      amountPaid: calculatedPaid,
+      amountDue: calculatedDue,
       paymentMethod,
-      notes: 'Counter POS quick tax invoice'
+      notes: settlementType === 'PARTIAL' 
+        ? `Counter POS sale - Partial payment collected: ${business.currencySymbol}${calculatedPaid}, Balance Due: ${business.currencySymbol}${calculatedDue}`
+        : settlementType === 'CREDIT'
+        ? `Counter POS sale - Credit transaction (Amount Due: ${business.currencySymbol}${calculatedDue})`
+        : 'Counter POS quick tax invoice (Full settlement)'
     });
 
     // Celebration confetti
@@ -285,6 +466,9 @@ export const PosBillingView: React.FC = () => {
 
     setCart([]);
     setCashTendered(0);
+    setSettlementType('FULL');
+    setPartialAmount(0);
+    setShowSettlementModal(false);
     setSelectedInvoiceIdForPrint(invoice.id);
   };
 
@@ -324,16 +508,27 @@ export const PosBillingView: React.FC = () => {
         <div className="lg:col-span-7 space-y-3.5">
           {/* Search & Category Filter */}
           <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Scan barcode or type product name, SKU..."
-                className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                autoFocus
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Scan barcode or type product name, SKU..."
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  autoFocus
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomItemModal(true)}
+                className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                title="Add ad-hoc custom item / service with custom rate & GST"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-indigo-600" />
+                <span>+ Custom Sale Item</span>
+              </button>
             </div>
 
             {/* Category chips */}
@@ -605,52 +800,132 @@ export const PosBillingView: React.FC = () => {
             </div>
 
             {/* Cart Items List */}
-            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-              {cart.map(item => (
-                <div
-                  key={item.id}
-                  className="p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs"
-                >
-                  <div className="flex-1 pr-2">
-                    <div className="font-semibold text-slate-900 line-clamp-1">{item.name}</div>
-                    <div className="text-[10px] text-slate-500 font-mono">
-                      {item.quantity} x {formatCurrency(item.rate, business.currencySymbol)} (GST {item.gstRate}%)
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {cart.map(item => {
+                const isPriceEdited = item.originalPrice !== undefined && Math.abs(item.rate - item.originalPrice) > 0.01;
+                return (
+                  <div
+                    key={item.id}
+                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 text-xs space-y-1.5 transition-all hover:border-indigo-200 hover:shadow-xs"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 line-clamp-1">{item.name}</span>
+                          {item.isCustomItem && (
+                            <span className="text-[9px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded">
+                              Custom Item
+                            </span>
+                          )}
+                          {isPriceEdited && (
+                            <span className="text-[9px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                              <Tag className="w-2.5 h-2.5" /> Custom Rate
+                            </span>
+                          )}
+                          {item.discountPercent > 0 && (
+                            <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">
+                              {item.discountPercent}% Off
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5">
+                          <span>HSN: {item.hsnCode || 'N/A'}</span>
+                          <span>•</span>
+                          <span>GST {item.gstRate}%</span>
+                          {isPriceEdited && item.originalPrice !== undefined && (
+                            <>
+                              <span>•</span>
+                              <span className="line-through text-slate-400">
+                                MRP {formatCurrency(item.originalPrice, business.currencySymbol)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Line Item Total Amount */}
+                      <div className="text-right shrink-0">
+                        <div className="font-bold font-mono text-slate-900 text-sm">
+                          {formatCurrency(item.totalAmount, business.currencySymbol)}
+                        </div>
+                        <div className="text-[9px] text-slate-400 font-mono">
+                          Taxable: {formatCurrency(item.taxableAmount, business.currencySymbol)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Controls Bar: Custom Sale Amount button + Qty direct input + Trash */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 gap-1.5">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditItem(item)}
+                          className="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 hover:text-indigo-900 font-bold text-[10px] rounded-lg border border-slate-200 hover:border-indigo-300 flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Edit Custom Sale Price / Total Amount / Discount"
+                        >
+                          <Edit3 className="w-3 h-3 text-indigo-600" />
+                          <span>Custom Amount (₹{item.rate})</span>
+                        </button>
+
+                        {isPriceEdited && item.originalPrice !== undefined && (
+                          <button
+                            type="button"
+                            onClick={() => handleResetItemPrice(item.id)}
+                            className="p-1 text-slate-400 hover:text-indigo-600 rounded hover:bg-white transition-colors cursor-pointer"
+                            title="Reset to original product price"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Direct Quantity Input & Minus/Plus */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQty(item.id, -1)}
+                          className="w-5 h-5 rounded-md bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-600 cursor-pointer"
+                        >
+                          <Minus className="w-2.5 h-2.5" />
+                        </button>
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="any"
+                          value={item.quantity}
+                          onChange={(e) => handleDirectQtyChange(item.id, parseFloat(e.target.value))}
+                          className="w-10 text-center font-bold font-mono bg-white border border-slate-200 rounded-md py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQty(item.id, 1)}
+                          className="w-5 h-5 rounded-md bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-600 cursor-pointer"
+                        >
+                          <Plus className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFromCart(item.id)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition-colors ml-0.5 cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleUpdateQty(item.productId!, -1)}
-                      className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                    >
-                      <Minus className="w-3 h-3 text-slate-600" />
-                    </button>
-                    <span className="w-6 text-center font-bold font-mono">{item.quantity}</span>
-                    <button
-                      onClick={() => handleUpdateQty(item.productId!, 1)}
-                      className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                    >
-                      <Plus className="w-3 h-3 text-slate-600" />
-                    </button>
-                    <button
-                      onClick={() => handleRemoveFromCart(item.productId!)}
-                      className="p-1 text-slate-400 hover:text-rose-600"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {cart.length === 0 && (
                 <div className="py-8 text-center text-xs text-slate-400">
-                  Cart is empty. Tap products to add.
+                  Cart is empty. Tap products or click <strong>+ Custom Sale Item</strong> to add.
                 </div>
               )}
             </div>
 
             {/* Payment & Tender Calculator */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
+            <div className="pt-2 border-t border-slate-100 space-y-2.5">
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between text-slate-500">
                   <span>Taxable:</span>
@@ -668,10 +943,120 @@ export const PosBillingView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Settlement Mode Selector & Button */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-semibold text-slate-600">
+                    Settlement Type
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowSettlementModal(true)}
+                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 cursor-pointer flex items-center gap-1"
+                  >
+                    <span>⚡ Settlement Calculator</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('FULL');
+                      setPartialAmount(totals.grandTotal);
+                    }}
+                    className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      settlementType === 'FULL'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Full (100%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('PARTIAL');
+                      if (partialAmount <= 0 || partialAmount >= totals.grandTotal) {
+                        setPartialAmount(Math.round(totals.grandTotal / 2));
+                      }
+                    }}
+                    className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      settlementType === 'PARTIAL'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Custom Partial
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('CREDIT');
+                      setPartialAmount(0);
+                    }}
+                    className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      settlementType === 'CREDIT'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Credit (0%)
+                  </button>
+                </div>
+
+                {/* Partial Settlement Inline Box */}
+                {settlementType === 'PARTIAL' && (
+                  <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-300/80 text-xs space-y-1.5 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-amber-900 text-[11px]">Partial Amount:</span>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">{business.currencySymbol}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max={totals.grandTotal}
+                          value={partialAmount || ''}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setPartialAmount(Math.min(totals.grandTotal, Math.max(0, val)));
+                          }}
+                          placeholder="0.00"
+                          className="w-24 pl-5 pr-2 py-1 text-right font-mono font-bold bg-white border border-amber-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 justify-end">
+                      {[0.25, 0.5, 0.75].map((ratio) => {
+                        const amt = Math.round(totals.grandTotal * ratio);
+                        return (
+                          <button
+                            key={ratio}
+                            type="button"
+                            onClick={() => setPartialAmount(amt)}
+                            className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                          >
+                            {ratio * 100}%
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-between font-bold text-amber-900 text-[11px] pt-1 border-t border-amber-200">
+                      <span>Pending Due:</span>
+                      <span className="font-mono text-rose-700">
+                        {formatCurrency(Math.max(0, totals.grandTotal - partialAmount), business.currencySymbol)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Payment methods selector */}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Settlement Method
+                  Settlement Payment Method
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(['CASH', 'UPI', 'CREDIT_CARD'] as PaymentMethod[]).map(method => (
@@ -679,7 +1064,7 @@ export const PosBillingView: React.FC = () => {
                       key={method}
                       type="button"
                       onClick={() => setPaymentMethod(method)}
-                      className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                      className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         paymentMethod === method
                           ? 'bg-slate-900 text-white shadow-sm'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -692,7 +1077,7 @@ export const PosBillingView: React.FC = () => {
               </div>
 
               {/* Cash tender calculator if CASH selected */}
-              {paymentMethod === 'CASH' && (
+              {paymentMethod === 'CASH' && settlementType !== 'CREDIT' && (
                 <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200 text-xs space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-amber-900">Cash Tendered:</span>
@@ -700,14 +1085,19 @@ export const PosBillingView: React.FC = () => {
                       type="number"
                       value={cashTendered || ''}
                       onChange={(e) => setCashTendered(parseFloat(e.target.value) || 0)}
-                      placeholder={String(totals.grandTotal)}
+                      placeholder={String(settlementType === 'PARTIAL' ? partialAmount : totals.grandTotal)}
                       className="w-24 px-2 py-1 text-right font-mono font-bold bg-white border border-amber-300 rounded-lg focus:outline-none"
                     />
                   </div>
-                  {cashTendered > totals.grandTotal && (
+                  {cashTendered > (settlementType === 'PARTIAL' ? partialAmount : totals.grandTotal) && (
                     <div className="flex justify-between font-bold text-emerald-800 text-xs pt-1 border-t border-amber-200">
                       <span>Change Return:</span>
-                      <span className="font-mono">{formatCurrency(changeToReturn, business.currencySymbol)}</span>
+                      <span className="font-mono">
+                        {formatCurrency(
+                          cashTendered - (settlementType === 'PARTIAL' ? partialAmount : totals.grandTotal), 
+                          business.currencySymbol
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -720,12 +1110,690 @@ export const PosBillingView: React.FC = () => {
                 className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
-                <span>Complete Sale & Print Receipt ({formatCurrency(totals.grandTotal, business.currencySymbol)})</span>
+                <span>
+                  Complete Sale & Print Receipt (
+                  {formatCurrency(
+                    settlementType === 'FULL' ? totals.grandTotal : (settlementType === 'CREDIT' ? 0 : partialAmount),
+                    business.currencySymbol
+                  )}
+                  {settlementType !== 'FULL' && ` / Due: ${formatCurrency(Math.max(0, totals.grandTotal - (settlementType === 'CREDIT' ? 0 : partialAmount)), business.currencySymbol)}`}
+                  )
+                </span>
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* CUSTOM SETTLEMENT MODAL POPUP */}
+      {showSettlementModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+                  ⚡
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">POS Custom Settlement</h3>
+                  <p className="text-[11px] text-indigo-100">Pay partial, split amount, or book to customer ledger credit</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSettlementModal(false)}
+                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-500 font-medium">Customer:</span>
+                  <div className="font-bold text-slate-900">{customerName || 'Retail Customer'}</div>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-500 font-medium">Total Bill:</span>
+                  <div className="font-mono font-black text-indigo-600 text-base">
+                    {formatCurrency(totals.grandTotal, business.currencySymbol)}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1.5">Select Settlement Mode:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('FULL');
+                      setPartialAmount(totals.grandTotal);
+                    }}
+                    className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
+                      settlementType === 'FULL'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    100% Full Pay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('PARTIAL');
+                      if (partialAmount <= 0 || partialAmount >= totals.grandTotal) {
+                        setPartialAmount(Math.round(totals.grandTotal / 2));
+                      }
+                    }}
+                    className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
+                      settlementType === 'PARTIAL'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Custom Partial
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettlementType('CREDIT');
+                      setPartialAmount(0);
+                    }}
+                    className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
+                      settlementType === 'CREDIT'
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    0% Credit Sale
+                  </button>
+                </div>
+              </div>
+
+              {settlementType === 'PARTIAL' && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+                  <div>
+                    <label className="block font-bold text-amber-900 mb-1">Enter Custom Amount to Pay Now:</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={totals.grandTotal}
+                        value={partialAmount || ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setPartialAmount(Math.min(totals.grandTotal, Math.max(0, val)));
+                        }}
+                        className="w-full pl-7 pr-3 py-2 text-base font-mono font-bold bg-white border border-amber-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {[0.25, 0.5, 0.75].map((ratio) => {
+                      const amt = Math.round(totals.grandTotal * ratio);
+                      return (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => setPartialAmount(amt)}
+                          className="flex-1 py-1.5 rounded-lg font-bold bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs cursor-pointer"
+                        >
+                          {ratio * 100}% ({business.currencySymbol}{amt})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-lg border border-amber-200 flex items-center justify-between font-bold">
+                    <span className="text-slate-600">Pending Balance Added to Credit Ledger:</span>
+                    <span className="font-mono text-rose-600 text-sm">
+                      {formatCurrency(Math.max(0, totals.grandTotal - partialAmount), business.currencySymbol)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Payment Method for Settle Amount:</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="CASH">💵 Cash</option>
+                  <option value="UPI">⚡ UPI / QR Code</option>
+                  <option value="CREDIT_CARD">💳 Credit / Debit Card</option>
+                  <option value="BANK_TRANSFER">🏛️ Bank Transfer / NEFT</option>
+                  <option value="CHEQUE">📝 Cheque</option>
+                </select>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSettlementModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel / Return
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSettlementModal(false);
+                    handleCompleteSale();
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Confirm & Print</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT CUSTOM SALE AMOUNT & PRICING MODAL */}
+      {editingCartItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Custom Sale Amount & Pricing</h3>
+                  <p className="text-[11px] text-slate-300">Adjust selling rate, inclusive total, or item discount</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingCartItem(null)}
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              {/* Product Info Bar */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-slate-900 text-sm">{editingCartItem.name}</div>
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    HSN: {editingCartItem.hsnCode || 'N/A'} • Unit: {editingCartItem.unit}
+                  </div>
+                </div>
+                {editingCartItem.originalPrice !== undefined && (
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-500 font-semibold block">Catalog MRP:</span>
+                    <span className="font-mono font-bold text-slate-800 text-xs">
+                      {formatCurrency(editingCartItem.originalPrice, business.currencySymbol)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price Entry Mode Toggle */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1.5">How would you like to enter price?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditPriceMode('EXCLUSIVE');
+                    }}
+                    className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      editPriceMode === 'EXCLUSIVE'
+                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500 shadow-2xs'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">Base Unit Rate</div>
+                      <div className="text-[10px] opacity-75">Exclusive of Tax</div>
+                    </div>
+                    {editPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditPriceMode('INCLUSIVE');
+                      // compute default inclusive amount
+                      const calcs = calculateItemGst(editUnitRate, editQuantity, editDiscountPercent, editGstRate, false);
+                      setEditTotalAmount(calcs.totalAmount);
+                    }}
+                    className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      editPriceMode === 'INCLUSIVE'
+                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500 shadow-2xs'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">Total Sale Amount</div>
+                      <div className="text-[10px] opacity-75">Inclusive of All Taxes</div>
+                    </div>
+                    {editPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount and Quantity Inputs */}
+              <div className="grid grid-cols-2 gap-3">
+                {editPriceMode === 'EXCLUSIVE' ? (
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Custom Unit Rate (₹):</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editUnitRate || ''}
+                        onChange={(e) => setEditUnitRate(parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Custom Final Line Total (₹):</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editTotalAmount || ''}
+                        onChange={(e) => setEditTotalAmount(parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-700"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Quantity ({editingCartItem.unit}):</label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    value={editQuantity || ''}
+                    onChange={(e) => setEditQuantity(parseFloat(e.target.value) || 1)}
+                    className="w-full px-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Discount & GST Rate selection */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Item Discount (%):</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={editDiscountPercent || ''}
+                      onChange={(e) => setEditDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      className="w-full px-3 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="0"
+                    />
+                    <div className="flex gap-1">
+                      {[5, 10].map(disc => (
+                        <button
+                          key={disc}
+                          type="button"
+                          onClick={() => setEditDiscountPercent(disc)}
+                          className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-[10px] text-slate-700 cursor-pointer"
+                        >
+                          {disc}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                  <select
+                    value={editGstRate}
+                    onChange={(e) => setEditGstRate(Number(e.target.value) as GstTaxRate)}
+                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                  >
+                    <option value={0}>0% (Tax Exempt)</option>
+                    <option value={5}>5% GST</option>
+                    <option value={12}>12% GST</option>
+                    <option value={18}>18% GST (Standard)</option>
+                    <option value={28}>28% GST</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Optional Serial No. / Notes */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Item Notes / Serial No (Optional):</label>
+                <input
+                  type="text"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="e.g. S/N: 489274, 1 Year warranty included"
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Real-time Calculation Preview Box */}
+              {(() => {
+                let previewRate = editUnitRate;
+                const qty = Math.max(0.01, editQuantity);
+                const disc = Math.max(0, Math.min(100, editDiscountPercent));
+                const gst = editGstRate;
+
+                if (editPriceMode === 'INCLUSIVE') {
+                  const discountFactor = (1 - disc / 100);
+                  const taxFactor = (1 + gst / 100);
+                  if (discountFactor > 0 && taxFactor > 0 && qty > 0) {
+                    previewRate = Number((editTotalAmount / (qty * discountFactor * taxFactor)).toFixed(2));
+                  }
+                }
+
+                const preview = calculateItemGst(previewRate, qty, disc, gst, false);
+                const itemTaxTotal = preview.cgstAmount + preview.sgstAmount + preview.igstAmount + (preview.cessAmount || 0);
+
+                return (
+                  <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1 text-xs">
+                    <div className="font-bold text-indigo-950 flex items-center justify-between pb-1 border-b border-indigo-200/60">
+                      <span>Calculated Line Item Breakdown</span>
+                      <span className="font-mono text-indigo-700">Base Unit Rate: {formatCurrency(previewRate, business.currencySymbol)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pt-0.5">
+                      <span>Taxable Value ({qty} {editingCartItem.unit}):</span>
+                      <span className="font-mono font-semibold">{formatCurrency(preview.taxableAmount, business.currencySymbol)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>GST ({gst}% Intra-state CGST+SGST):</span>
+                      <span className="font-mono font-semibold">{formatCurrency(itemTaxTotal, business.currencySymbol)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-900 font-extrabold pt-1 border-t border-indigo-200 text-sm">
+                      <span>Final Net Line Total:</span>
+                      <span className="font-mono text-indigo-700">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Action Buttons */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                {editingCartItem.originalPrice !== undefined ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditPriceMode('EXCLUSIVE');
+                      setEditUnitRate(editingCartItem.originalPrice || 0);
+                      setEditDiscountPercent(0);
+                    }}
+                    className="py-2 px-3 rounded-xl border border-slate-300 font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset to MRP</span>
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCartItem(null)}
+                    className="py-2 px-4 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveItemEdit}
+                    className="py-2 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-white shadow-md flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Apply Custom Amount</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD BRAND-NEW CUSTOM / OPEN SALE ITEM MODAL */}
+      {showCustomItemModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Add Custom Sale Item / Service</h3>
+                  <p className="text-[11px] text-indigo-100">Bill any ad-hoc product, labor, repair or custom charge</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCustomItemModal(false)}
+                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              {/* Item Name */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Custom Item / Service Name *</label>
+                <input
+                  type="text"
+                  value={customItemName}
+                  onChange={(e) => setCustomItemName(e.target.value)}
+                  placeholder="e.g. Computer Repair Service, Custom Fitting, Delivery Fee"
+                  className="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  autoFocus
+                />
+              </div>
+
+              {/* Price Entry Mode */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1.5">Sale Amount Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomItemPriceMode('EXCLUSIVE')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      customItemPriceMode === 'EXCLUSIVE'
+                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">Base Rate</div>
+                      <div className="text-[10px] opacity-75">Tax gets added on top</div>
+                    </div>
+                    {customItemPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCustomItemPriceMode('INCLUSIVE')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      customItemPriceMode === 'INCLUSIVE'
+                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">Flat Inclusive Total</div>
+                      <div className="text-[10px] opacity-75">Taxes included in price</div>
+                    </div>
+                    {customItemPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Price & Quantity & Unit */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="col-span-1">
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {customItemPriceMode === 'EXCLUSIVE' ? 'Base Rate (₹):' : 'Total Price (₹):'}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={customItemPrice || ''}
+                      onChange={(e) => setCustomItemPrice(parseFloat(e.target.value) || 0)}
+                      className="w-full pl-6 pr-2 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Quantity:</label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    value={customItemQty || ''}
+                    onChange={(e) => setCustomItemQty(parseFloat(e.target.value) || 1)}
+                    className="w-full px-2.5 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Unit:</label>
+                  <select
+                    value={customItemUnit}
+                    onChange={(e) => setCustomItemUnit(e.target.value)}
+                    className="w-full px-2 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none"
+                  >
+                    <option value="Pcs">Pcs</option>
+                    <option value="Nos">Nos</option>
+                    <option value="Set">Set</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Box">Box</option>
+                    <option value="Mtr">Mtr</option>
+                    <option value="Hr">Hr (Service)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* GST Rate & HSN Code */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                  <select
+                    value={customItemGstRate}
+                    onChange={(e) => setCustomItemGstRate(Number(e.target.value) as GstTaxRate)}
+                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                  >
+                    <option value={0}>0% (Tax Exempt)</option>
+                    <option value={5}>5% GST</option>
+                    <option value={12}>12% GST</option>
+                    <option value={18}>18% GST (Standard)</option>
+                    <option value={28}>28% GST</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">HSN / SAC Code:</label>
+                  <input
+                    type="text"
+                    value={customItemHsn}
+                    onChange={(e) => setCustomItemHsn(e.target.value)}
+                    placeholder="9987"
+                    className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-300 rounded-xl focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Description / Remarks (Optional):</label>
+                <input
+                  type="text"
+                  value={customItemNotes}
+                  onChange={(e) => setCustomItemNotes(e.target.value)}
+                  placeholder="e.g. Specific details or warranty info"
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none"
+                />
+              </div>
+
+              {/* Real-time preview */}
+              {(() => {
+                let previewRate = customItemPrice;
+                const qty = Math.max(0.01, customItemQty);
+                const disc = Math.max(0, Math.min(100, customItemDiscount));
+                const gst = customItemGstRate;
+
+                if (customItemPriceMode === 'INCLUSIVE') {
+                  const discountFactor = (1 - disc / 100);
+                  const taxFactor = (1 + gst / 100);
+                  if (discountFactor > 0 && taxFactor > 0 && qty > 0) {
+                    previewRate = Number((customItemPrice / (qty * discountFactor * taxFactor)).toFixed(2));
+                  }
+                }
+
+                const preview = calculateItemGst(previewRate, qty, disc, gst, false);
+                const itemTaxTotal = preview.cgstAmount + preview.sgstAmount + preview.igstAmount + (preview.cessAmount || 0);
+
+                return (
+                  <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Taxable Value:</span>
+                      <span className="font-mono font-semibold">{formatCurrency(preview.taxableAmount, business.currencySymbol)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>GST ({gst}%):</span>
+                      <span className="font-mono font-semibold">{formatCurrency(itemTaxTotal, business.currencySymbol)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-900 font-extrabold pt-1 border-t border-indigo-200 text-sm">
+                      <span>Total Amount Added:</span>
+                      <span className="font-mono text-indigo-700">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Action buttons */}
+              <div className="pt-2 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomItemModal(false)}
+                  className="py-2 px-4 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddCustomSaleItem}
+                  className="py-2 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-white shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add to Sale Cart</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

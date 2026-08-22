@@ -38,8 +38,17 @@ import {
   ChevronUp,
   Layers,
   Sparkles,
-  Check
+  Check,
+  AlertTriangle,
+  Ban
 } from 'lucide-react';
+import { 
+  normalizeLowStockSettings, 
+  getProductStockThreshold, 
+  isProductLowStock, 
+  isProductOutOfStock,
+  isProductCriticalStock 
+} from '../../utils/stockUtils';
 
 interface InvoiceEditorProps {
   onClose: () => void;
@@ -233,7 +242,20 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     });
   };
 
+  const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
+
   const handleSelectProductForIndex = (index: number, prod: Product) => {
+    if (!prod.isService && prod.currentStock <= 0) {
+      if (stockSettings.blockBillingOnOutOfStock) {
+        showToast('error', 'Billing Blocked', `${prod.name} is out of stock (Stock: 0). Blocked by company low-stock policy.`);
+        return;
+      } else {
+        showToast('warning', 'Out of Stock Warning', `${prod.name} is out of stock. Proceeding with negative inventory.`);
+      }
+    } else if (!prod.isService && isProductLowStock(prod, stockSettings) && stockSettings.warnOnLowStockBilling) {
+      showToast('warning', 'Low Stock Warning', `${prod.name} has only ${prod.currentStock} ${prod.unit} left in stock.`);
+    }
+
     setItems(prev => {
       const updated = [...prev];
       const calcs = calculateItemGst(
@@ -799,41 +821,61 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                         Close ✕
                                       </button>
                                     </div>
-                                    {searchFilteredProducts.map((p) => (
-                                      <div
-                                        key={p.id}
-                                        onClick={() => handleSelectProductForIndex(idx, p)}
-                                        className="p-2.5 hover:bg-indigo-50/70 transition-colors cursor-pointer flex items-start justify-between gap-2"
-                                      >
-                                        <div className="space-y-0.5">
-                                          <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                            <span>{p.name}</span>
-                                            {p.id === item.productId && (
-                                              <span className="text-[9px] px-1.5 py-0.2 bg-emerald-50 text-emerald-700 font-bold rounded">Selected</span>
-                                            )}
+                                    {searchFilteredProducts.map((p) => {
+                                      const isOutOfStock = isProductOutOfStock(p);
+                                      const isLow = isProductLowStock(p, stockSettings);
+                                      const effectiveThresh = getProductStockThreshold(p, stockSettings);
+
+                                      return (
+                                        <div
+                                          key={p.id}
+                                          onClick={() => handleSelectProductForIndex(idx, p)}
+                                          className={`p-2.5 transition-colors cursor-pointer flex items-start justify-between gap-2 ${
+                                            isOutOfStock && stockSettings.blockBillingOnOutOfStock
+                                              ? 'hover:bg-rose-50/70 bg-rose-50/20'
+                                              : 'hover:bg-indigo-50/70'
+                                          }`}
+                                        >
+                                          <div className="space-y-0.5">
+                                            <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                              <span>{p.name}</span>
+                                              {p.id === item.productId && (
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-emerald-50 text-emerald-700 font-bold rounded">Selected</span>
+                                              )}
+                                              {isOutOfStock ? (
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-rose-100 text-rose-700 font-bold rounded flex items-center gap-0.5">
+                                                  <Ban className="w-2.5 h-2.5" /> Out of stock
+                                                </span>
+                                              ) : isLow ? (
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold rounded flex items-center gap-0.5">
+                                                  <AlertTriangle className="w-2.5 h-2.5" /> Low stock
+                                                </span>
+                                              ) : null}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                                              <span className="font-mono">HSN: {p.hsnCode}</span>
+                                              <span>•</span>
+                                              <span>Stock: <strong className={isOutOfStock ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-slate-700'}>{p.currentStock} {p.unit}</strong></span>
+                                              <span className="text-slate-400 font-mono text-[9px]">(Min: {effectiveThresh})</span>
+                                              {p.category && (
+                                                <>
+                                                  <span>•</span>
+                                                  <span className="text-slate-400">{p.category}</span>
+                                                </>
+                                              )}
+                                            </div>
                                           </div>
-                                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                                            <span className="font-mono">HSN: {p.hsnCode}</span>
-                                            <span>•</span>
-                                            <span>Stock: <strong className={p.currentStock <= p.minStockAlert ? 'text-amber-600' : 'text-slate-700'}>{p.currentStock} {p.unit}</strong></span>
-                                            {p.category && (
-                                              <>
-                                                <span>•</span>
-                                                <span className="text-slate-400">{p.category}</span>
-                                              </>
-                                            )}
+                                          <div className="text-right whitespace-nowrap">
+                                            <div className="font-mono font-bold text-xs text-indigo-700">
+                                              ₹{p.sellingPrice.toLocaleString('en-IN')}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 font-medium">
+                                              +{p.gstRate}% GST
+                                            </div>
                                           </div>
                                         </div>
-                                        <div className="text-right whitespace-nowrap">
-                                          <div className="font-mono font-bold text-xs text-indigo-700">
-                                            ₹{p.sellingPrice.toLocaleString('en-IN')}
-                                          </div>
-                                          <div className="text-[10px] text-slate-400 font-medium">
-                                            +{p.gstRate}% GST
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>

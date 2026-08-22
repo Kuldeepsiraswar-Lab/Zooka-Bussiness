@@ -49,6 +49,9 @@ interface AppContextType {
   setActiveTab: (tab: ActiveTab) => void;
   isMobileNavOpen: boolean;
   setIsMobileNavOpen: (open: boolean) => void;
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
+  toggleSidebarCollapse: () => void;
   
   // Multi-Company & Multi-Business Setup
   companies: Company[];
@@ -242,6 +245,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return isAdminRouteInitially ? 'super_admin_dashboard' : 'dashboard';
   });
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('zooka_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const setIsSidebarCollapsed = (value: boolean | ((prev: boolean) => boolean)) => {
+    setIsSidebarCollapsedState(prev => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      try {
+        localStorage.setItem('zooka_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(prev => !prev);
+  };
 
   // Cloud Sync State
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'online' | 'offline' | 'error'>('online');
@@ -2472,6 +2496,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTab,
         isMobileNavOpen,
         setIsMobileNavOpen,
+        isSidebarCollapsed,
+        setIsSidebarCollapsed,
+        toggleSidebarCollapse,
         companies,
         currentCompany,
         currentCompanyId,

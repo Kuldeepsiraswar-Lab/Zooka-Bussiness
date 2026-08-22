@@ -28,8 +28,19 @@ import {
   Zap,
   FileText,
   Upload,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Ban,
+  ShieldAlert,
+  Sliders
 } from 'lucide-react';
+import { 
+  normalizeLowStockSettings, 
+  getProductStockThreshold, 
+  isProductLowStock, 
+  isProductCriticalStock, 
+  isProductOutOfStock,
+  computeInventoryHealth
+} from '../../utils/stockUtils';
 
 interface InventoryViewProps {
   onOpenNewInvoiceWithItem?: (product: Product) => void;
@@ -88,6 +99,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
   const [expiryDate, setExpiryDate] = useState('');
 
   const categories = ['ALL', ...Array.from(new Set(products.map(p => p.category)))];
+  const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
+  const health = computeInventoryHealth(products, stockSettings);
 
   const filteredProducts = products.filter(prod => {
     const q = searchQuery.toLowerCase().trim();
@@ -98,16 +111,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
       (prod.barcode && prod.barcode.toLowerCase().includes(q)) ||
       prod.hsnCode.includes(q);
     const matchesCategory = selectedCategory === 'ALL' || prod.category === selectedCategory;
-    const matchesLowStock = !showLowStockOnly || (!prod.isService && prod.currentStock <= prod.minStockAlert);
+    const matchesLowStock = !showLowStockOnly || isProductLowStock(prod, stockSettings);
 
     return matchesSearch && matchesCategory && matchesLowStock;
   });
 
-  const totalInventoryValuation = products
-    .filter(p => !p.isService)
-    .reduce((sum, p) => sum + (p.currentStock * p.purchasePrice), 0);
-
-  const lowStockCount = products.filter(p => !p.isService && p.currentStock <= p.minStockAlert).length;
+  const totalInventoryValuation = health.totalValuation;
+  const lowStockCount = health.lowStockItems;
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -122,7 +132,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
     setSellingPrice(0);
     setGstRate(18);
     setCurrentStock(10);
-    setMinStockAlert(5);
+    setMinStockAlert(stockSettings.defaultThreshold || 5);
     setIsService(false);
     setBatchNo('');
     setExpiryDate('');
@@ -390,7 +400,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredProducts.map(prod => {
-                const isLow = !prod.isService && prod.currentStock <= prod.minStockAlert;
+                const effectiveThreshold = getProductStockThreshold(prod, stockSettings);
+                const isOutOfStock = isProductOutOfStock(prod);
+                const isCritical = isProductCriticalStock(prod, stockSettings);
+                const isLow = isProductLowStock(prod, stockSettings);
                 const marginPercent = prod.purchasePrice > 0 
                   ? (((prod.sellingPrice - prod.purchasePrice) / prod.purchasePrice) * 100).toFixed(0)
                   : 0;
@@ -445,13 +458,24 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                       ) : (
                         <div className="inline-flex flex-col items-center">
                           <span
-                            className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                              isLow
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-emerald-100 text-emerald-800'
+                            title={`Current: ${prod.currentStock} ${prod.unit} • Threshold: ${effectiveThreshold}`}
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
+                              isOutOfStock
+                                ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                : isCritical
+                                ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
+                                : isLow
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                             }`}
                           >
-                            {prod.currentStock} {prod.unit}
+                            {isOutOfStock && <Ban className="w-3 h-3 text-rose-600" />}
+                            {isCritical && !isOutOfStock && <ShieldAlert className="w-3 h-3 text-rose-600" />}
+                            {isLow && !isCritical && !isOutOfStock && <AlertTriangle className="w-3 h-3 text-amber-600" />}
+                            <span>{prod.currentStock} {prod.unit}</span>
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-mono mt-0.5">
+                            Min: {effectiveThreshold}
                           </span>
                           {can('inventory', 'adjustStock') && (
                             <button

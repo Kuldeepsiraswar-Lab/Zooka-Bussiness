@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Company, BusinessProfile, HeaderConfig, SuperAdminAuthData } from '../../types';
+import { Company, BusinessProfile, HeaderConfig, SuperAdminAuthData, LowStockSettings } from '../../types';
 import { INDIAN_STATES } from '../../utils/constants';
 import { 
   Building2, 
@@ -43,11 +43,14 @@ import {
   Briefcase,
   AtSign,
   Shield,
-  Smartphone
+  Smartphone,
+  Package
 } from 'lucide-react';
 import { CreateCompanyModal } from '../company/CreateCompanyModal';
 import { HeaderSettingsTab } from '../settings/HeaderSettingsTab';
+import { LowStockSettingsTab } from '../settings/LowStockSettingsTab';
 import { DEFAULT_HEADER_CONFIG, HEADER_PRESETS, normalizeHeaderConfig } from '../../utils/headerDefaults';
+import { DEFAULT_LOW_STOCK_SETTINGS, normalizeLowStockSettings } from '../../utils/stockUtils';
 
 const SUPER_ADMIN_AVATAR_THEMES = [
   { id: 'purple', name: 'Royal Purple', class: 'bg-gradient-to-tr from-purple-600 via-indigo-600 to-violet-700' },
@@ -520,7 +523,7 @@ interface EditCompanyModalProps {
 }
 
 const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, onClose, onSave }) => {
-  const [modalTab, setModalTab] = useState<'profile' | 'header'>('profile');
+  const [modalTab, setModalTab] = useState<'profile' | 'header' | 'low_stock'>('profile');
   const [name, setName] = useState(company.name || '');
   const [tradeName, setTradeName] = useState(company.tradeName || '');
   const [gstin, setGstin] = useState(company.gstin || '');
@@ -538,6 +541,9 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
   const [disabledReason, setDisabledReason] = useState(company.disabledReason || '');
   const [modalHeaderConfig, setModalHeaderConfig] = useState<HeaderConfig>(() => 
     normalizeHeaderConfig(company.headerConfig || DEFAULT_HEADER_CONFIG)
+  );
+  const [modalLowStockSettings, setModalLowStockSettings] = useState<LowStockSettings>(() =>
+    normalizeLowStockSettings(company.lowStockSettings || DEFAULT_LOW_STOCK_SETTINGS)
   );
 
   if (!isOpen) return null;
@@ -569,11 +575,13 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
         phone: phone.trim(),
         email: email.trim(),
         headerConfig: modalHeaderConfig,
+        lowStockSettings: modalLowStockSettings,
       },
       {
         financialYear,
         themeColor,
         headerConfig: modalHeaderConfig,
+        lowStockSettings: modalLowStockSettings,
         isActive,
         disabledReason: isActive ? undefined : disabledReason.trim(),
       }
@@ -627,6 +635,18 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
           >
             <Sliders className="w-4 h-4" />
             <span>Top Header Navigation Settings</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setModalTab('low_stock')}
+            className={`px-4 py-2 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+              modalTab === 'low_stock'
+                ? 'border-indigo-600 text-indigo-600 bg-white rounded-t-lg shadow-2xs'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Package className="w-4 h-4 text-amber-500" />
+            <span>Low Stock & Inventory Engine</span>
           </button>
         </div>
 
@@ -788,12 +808,25 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
                 </div>
               </div>
             </>
-          ) : (
+          ) : modalTab === 'header' ? (
             <HeaderSettingsTab
               isSuperAdminMode={true}
               initialConfig={modalHeaderConfig}
               onConfigChange={setModalHeaderConfig}
               companyName={tradeName || name}
+            />
+          ) : (
+            <LowStockSettingsTab
+              formData={{ lowStockSettings: modalLowStockSettings }}
+              setFormData={(val: any) => {
+                if (typeof val === 'function') {
+                  const updated = val({ lowStockSettings: modalLowStockSettings });
+                  if (updated?.lowStockSettings) setModalLowStockSettings(updated.lowStockSettings);
+                } else if (val?.lowStockSettings) {
+                  setModalLowStockSettings(val.lowStockSettings);
+                }
+              }}
+              onSave={() => {}}
             />
           )}
 

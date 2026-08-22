@@ -500,6 +500,24 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
                 </button>
               )}
 
+              {/* Fullscreen App Button Simulation */}
+              {config.showFullScreenBtn !== false && (
+                <div className={`p-1.5 rounded-xl border ${
+                  isDarkPreview ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-600'
+                }`}>
+                  <Maximize2 className="w-4 h-4" />
+                </div>
+              )}
+
+              {/* Theme Mode Toggle Simulation */}
+              {config.showThemeToggle && (
+                <div className={`p-1.5 rounded-xl border ${
+                  isDarkPreview ? 'bg-slate-800 border-slate-700 text-amber-400' : 'bg-white border-slate-200 text-slate-600'
+                }`}>
+                  {isDarkPreview ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </div>
+              )}
+
               {/* User Persona Profile Pill Simulation */}
               {config.showUserPersona && (
                 <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-semibold ${
@@ -995,6 +1013,34 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
                 type="checkbox"
                 checked={config.showCloudSyncBadge}
                 onChange={e => updateConfigField('showCloudSyncBadge', e.target.checked)}
+                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Full Screen Mode Toggle Button */}
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Full Screen App Mode Toggle</p>
+                <p className="text-[11px] text-slate-400">Maximize full-viewport app mode icon in top navbar</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={config.showFullScreenBtn !== false}
+                onChange={e => updateConfigField('showFullScreenBtn', e.target.checked)}
+                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Sidebar Collapse Toggle Button */}
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Sidebar Collapse Icon Button</p>
+                <p className="text-[11px] text-slate-400">Expand / collapse sidebar toggle (⌘B) in header</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={config.showSidebarToggle !== false}
+                onChange={e => updateConfigField('showSidebarToggle', e.target.checked)}
                 className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
               />
             </div>

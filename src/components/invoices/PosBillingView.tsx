@@ -27,8 +27,18 @@ import {
   Mail,
   ChevronDown,
   X,
-  Check
+  Check,
+  AlertTriangle,
+  Ban,
+  ShieldAlert
 } from 'lucide-react';
+import { 
+  normalizeLowStockSettings, 
+  getProductStockThreshold, 
+  isProductLowStock, 
+  isProductCriticalStock, 
+  isProductOutOfStock 
+} from '../../utils/stockUtils';
 
 interface CartItem extends InvoiceItem {
   maxStock: number;
@@ -117,17 +127,25 @@ export const PosBillingView: React.FC = () => {
   const changeToReturn = Math.max(0, cashTendered - totals.grandTotal);
 
   // Add product to cart
+  const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
+
   const handleAddToCart = (product: Product) => {
     if (!product.isService && product.currentStock <= 0) {
-      showToast('warning', 'Out of Stock', `${product.name} is currently out of stock.`);
-      return;
+      if (stockSettings.blockBillingOnOutOfStock) {
+        showToast('error', 'Billing Blocked', `${product.name} is out of stock (Stock: 0). Billing blocked by company policy.`);
+        return;
+      } else {
+        showToast('warning', 'Negative Stock Warning', `${product.name} is out of stock. Proceeding with negative inventory.`);
+      }
+    } else if (!product.isService && isProductLowStock(product, stockSettings) && stockSettings.warnOnLowStockBilling) {
+      showToast('warning', 'Low Stock Alert', `${product.name} is running low (${product.currentStock} ${product.unit} left).`);
     }
 
     setCart(prev => {
       const existing = prev.find(item => item.productId === product.id);
       if (existing) {
-        if (!product.isService && existing.quantity >= product.currentStock) {
-          showToast('warning', 'Stock Limit', `Only ${product.currentStock} units available.`);
+        if (!product.isService && existing.quantity >= product.currentStock && stockSettings.blockBillingOnOutOfStock) {
+          showToast('warning', 'Stock Limit Exceeded', `Only ${product.currentStock} units in stock. Cannot add more.`);
           return prev;
         }
         const updatedQty = existing.quantity + 1;
@@ -340,16 +358,23 @@ export const PosBillingView: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto pr-1">
             {filteredProducts.map(prod => {
               const inCart = cart.find(i => i.productId === prod.id);
-              const isOutOfStock = !prod.isService && prod.currentStock <= 0;
+              const isOutOfStock = isProductOutOfStock(prod);
+              const isCritical = isProductCriticalStock(prod, stockSettings);
+              const isLow = isProductLowStock(prod, stockSettings);
+              const isDisabled = isOutOfStock && stockSettings.blockBillingOnOutOfStock;
 
               return (
                 <button
                   key={prod.id}
-                  disabled={isOutOfStock}
+                  disabled={isDisabled}
                   onClick={() => handleAddToCart(prod)}
                   className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all group relative cursor-pointer ${
-                    isOutOfStock
+                    isDisabled
                       ? 'bg-slate-100/60 border-slate-200 opacity-60 cursor-not-allowed'
+                      : isOutOfStock
+                      ? 'bg-rose-50/40 border-rose-200 hover:border-rose-400'
+                      : isLow
+                      ? 'bg-amber-50/30 border-amber-200 hover:border-amber-400 hover:shadow-md'
                       : 'bg-white border-slate-200 hover:border-indigo-400 hover:shadow-md active:scale-95'
                   }`}
                 >
@@ -358,9 +383,21 @@ export const PosBillingView: React.FC = () => {
                       <span className="text-[10px] font-mono text-slate-600 font-semibold truncate max-w-[80px]">
                         {prod.sku}
                       </span>
-                      <span className="text-[10px] font-bold text-indigo-800 bg-indigo-100 px-1.5 py-0.5 rounded">
-                        GST {prod.gstRate}%
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {isOutOfStock && (
+                          <span className="text-[9px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
+                            Out of Stock
+                          </span>
+                        )}
+                        {isLow && !isOutOfStock && (
+                          <span className="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                            <AlertTriangle className="w-2.5 h-2.5" /> Low
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold text-indigo-800 bg-indigo-100 px-1.5 py-0.5 rounded">
+                          GST {prod.gstRate}%
+                        </span>
+                      </div>
                     </div>
                     <h3 className="font-semibold text-xs text-slate-900 group-hover:text-indigo-600 line-clamp-2 leading-snug">
                       {prod.name}
@@ -372,7 +409,9 @@ export const PosBillingView: React.FC = () => {
                       <div className="font-bold text-xs text-slate-900 font-mono">
                         {formatCurrency(prod.sellingPrice, business.currencySymbol)}
                       </div>
-                      <div className="text-[10px] text-slate-600 font-medium">
+                      <div className={`text-[10px] font-medium ${
+                        isOutOfStock ? 'text-rose-600 font-bold' : isLow ? 'text-amber-700 font-bold' : 'text-slate-600'
+                      }`}>
                         {prod.isService ? 'Service' : `${prod.currentStock} in stock`}
                       </div>
                     </div>

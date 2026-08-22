@@ -33,6 +33,8 @@ export const DEFAULT_HEADER_CONFIG: HeaderConfig = {
   // System Tools & Status
   showCloudSyncBadge: true,
   showThemeToggle: true,
+  showFullScreenBtn: true,
+  showSidebarToggle: true,
   showNotificationBell: true,
   showUserPersona: true,
   

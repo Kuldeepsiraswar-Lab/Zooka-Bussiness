@@ -307,6 +307,24 @@ export interface AccountHead {
   isSystem?: boolean;
 }
 
+export type LowStockBehavior = 'WARN' | 'BLOCK' | 'ALLOW';
+
+export interface LowStockSettings {
+  enabled: boolean; // Master toggle for low stock alert subsystem
+  defaultThreshold: number; // Default low stock alert threshold for items when individual alert is 0 or unset (e.g. 5 or 10)
+  criticalStockThreshold: number; // Critical threshold (e.g., 2 units) for severe red alerts
+  allowNegativeStock: boolean; // Allow sales/POS billing when stock is 0 or negative
+  negativeStockBehavior: LowStockBehavior; // Behavior during invoicing / POS when stock is insufficient ('BLOCK' | 'WARN' | 'ALLOW')
+  blockBillingOnOutOfStock?: boolean; // Quick flag to block billing when stock is <= 0
+  warnOnLowStockBilling?: boolean; // Quick flag to display warning toasts when billing low stock
+  showLowStockBadge: boolean; // Show alert badges on Header, Sidebar, and Mobile Nav
+  showDashboardBanner: boolean; // Show prominent low stock / reorder warning card on Dashboard
+  autoReorderSuggestions: boolean; // Auto generate recommended purchase order quantities in purchase bills / reports
+  defaultReorderMultiplier: number; // Default replenishment unit multiplier (e.g., 20 or 50)
+  notifyOnBilling: boolean; // Trigger real-time alert toast when item reaching threshold is invoiced
+  emailAlertDigest?: boolean; // Periodic summary digest simulation
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -329,6 +347,7 @@ export interface Company {
   isActive?: boolean; // Controls whether this business is enabled or disabled
   disabledReason?: string; // Reason when disabled by Super Admin
   headerConfig?: HeaderConfig;
+  lowStockSettings?: LowStockSettings;
   createdAt: string;
   updatedAt?: string;
 }
@@ -435,6 +454,8 @@ export interface HeaderConfig {
   // System Tools & Status
   showCloudSyncBadge: boolean;
   showThemeToggle: boolean;
+  showFullScreenBtn?: boolean;
+  showSidebarToggle?: boolean;
   showNotificationBell: boolean;
   showUserPersona: boolean;
   
@@ -510,6 +531,7 @@ export interface BusinessProfile {
   customTemplates?: InvoiceTemplateConfig[];
   bottomNavConfig?: BottomNavConfig;
   headerConfig?: HeaderConfig;
+  lowStockSettings?: LowStockSettings;
 }
 
 export interface StateCodeMap {

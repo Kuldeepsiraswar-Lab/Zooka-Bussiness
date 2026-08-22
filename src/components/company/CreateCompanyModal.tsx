@@ -23,6 +23,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { INDIAN_STATES } from '../../utils/constants';
+import { DEFAULT_LOW_STOCK_SETTINGS } from '../../utils/stockUtils';
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
@@ -173,6 +174,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
         currency: 'INR',
         currencySymbol: '₹',
         themeColor,
+        lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
       },
       {
         name: adminName.trim(),

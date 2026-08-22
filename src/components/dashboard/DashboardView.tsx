@@ -35,8 +35,17 @@ import {
   Edit3,
   Crown,
   ShieldAlert,
-  KeyRound
+  KeyRound,
+  Ban
 } from 'lucide-react';
+import { 
+  normalizeLowStockSettings, 
+  getProductStockThreshold, 
+  isProductLowStock, 
+  isProductOutOfStock,
+  isProductCriticalStock,
+  computeInventoryHealth
+} from '../../utils/stockUtils';
 import {
   ResponsiveContainer,
   LineChart,
@@ -237,7 +246,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
   const netGstPayable = Math.max(0, totalOutputGst - totalInputItc);
 
-  const lowStockProducts = products.filter(p => !p.isService && p.currentStock <= p.minStockAlert);
+  const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
+  const health = computeInventoryHealth(products, stockSettings);
+  const lowStockProducts = products.filter(p => isProductLowStock(p, stockSettings));
   const recentInvoices = invoices.slice(0, 6);
 
   // Custom Formatter for Tooltip & Y-Axis
@@ -876,17 +887,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
             </div>
 
             <div className="space-y-2 mt-3">
-              {lowStockProducts.slice(0, 3).map(prod => (
-                <div key={prod.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 border border-amber-100 text-xs">
-                  <div>
-                    <p className="font-semibold text-slate-800 line-clamp-1">{prod.name}</p>
-                    <p className="text-[10px] text-slate-500">Min Alert: {prod.minStockAlert} {prod.unit}</p>
+              {lowStockProducts.slice(0, 3).map(prod => {
+                const effectiveThreshold = getProductStockThreshold(prod, stockSettings);
+                const isOutOfStock = isProductOutOfStock(prod);
+                const isCritical = isProductCriticalStock(prod, stockSettings);
+
+                return (
+                  <div key={prod.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 border border-amber-100 text-xs">
+                    <div className="min-w-0 pr-2">
+                      <p className="font-semibold text-slate-800 line-clamp-1">{prod.name}</p>
+                      <p className="text-[10px] text-slate-500">Min Alert: {effectiveThreshold} {prod.unit}</p>
+                    </div>
+                    <span className={`font-bold px-2 py-0.5 rounded text-xs font-mono shrink-0 flex items-center gap-1 ${
+                      isOutOfStock 
+                        ? 'bg-rose-100 text-rose-800 border border-rose-300' 
+                        : isCritical
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200 animate-pulse'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {isOutOfStock && <Ban className="w-3 h-3 text-rose-600" />}
+                      {prod.currentStock} {prod.unit}
+                    </span>
                   </div>
-                  <span className="font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded text-xs font-mono">
-                    {prod.currentStock} {prod.unit}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
               {lowStockProducts.length === 0 && (
                 <div className="p-4 text-center text-xs text-slate-400">
                   All inventory stock levels are above threshold limits.

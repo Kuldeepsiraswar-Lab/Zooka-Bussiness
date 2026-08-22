@@ -44,6 +44,7 @@ import { InvoiceTemplateManager } from './InvoiceTemplateManager';
 import { ThemeSettingsTab } from './ThemeSettingsTab';
 import { BottomNavSettingsTab } from './BottomNavSettingsTab';
 import { HeaderSettingsTab } from './HeaderSettingsTab';
+import { LowStockSettingsTab } from './LowStockSettingsTab';
 import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 
 export const SettingsView: React.FC = () => {
@@ -57,7 +58,7 @@ export const SettingsView: React.FC = () => {
     setActiveTab: setGlobalActiveTab
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'backup'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'low_stock' | 'backup'>('profile');
   const [formData, setFormData] = useState({ ...business });
   const [importFileContent, setImportFileContent] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -475,6 +476,17 @@ export const SettingsView: React.FC = () => {
         >
           <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Product Line & Description Settings</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('low_stock')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'low_stock'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Package className="w-4 h-4 text-amber-500" />
+          <span>Low Stock Management & Alerts</span>
         </button>
         <button
           onClick={() => setActiveTab('backup')}
@@ -1438,6 +1450,15 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: Low Stock & Inventory Controls */}
+        {activeTab === 'low_stock' && (
+          <LowStockSettingsTab
+            formData={formData}
+            setFormData={setFormData}
+            onSave={handleSave}
+          />
         )}
 
         {/* TAB 6: Backup & Reset */}

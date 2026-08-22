@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
 import { 
@@ -7,8 +7,15 @@ import {
   Plus, 
   Bell, 
   ArrowUpRight,
-  Crown
+  Crown,
+  Maximize2,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { isProductLowStock, normalizeLowStockSettings } from '../../utils/stockUtils';
 
 interface HeaderProps {
   onOpenNewInvoice: () => void;
@@ -23,12 +30,56 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     invoices, 
     products, 
     can,
-    loginAsSuperAdmin
+    loginAsSuperAdmin,
+    isSidebarCollapsed,
+    toggleSidebarCollapse,
+    resolvedTheme,
+    toggleTheme
   } = useApp();
+
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    return typeof document !== 'undefined' && !!document.fullscreenElement;
+  });
+
+  // Track browser full screen state changes (via Esc, F11, or button)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullScreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request issue:', err);
+    }
+  };
 
   // Compute live alerts (e.g. low stock, unpaid overdue invoices)
-  const lowStockItems = products.filter(p => !p.isService && p.currentStock <= p.minStockAlert);
+  const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
+  const lowStockItems = stockSettings.enabled && stockSettings.showLowStockBadge
+    ? products.filter(p => isProductLowStock(p, stockSettings))
+    : [];
   const overdueInvoices = invoices.filter(i => i.status === 'UNPAID' && new Date(i.dueDate) < new Date());
 
   const totalAlertsCount = lowStockItems.length + overdueInvoices.length;
@@ -47,14 +98,28 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      {/* Left: Current Active Company Identity (Static, No Switcher) */}
+      {/* Left: Collapsible Sidebar Trigger & Company Identity */}
       <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Desktop Collapsible Sidebar Icon Toggle */}
+        <button
+          onClick={toggleSidebarCollapse}
+          className="hidden lg:flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+          title={isSidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'}
+          aria-label="Toggle Sidebar"
+        >
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4" />
+          )}
+        </button>
+
         <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${getThemeBg(currentCompany?.themeColor)} text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs shrink-0 ring-1 ring-black/5 dark:ring-white/10`}>
           <Building2 className="w-5 h-5" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate max-w-[140px] sm:max-w-[220px] md:max-w-[280px]">
+            <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-[200px] md:max-w-[260px]">
               {currentCompany?.tradeName || currentCompany?.name || business.tradeName || business.name}
             </h2>
           </div>
@@ -80,27 +145,60 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         </button>
       </div>
 
-      {/* Right: Quick Action CTAs, Theme Toggle, User Persona Switcher & Notification Menu */}
-      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+      {/* Right: Actions, Fullscreen Icon, Theme Toggle, Super Admin, Persona & Notifications */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Create GST Tax Invoice CTA */}
         {can('invoices', 'create') && (
           <button
             onClick={onOpenNewInvoice}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>New Invoice</span>
+            <span className="hidden sm:inline">New Invoice</span>
+            <span className="sm:hidden">New</span>
           </button>
         )}
+
+        {/* Fullscreen App Icon in Header/Navbar */}
+        <button
+          onClick={toggleFullScreen}
+          className={`flex items-center justify-center p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
+            isFullscreen
+              ? 'bg-cyan-50 dark:bg-cyan-950/50 border-cyan-300 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60'
+          }`}
+          title={isFullscreen ? 'Exit Full Screen mode (F11 / Esc)' : 'Enter Full Screen app mode (F11)'}
+          aria-label={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Light / Dark Theme Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-colors cursor-pointer"
+          title={`Toggle Theme Mode (Current: ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
+          aria-label="Toggle Theme"
+        >
+          {resolvedTheme === 'dark' ? (
+            <Sun className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Moon className="w-4 h-4 text-slate-600" />
+          )}
+        </button>
 
         {/* Super Admin Quick Launch Button */}
         <button
           onClick={loginAsSuperAdmin}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
           title="Login to Super Admin Master Control Dashboard"
         >
           <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-amber-400" />
-          <span className="hidden sm:inline">Super Admin</span>
+          <span className="hidden md:inline">Super Admin</span>
         </button>
 
         {/* User Role Persona Switcher */}
@@ -110,10 +208,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            className="relative p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 rounded-xl transition-colors cursor-pointer"
             aria-label="Notifications"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             {totalAlertsCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
             )}

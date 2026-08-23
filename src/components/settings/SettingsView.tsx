@@ -1589,15 +1589,17 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save Settings</span>
-          </button>
-        </div>
+        {activeTab !== 'security' && activeTab !== 'low_stock' && (
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Settings</span>
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

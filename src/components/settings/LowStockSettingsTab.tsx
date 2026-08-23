@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { LowStockSettings, LowStockBehavior, Product } from '../../types';
+import { LowStockSettings, LowStockBehavior } from '../../types';
 import { 
   Package, 
   AlertTriangle, 
@@ -22,7 +22,10 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Cloud,
+  CloudCheck,
+  RotateCcw
 } from 'lucide-react';
 import { 
   DEFAULT_LOW_STOCK_SETTINGS, 
@@ -34,9 +37,9 @@ import {
 } from '../../utils/stockUtils';
 
 interface LowStockSettingsTabProps {
-  formData: any;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  onSave: () => void;
+  formData?: any;
+  setFormData?: React.Dispatch<React.SetStateAction<any>>;
+  onSave?: () => void;
   isSaving?: boolean;
 }
 
@@ -44,50 +47,119 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
   formData,
   setFormData,
   onSave,
-  isSaving = false,
+  isSaving: parentIsSaving = false,
 }) => {
-  const { products, updateProduct, showToast, setActiveTab } = useApp();
-  
-  const currentSettings: LowStockSettings = normalizeLowStockSettings(formData.lowStockSettings);
-  const health = computeInventoryHealth(products, currentSettings);
+  const { 
+    business,
+    updateBusiness,
+    updateLowStockSettings,
+    bulkUpdateProductThresholds,
+    products, 
+    showToast, 
+    setActiveTab,
+    currentUser,
+    can,
+    cloudSyncStatus,
+    isCloudSyncing,
+    triggerCloudSync
+  } = useApp();
 
+  const isCurrentUserAdmin = 
+    currentUser.role === 'ADMIN' || 
+    currentUser.role === 'SUPER_ADMIN' || 
+    can('settings', 'updateBusinessProfile') ||
+    can('settings', 'manageUsersAndRoles');
+
+  // Initialize local settings from business profile or parent formData
+  const [localSettings, setLocalSettings] = useState<LowStockSettings>(() => {
+    if (formData?.lowStockSettings) {
+      return normalizeLowStockSettings(formData.lowStockSettings);
+    }
+    return normalizeLowStockSettings(business.lowStockSettings || DEFAULT_LOW_STOCK_SETTINGS);
+  });
+
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [isApplyingBulkThreshold, setIsApplyingBulkThreshold] = useState(false);
   const [showBulkConfirmModal, setShowBulkConfirmModal] = useState(false);
 
+  // Sync state whenever business profile changes from Firestore or parent formData updates
+  useEffect(() => {
+    if (formData?.lowStockSettings) {
+      setLocalSettings(normalizeLowStockSettings(formData.lowStockSettings));
+    } else if (business?.lowStockSettings) {
+      setLocalSettings(normalizeLowStockSettings(business.lowStockSettings));
+    }
+  }, [business?.lowStockSettings, formData?.lowStockSettings]);
+
+  const health = computeInventoryHealth(products, localSettings);
+
   const updateSetting = <K extends keyof LowStockSettings>(key: K, value: LowStockSettings[K]) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      lowStockSettings: {
-        ...normalizeLowStockSettings(prev.lowStockSettings),
-        [key]: value,
-      },
-    }));
+    if (!isCurrentUserAdmin) return;
+    const updated = {
+      ...localSettings,
+      [key]: value,
+    };
+    const normalized = normalizeLowStockSettings(updated);
+    setLocalSettings(normalized);
+
+    // Keep parent formData synchronized if supplied
+    if (setFormData) {
+      setFormData((prev: any) => ({
+        ...prev,
+        lowStockSettings: normalized,
+      }));
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!isCurrentUserAdmin) {
+      showToast('error', 'Permission Denied', 'Only administrators can update inventory monitoring policies.');
+      return;
+    }
+
+    setIsSavingLocal(true);
+    try {
+      const normalized = normalizeLowStockSettings(localSettings);
+      await updateLowStockSettings(normalized);
+
+      if (onSave) {
+        onSave();
+      }
+    } catch (e) {
+      showToast('error', 'Save Failed', 'Could not persist low stock settings to Cloud Firestore.');
+    } finally {
+      setIsSavingLocal(false);
+    }
+  };
+
+  const handleResetDefaults = async () => {
+    if (!isCurrentUserAdmin) return;
+    setLocalSettings(DEFAULT_LOW_STOCK_SETTINGS);
+    if (setFormData) {
+      setFormData((prev: any) => ({
+        ...prev,
+        lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
+      }));
+    }
+    await updateLowStockSettings(DEFAULT_LOW_STOCK_SETTINGS);
+    showToast('info', 'Defaults Restored', 'Low stock settings restored to standard recommended thresholds.');
   };
 
   const handleApplyThresholdToAll = async () => {
+    if (!isCurrentUserAdmin) return;
     setIsApplyingBulkThreshold(true);
     try {
-      const physicalProducts = products.filter(p => !p.isService);
-      for (const prod of physicalProducts) {
-        updateProduct(prod.id, {
-          minStockAlert: currentSettings.defaultThreshold,
-        });
-      }
-      showToast(
-        'success',
-        'Thresholds Updated',
-        `Default low stock threshold of ${currentSettings.defaultThreshold} units applied to all ${physicalProducts.length} physical catalog items.`
-      );
+      const res = await bulkUpdateProductThresholds(localSettings.defaultThreshold);
       setShowBulkConfirmModal(false);
     } catch (e) {
-      showToast('error', 'Update Failed', 'Failed to update stock thresholds across catalog.');
+      showToast('error', 'Update Failed', 'Failed to update stock thresholds across catalog in Cloud Firestore.');
     } finally {
       setIsApplyingBulkThreshold(false);
     }
   };
 
   const handleTestAlert = () => {
-    const lowStockItems = products.filter(p => isProductLowStock(p, currentSettings));
+    const lowStockItems = products.filter(p => isProductLowStock(p, localSettings));
     if (lowStockItems.length > 0) {
       const sample = lowStockItems.slice(0, 3).map(i => `${i.name} (${i.currentStock} ${i.unit})`).join(', ');
       showToast(
@@ -99,13 +171,13 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
       showToast(
         'info',
         'Stock Engine Healthy',
-        `All physical inventory items are currently above the threshold of ${currentSettings.defaultThreshold} units.`
+        `All physical inventory items are currently above the threshold of ${localSettings.defaultThreshold} units.`
       );
     }
   };
 
   const handleExportReorderReport = () => {
-    const lowItems = products.filter(p => isProductLowStock(p, currentSettings));
+    const lowItems = products.filter(p => isProductLowStock(p, localSettings));
     if (lowItems.length === 0) {
       showToast('info', 'No Reorder Needed', 'All inventory stock levels are healthy.');
       return;
@@ -113,14 +185,14 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
 
     const headers = ['Product Name', 'SKU', 'Category', 'Current Stock', 'Min Alert Limit', 'Suggested Reorder Qty', 'Unit Purchase Price', 'Estimated Reorder Cost'];
     const rows = lowItems.map(p => {
-      const needed = Math.max(1, (currentSettings.defaultThreshold * 2) - p.currentStock);
+      const needed = Math.max(1, (localSettings.defaultThreshold * (localSettings.defaultReorderMultiplier || 2)) - p.currentStock);
       const estCost = needed * (p.purchasePrice || 0);
       return [
         `"${p.name.replace(/"/g, '""')}"`,
         `"${p.sku || ''}"`,
         `"${p.category || 'General'}"`,
         p.currentStock,
-        p.minStockAlert || currentSettings.defaultThreshold,
+        p.minStockAlert || localSettings.defaultThreshold,
         needed,
         p.purchasePrice || 0,
         estCost.toFixed(2)
@@ -139,49 +211,80 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
     showToast('success', 'Report Exported', `Generated reorder procurement list for ${lowItems.length} low-stock items.`);
   };
 
+  const isBusySaving = parentIsSaving || isSavingLocal;
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Banner: Inventory Health Overview */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 text-white shadow-xl border border-indigo-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-inner">
-            <Package className="w-6 h-6" />
+      {/* Top Banner: Inventory Health Overview & Cloud Status */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-indigo-800/40 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex items-start sm:items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
+            <Package className="w-7 h-7" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-black tracking-tight text-white">Low Stock & Inventory Control Engine</h3>
-              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md border ${
-                currentSettings.enabled 
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-lg md:text-xl font-black tracking-tight text-white">
+                Low Stock & Inventory Control Engine
+              </h3>
+              <span className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border ${
+                localSettings.enabled 
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
                   : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
               }`}>
-                {currentSettings.enabled ? 'ACTIVE MONITORING' : 'MONITORING DISABLED'}
+                {localSettings.enabled ? 'ACTIVE MONITORING' : 'MONITORING DISABLED'}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/30 rounded-full">
+                <Cloud className="w-3 h-3 text-cyan-400" />
+                <span>Firestore Synced</span>
               </span>
             </div>
-            <p className="text-xs text-indigo-200/80 mt-0.5">
-              Automated threshold monitoring, out-of-stock billing guards, reorder alerts & navigation indicators.
+            <p className="text-xs md:text-sm text-indigo-200/80 max-w-2xl">
+              Automated threshold monitoring, out-of-stock billing guards, reorder alerts, and POS counter preventions synchronized across all branches.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleResetDefaults}
+            disabled={!isCurrentUserAdmin || isBusySaving}
+            className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15 cursor-pointer disabled:opacity-50"
+            title="Reset low stock parameters to recommended defaults"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-slate-300" />
+            <span className="hidden sm:inline">Reset Defaults</span>
+          </button>
+
           <button
             type="button"
             onClick={handleTestAlert}
-            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5 border border-white/15 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-amber-400/30 cursor-pointer"
             title="Trigger a live low-stock notification test"
           >
             <Bell className="w-3.5 h-3.5 text-amber-300" />
-            <span>Test Notification</span>
+            <span>Test Alert</span>
           </button>
+
           <button
             type="button"
-            onClick={onSave}
-            disabled={isSaving}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950/30 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            onClick={handleSaveSettings}
+            disabled={!isCurrentUserAdmin || isBusySaving}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-950/30 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" />
-            <span>{isSaving ? 'Saving...' : 'Save Stock Settings'}</span>
+            {isBusySaving ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving to Cloud...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Stock Settings</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -248,7 +351,8 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={currentSettings.enabled}
+                  disabled={!isCurrentUserAdmin}
+                  checked={localSettings.enabled}
                   onChange={e => updateSetting('enabled', e.target.checked)}
                   className="sr-only peer"
                 />
@@ -275,7 +379,8 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     type="number"
                     min={0}
                     max={9999}
-                    value={currentSettings.defaultThreshold}
+                    disabled={!isCurrentUserAdmin}
+                    value={localSettings.defaultThreshold}
                     onChange={e => updateSetting('defaultThreshold', Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-slate-900 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                   />
@@ -285,9 +390,10 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                       <button
                         key={val}
                         type="button"
+                        disabled={!isCurrentUserAdmin}
                         onClick={() => updateSetting('defaultThreshold', val)}
                         className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
-                          currentSettings.defaultThreshold === val
+                          localSettings.defaultThreshold === val
                             ? 'bg-indigo-600 text-white border-indigo-600'
                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                         }`}
@@ -317,237 +423,211 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                   <input
                     type="number"
                     min={0}
-                    max={currentSettings.defaultThreshold}
-                    value={currentSettings.criticalStockThreshold}
+                    max={localSettings.defaultThreshold}
+                    disabled={!isCurrentUserAdmin}
+                    value={localSettings.criticalStockThreshold}
                     onChange={e => updateSetting('criticalStockThreshold', Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-rose-900 bg-white border border-rose-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
                   />
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 5].map(val => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => updateSetting('criticalStockThreshold', val)}
-                        className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
-                          currentSettings.criticalStockThreshold === val
-                            ? 'bg-rose-600 text-white border-rose-600'
-                            : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'
-                        }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-xs text-rose-700 font-medium">Units or fewer</span>
                 </div>
               </div>
             </div>
 
-            {/* Bulk Apply Bar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs">
-              <div className="flex items-center gap-2 text-indigo-900 font-medium">
+            {/* Bulk Apply to all catalog action */}
+            <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 text-xs text-indigo-900">
                 <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>
-                  Synchronize all {health.physicalItems} catalog products to the default threshold of <strong>{currentSettings.defaultThreshold} units</strong>.
+                  Update all <strong>{health.physicalItems} catalog products</strong> with default threshold of <strong>{localSettings.defaultThreshold} units</strong>?
                 </span>
               </div>
               <button
                 type="button"
+                disabled={!isCurrentUserAdmin || isApplyingBulkThreshold}
                 onClick={() => setShowBulkConfirmModal(true)}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-2xs"
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors shrink-0 shadow-xs cursor-pointer disabled:opacity-50"
               >
-                Apply to All Items
+                Apply to All Catalog Items
               </button>
             </div>
           </div>
 
-          {/* Section 2: Invoicing & POS Billing Guard Policy */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          {/* Section 2: Billing & Dispatch Safeguards */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-5">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
               <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Negative Stock & Sales Billing Policy</h4>
-                <p className="text-[11px] text-slate-500">Determine system behavior when invoicing items with insufficient stock</p>
+                <h4 className="text-sm font-bold text-slate-900">Point of Sale & Billing Enforcements</h4>
+                <p className="text-[11px] text-slate-500">Guard against invoicing depleted goods and handle negative balances</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* BLOCK Policy */}
-              <button
-                type="button"
-                onClick={() => {
-                  updateSetting('negativeStockBehavior', 'BLOCK');
-                  updateSetting('allowNegativeStock', false);
-                }}
-                className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                  currentSettings.negativeStockBehavior === 'BLOCK'
-                    ? 'border-rose-500 bg-rose-50/50 ring-2 ring-rose-500/20'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
-                      <Ban className="w-4 h-4" />
-                    </span>
-                    {currentSettings.negativeStockBehavior === 'BLOCK' && (
-                      <span className="text-[10px] font-black text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">SELECTED</span>
-                    )}
+            <div className="space-y-4">
+              {/* Negative Stock Behavior Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  When Stock Depletes (Negative Stock Policy)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    {
+                      id: 'BLOCK' as LowStockBehavior,
+                      title: 'Strictly Block Billing',
+                      desc: 'Prevent creating invoice or POS checkout if stock is insufficient.',
+                      badge: 'Recommended for Warehouses',
+                      color: 'border-rose-300 bg-rose-50/30 text-rose-950',
+                    },
+                    {
+                      id: 'WARN' as LowStockBehavior,
+                      title: 'Warn & Allow Override',
+                      desc: 'Display clear warning modal with option to continue billing.',
+                      badge: 'Default Retail Policy',
+                      color: 'border-amber-300 bg-amber-50/30 text-amber-950',
+                    },
+                    {
+                      id: 'ALLOW' as LowStockBehavior,
+                      title: 'Allow Without Alert',
+                      desc: 'Permit unconstrained negative balances without popups.',
+                      badge: 'For Fast Drop-Shipping',
+                      color: 'border-slate-300 bg-slate-50 text-slate-900',
+                    },
+                  ].map(b => (
+                    <label
+                      key={b.id}
+                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        localSettings.negativeStockBehavior === b.id
+                          ? `${b.color} ring-2 ring-indigo-500/20 shadow-xs`
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <input
+                            type="radio"
+                            name="negativeStockBehavior"
+                            disabled={!isCurrentUserAdmin}
+                            value={b.id}
+                            checked={localSettings.negativeStockBehavior === b.id}
+                            onChange={() => {
+                              updateSetting('negativeStockBehavior', b.id);
+                              if (b.id === 'BLOCK') {
+                                updateSetting('blockBillingOnOutOfStock', true);
+                                updateSetting('allowNegativeStock', false);
+                              } else if (b.id === 'ALLOW') {
+                                updateSetting('blockBillingOnOutOfStock', false);
+                                updateSetting('allowNegativeStock', true);
+                              } else {
+                                updateSetting('blockBillingOnOutOfStock', false);
+                                updateSetting('allowNegativeStock', true);
+                              }
+                            }}
+                            className="text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200">
+                            {b.badge}
+                          </span>
+                        </div>
+                        <div className="font-bold text-xs text-slate-900 mt-1">{b.title}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{b.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Micro-rules toggles */}
+              <div className="divide-y divide-slate-100 border-t border-slate-100 pt-2">
+                <label className="py-2.5 flex items-center justify-between cursor-pointer">
+                  <div className="space-y-0.5 pr-4">
+                    <span className="text-xs font-bold text-slate-800">Prompt Warning on Low Stock Invoicing</span>
+                    <p className="text-[11px] text-slate-500">
+                      Alert counter staff when an item drops into low or critical stock during active checkout.
+                    </p>
                   </div>
-                  <h5 className="text-xs font-bold text-slate-900">Strict Block (Safe)</h5>
-                  <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                    Completely prohibits billing items when current stock is 0 or less than invoiced quantity.
-                  </p>
-                </div>
-                <span className="mt-3 text-[10px] font-bold text-rose-700 uppercase tracking-wider">Zero Deficit Guarantee</span>
-              </button>
+                  <input
+                    type="checkbox"
+                    disabled={!isCurrentUserAdmin}
+                    checked={localSettings.warnOnLowStockBilling}
+                    onChange={e => updateSetting('warnOnLowStockBilling', e.target.checked)}
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                  />
+                </label>
 
-              {/* WARN Policy */}
-              <button
-                type="button"
-                onClick={() => {
-                  updateSetting('negativeStockBehavior', 'WARN');
-                  updateSetting('allowNegativeStock', true);
-                }}
-                className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                  currentSettings.negativeStockBehavior === 'WARN'
-                    ? 'border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                      <AlertTriangle className="w-4 h-4" />
-                    </span>
-                    {currentSettings.negativeStockBehavior === 'WARN' && (
-                      <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">RECOMMENDED</span>
-                    )}
+                <label className="py-2.5 flex items-center justify-between cursor-pointer">
+                  <div className="space-y-0.5 pr-4">
+                    <span className="text-xs font-bold text-slate-800">Hard-Block Depleted Out-of-Stock (0 Units)</span>
+                    <p className="text-[11px] text-slate-500">
+                      Immediately disable line-item addition in POS and Invoices when available stock is 0.
+                    </p>
                   </div>
-                  <h5 className="text-xs font-bold text-slate-900">Warning Alert</h5>
-                  <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                    Displays visual warning badges and alerts the operator, but allows the sale to complete.
-                  </p>
-                </div>
-                <span className="mt-3 text-[10px] font-bold text-amber-700 uppercase tracking-wider">Retail & Counter Friendly</span>
-              </button>
-
-              {/* ALLOW Policy */}
-              <button
-                type="button"
-                onClick={() => {
-                  updateSetting('negativeStockBehavior', 'ALLOW');
-                  updateSetting('allowNegativeStock', true);
-                }}
-                className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                  currentSettings.negativeStockBehavior === 'ALLOW'
-                    ? 'border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-500/20'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                      <Zap className="w-4 h-4" />
-                    </span>
-                    {currentSettings.negativeStockBehavior === 'ALLOW' && (
-                      <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">UNRESTRICTED</span>
-                    )}
-                  </div>
-                  <h5 className="text-xs font-bold text-slate-900">Unrestricted</h5>
-                  <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                    Silently allows negative stock deductions without any interruptions during high-speed invoicing.
-                  </p>
-                </div>
-                <span className="mt-3 text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Fast Lane Processing</span>
-              </button>
-            </div>
-
-            {/* Additional Billing Toggles */}
-            <div className="pt-2 space-y-2.5 border-t border-slate-100">
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                <div>
-                  <span className="text-xs font-bold text-slate-800">Real-Time Alert Toast on Threshold Crossing</span>
-                  <p className="text-[11px] text-slate-500">
-                    Flash a toast notification to the billing operator if an item reaches low stock after a sale.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={currentSettings.notifyOnBilling}
-                  onChange={e => updateSetting('notifyOnBilling', e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                <div>
-                  <span className="text-xs font-bold text-slate-800">Allow Negative Stock Quantities in POS Cart</span>
-                  <p className="text-[11px] text-slate-500">
-                    Permits POS quick billing operators to increment line quantities above available depot stock.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={currentSettings.allowNegativeStock}
-                  onChange={e => updateSetting('allowNegativeStock', e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
-                />
-              </label>
+                  <input
+                    type="checkbox"
+                    disabled={!isCurrentUserAdmin}
+                    checked={localSettings.blockBillingOnOutOfStock}
+                    onChange={e => updateSetting('blockBillingOnOutOfStock', e.target.checked)}
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right 1 Col: Visual Channels & Auto-Reorder Procurement */}
+        {/* Right 1 Col: Badges, Display & Automation */}
         <div className="space-y-6">
-          {/* Visual Alert Channels */}
+          {/* Visual Badging Controls */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
               <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
                 <Bell className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Notification Channels</h4>
-                <p className="text-[11px] text-slate-500">Where stock alerts are surfaced</p>
+                <h4 className="text-sm font-bold text-slate-900">UI Badges & Notification Banners</h4>
+                <p className="text-[11px] text-slate-500">Visibility of inventory status across menus</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800">Navigation Badges</span>
-                  <p className="text-[10px] text-slate-500">Show item count on Sidebar & Mobile tabs</p>
+                  <span className="text-xs font-bold text-slate-800 block">Sidebar & Mobile Alert Badges</span>
+                  <span className="text-[11px] text-slate-500">Show numeric warning bubble on Inventory tab</span>
                 </div>
                 <input
                   type="checkbox"
-                  checked={currentSettings.showLowStockBadge}
+                  disabled={!isCurrentUserAdmin}
+                  checked={localSettings.showLowStockBadge}
                   onChange={e => updateSetting('showLowStockBadge', e.target.checked)}
                   className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800">Dashboard Procurement Card</span>
-                  <p className="text-[10px] text-slate-500">Prominent low stock overview on home dashboard</p>
+                  <span className="text-xs font-bold text-slate-800 block">Dashboard Restock Alert Banner</span>
+                  <span className="text-[11px] text-slate-500">Display persistent action banner on main dashboard</span>
                 </div>
                 <input
                   type="checkbox"
-                  checked={currentSettings.showDashboardBanner}
+                  disabled={!isCurrentUserAdmin}
+                  checked={localSettings.showDashboardBanner}
                   onChange={e => updateSetting('showDashboardBanner', e.target.checked)}
                   className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800">Store Manager Digest</span>
-                  <p className="text-[10px] text-slate-500">Daily summary alerts for procurement officer</p>
+                  <span className="text-xs font-bold text-slate-800 block">Email Digest Alerts</span>
+                  <span className="text-[11px] text-slate-500">Include low-stock summaries in periodic audit reports</span>
                 </div>
                 <input
                   type="checkbox"
-                  checked={currentSettings.emailAlertDigest || false}
+                  disabled={!isCurrentUserAdmin}
+                  checked={localSettings.emailAlertDigest || false}
                   onChange={e => updateSetting('emailAlertDigest', e.target.checked)}
                   className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
                 />
@@ -576,7 +656,8 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                   <input
                     type="number"
                     min={1}
-                    value={currentSettings.defaultReorderMultiplier}
+                    disabled={!isCurrentUserAdmin}
+                    value={localSettings.defaultReorderMultiplier}
                     onChange={e => updateSetting('defaultReorderMultiplier', Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-full px-3 py-1.5 text-xs font-bold font-mono text-slate-900 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
                   />
@@ -622,7 +703,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
             <div className="text-center space-y-1.5">
               <h3 className="text-base font-black text-slate-900">Synchronize All Catalog Thresholds?</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                This will set the minimum alert threshold of <strong>{currentSettings.defaultThreshold} units</strong> across all <strong>{health.physicalItems} physical products</strong> in your inventory catalog.
+                This will set the minimum alert threshold of <strong>{localSettings.defaultThreshold} units</strong> across all <strong>{health.physicalItems} physical products</strong> in your inventory catalog and persist to Cloud Firestore.
               </p>
             </div>
 
@@ -640,8 +721,17 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                 onClick={handleApplyThresholdToAll}
                 className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>{isApplyingBulkThreshold ? 'Updating Items...' : 'Yes, Update All'}</span>
+                {isApplyingBulkThreshold ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Syncing Cloud...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Yes, Update All</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

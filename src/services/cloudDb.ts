@@ -238,7 +238,14 @@ class CloudDbService {
 
       const busDocRef = doc(db, 'businessProfiles', companyId);
       const busSnap = await getDoc(busDocRef);
-      const businessData = busSnap.exists() ? (busSnap.data() as BusinessProfile) : ({
+      const rawBus = busSnap.exists() ? (busSnap.data() as BusinessProfile) : null;
+
+      const businessData: BusinessProfile = rawBus ? {
+        ...rawBus,
+        headerConfig: rawBus.headerConfig || company.headerConfig,
+        lowStockSettings: rawBus.lowStockSettings || company.lowStockSettings,
+        sessionTimeoutSettings: rawBus.sessionTimeoutSettings || company.sessionTimeoutSettings,
+      } : ({
         name: company.name,
         tradeName: company.tradeName || company.name,
         gstin: company.gstin || 'UNREGISTERED',
@@ -262,7 +269,10 @@ class CloudDbService {
         defaultNotes: 'Thank you for your business!',
         enableEinvoice: true,
         enableEwayBill: true,
-        showSignatureOnInvoice: true
+        showSignatureOnInvoice: true,
+        headerConfig: company.headerConfig,
+        lowStockSettings: company.lowStockSettings,
+        sessionTimeoutSettings: company.sessionTimeoutSettings,
       } as BusinessProfile);
 
       const business = normalizeBusinessProfile(businessData);

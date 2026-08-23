@@ -4,7 +4,7 @@ import {
   EInvoiceDetails, EWayBillDetails, PaymentMethod, InvoiceStatus, PaymentRecord, PaymentType,
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
-  SessionTimeoutConfig
+  SessionTimeoutConfig, LowStockSettings
 } from '../types';
 import { 
   cleanDefaultCompany,
@@ -18,6 +18,10 @@ import {
   DEFAULT_SESSION_TIMEOUT_CONFIG, 
   normalizeSessionTimeoutConfig 
 } from '../utils/sessionTimeoutDefaults';
+import { 
+  DEFAULT_LOW_STOCK_SETTINGS, 
+  normalizeLowStockSettings 
+} from '../utils/stockUtils';
 import { 
   initialUsers, initialAuditLogs, getUserEffectivePermissions, hasUserPermission, ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN 
 } from '../utils/rbacRules';
@@ -84,6 +88,7 @@ interface AppContextType {
   // Business Profile
   business: BusinessProfile;
   updateBusiness: (profile: Partial<BusinessProfile>, silent?: boolean) => void;
+  updateLowStockSettings: (settings: Partial<LowStockSettings>) => Promise<void>;
   
   // Invoices & Billing
   invoices: Invoice[];
@@ -104,6 +109,7 @@ interface AppContextType {
   products: Product[];
   createProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Product;
   bulkCreateProducts: (newProducts: Omit<Product, 'id' | 'createdAt'>[], updateExisting?: boolean) => { added: number; updated: number };
+  bulkUpdateProductThresholds: (threshold: number) => Promise<{ updatedCount: number }>;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   adjustStock: (id: string, newStock: number, reason: string) => void;
@@ -967,6 +973,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             financialYear: companyUpdates?.financialYear || c.financialYear,
             themeColor: companyUpdates?.themeColor || c.themeColor,
             headerConfig: companyUpdates?.headerConfig || profileUpdates.headerConfig || c.headerConfig,
+            lowStockSettings: companyUpdates?.lowStockSettings || profileUpdates.lowStockSettings || c.lowStockSettings,
+            sessionTimeoutSettings: companyUpdates?.sessionTimeoutSettings || profileUpdates.sessionTimeoutSettings || c.sessionTimeoutSettings,
             isActive: companyUpdates?.isActive !== undefined ? companyUpdates.isActive : c.isActive,
             disabledReason: companyUpdates?.disabledReason !== undefined ? companyUpdates.disabledReason : c.disabledReason,
             updatedAt: new Date().toISOString(),
@@ -1558,26 +1566,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         showSignatureOnInvoice: profile.showSignatureOnInvoice !== undefined ? profile.showSignatureOnInvoice : prev.showSignatureOnInvoice,
       });
 
-      if (profile.name || profile.tradeName || profile.gstin || profile.state) {
-        setCompanies(prevComps => prevComps.map(c => {
-          if (c.id === currentCompanyId) {
-            return {
-              ...c,
-              name: profile.name || c.name,
-              tradeName: profile.tradeName || c.tradeName,
-              gstin: profile.gstin || c.gstin,
-              pan: profile.pan || c.pan,
-              phone: profile.phone || c.phone,
-              email: profile.email || c.email,
-              address: profile.address || c.address,
-              city: profile.city || c.city,
-              state: profile.state || c.state,
-              stateCode: profile.stateCode || c.stateCode,
-              pincode: profile.pincode || c.pincode,
-            };
-          }
-          return c;
-        }));
+      // Synchronize changes to companies collection and state
+      setCompanies(prevComps => prevComps.map(c => {
+        if (c.id === currentCompanyId) {
+          const compUpdated: Company = {
+            ...c,
+            name: profile.name || c.name,
+            tradeName: profile.tradeName || c.tradeName,
+            gstin: profile.gstin || c.gstin,
+            pan: profile.pan || c.pan,
+            phone: profile.phone || c.phone,
+            email: profile.email || c.email,
+            address: profile.address || c.address,
+            city: profile.city || c.city,
+            state: profile.state || c.state,
+            stateCode: profile.stateCode || c.stateCode,
+            pincode: profile.pincode || c.pincode,
+            currency: profile.currency || c.currency,
+            currencySymbol: profile.currencySymbol || c.currencySymbol,
+            headerConfig: updated.headerConfig || c.headerConfig,
+            lowStockSettings: updated.lowStockSettings || c.lowStockSettings,
+            sessionTimeoutSettings: updated.sessionTimeoutSettings || c.sessionTimeoutSettings,
+            updatedAt: new Date().toISOString(),
+          };
+          cloudDb.saveCompany(compUpdated).catch(console.warn);
+          return compUpdated;
+        }
+        return c;
+      }));
+
+      try {
+        localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_business`, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to save business profile to local storage:', e);
       }
 
       cloudDb.saveBusinessProfile(currentCompanyId, updated).catch(console.warn);
@@ -1585,8 +1606,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (!silent) {
-      showToast('success', 'Settings Saved', 'Business & invoice configuration updated.');
+      showToast('success', 'Settings Saved', 'Business & inventory parameters synchronized.');
     }
+  };
+
+  const updateLowStockSettings = async (settings: Partial<LowStockSettings>) => {
+    const merged = normalizeLowStockSettings({
+      ...(business.lowStockSettings || DEFAULT_LOW_STOCK_SETTINGS),
+      ...settings
+    });
+    updateBusiness({ lowStockSettings: merged }, true);
+    logSecurityEvent('LOW_STOCK_SETTINGS_UPDATED', 'Inventory Config', `Updated low stock monitoring settings (Threshold: ${merged.defaultThreshold}, Block Out of Stock: ${merged.blockBillingOnOutOfStock})`);
+    showToast('success', 'Low Stock Saved', 'Inventory monitoring & threshold parameters saved to Cloud Firestore.');
   };
 
   // Invoices & Billing
@@ -1963,19 +1994,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const bulkCreateProducts = (newProducts: Omit<Product, 'id' | 'createdAt'>[], updateExisting = true) => {
     let added = 0;
     let updated = 0;
-    const prodsToAdd: Product[] = [];
+    let currentList = [...products];
 
     newProducts.forEach(prodData => {
-      const existing = products.find(p => p.name.trim().toLowerCase() === prodData.name.trim().toLowerCase() || (prodData.sku && p.sku === prodData.sku));
-      if (existing && updateExisting) {
-        setProducts(prev => prev.map(p => {
-          if (p.id === existing.id) {
-            const updatedP = { ...p, ...prodData };
-            cloudDb.syncEntityDoc('products', currentCompanyId, updatedP).catch(console.warn);
-            return updatedP;
-          }
-          return p;
-        }));
+      const existingIdx = currentList.findIndex(p => 
+        p.name.trim().toLowerCase() === prodData.name.trim().toLowerCase() || 
+        (prodData.sku && p.sku === prodData.sku)
+      );
+
+      if (existingIdx !== -1 && updateExisting) {
+        currentList[existingIdx] = {
+          ...currentList[existingIdx],
+          ...prodData
+        };
         updated++;
       } else {
         const newP: Product = {
@@ -1983,17 +2014,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           id: 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
           createdAt: new Date().toISOString()
         };
-        prodsToAdd.push(newP);
-        cloudDb.syncEntityDoc('products', currentCompanyId, newP).catch(console.warn);
+        currentList.push(newP);
         added++;
       }
     });
 
-    if (prodsToAdd.length > 0) {
-      setProducts(prev => [...prev, ...prodsToAdd]);
-    }
-    showToast('success', 'Products Imported', `Added ${added} items, updated ${updated}.`);
+    setProducts(currentList);
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_products`, JSON.stringify(currentList));
+    } catch (e) {}
+    cloudDb.syncEntireCollection('products', currentCompanyId, currentList).catch(console.warn);
+    showToast('success', 'Products Imported', `Added ${added} items, updated ${updated} in inventory.`);
     return { added, updated };
+  };
+
+  const bulkUpdateProductThresholds = async (threshold: number): Promise<{ updatedCount: number }> => {
+    const validThreshold = Math.max(0, threshold);
+    let updatedCount = 0;
+    const updatedList = products.map(prod => {
+      if (!prod.isService) {
+        updatedCount++;
+        return {
+          ...prod,
+          minStockAlert: validThreshold
+        };
+      }
+      return prod;
+    });
+
+    setProducts(updatedList);
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_products`, JSON.stringify(updatedList));
+    } catch (e) {}
+
+    await cloudDb.syncEntireCollection('products', currentCompanyId, updatedList).catch(console.warn);
+    logSecurityEvent('BULK_STOCK_THRESHOLD_UPDATED', 'Inventory Config', `Applied default low-stock threshold of ${validThreshold} to ${updatedCount} products`);
+    showToast('success', 'Thresholds Synchronized', `Updated minimum stock threshold to ${validThreshold} units for ${updatedCount} products in Cloud Firestore.`);
+    return { updatedCount };
   };
 
   const updateProduct = (id: string, productData: Partial<Product>) => {
@@ -2898,6 +2955,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSuperAdminPassword,
         business,
         updateBusiness,
+        updateLowStockSettings,
         invoices,
         createInvoice,
         bulkCreateInvoices,
@@ -2911,6 +2969,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         products,
         createProduct,
         bulkCreateProducts,
+        bulkUpdateProductThresholds,
         updateProduct,
         deleteProduct,
         adjustStock,

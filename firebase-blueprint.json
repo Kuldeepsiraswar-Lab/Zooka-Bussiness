@@ -2,7 +2,7 @@
   "entities": {
     "companies": {
       "title": "Company Profiles",
-      "description": "Multi-company organizational profiles & GST settings",
+      "description": "Multi-company organizational profiles, GST settings, and organizational policies",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
@@ -14,17 +14,73 @@
         "email": { "type": "string" },
         "state": { "type": "string" },
         "stateCode": { "type": "string" },
+        "city": { "type": "string" },
         "address": { "type": "string" },
+        "pincode": { "type": "string" },
         "bankName": { "type": "string" },
         "accountNumber": { "type": "string" },
         "ifscCode": { "type": "string" },
         "upiId": { "type": "string" },
         "currency": { "type": "string" },
+        "currencySymbol": { "type": "string" },
         "financialYear": { "type": "string" },
         "themeColor": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "disabledReason": { "type": "string" },
+        "headerConfig": { "type": "object" },
+        "lowStockSettings": { "type": "object" },
+        "sessionTimeoutSettings": { "type": "object" },
         "updatedAt": { "type": "string" }
       },
       "required": ["id", "name"]
+    },
+    "businessProfiles": {
+      "title": "Business Configuration",
+      "description": "Company business settings, inventory parameters, invoice prefixes, and low stock configurations",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "tradeName": { "type": "string" },
+        "gstin": { "type": "string" },
+        "pan": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "state": { "type": "string" },
+        "stateCode": { "type": "string" },
+        "city": { "type": "string" },
+        "address": { "type": "string" },
+        "pincode": { "type": "string" },
+        "currency": { "type": "string" },
+        "currencySymbol": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "ifscCode": { "type": "string" },
+        "upiId": { "type": "string" },
+        "invoicePrefix": { "type": "string" },
+        "nextInvoiceNumber": { "type": "number" },
+        "headerConfig": { "type": "object" },
+        "lowStockSettings": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "defaultThreshold": { "type": "number" },
+            "criticalStockThreshold": { "type": "number" },
+            "allowNegativeStock": { "type": "boolean" },
+            "negativeStockBehavior": { "type": "string" },
+            "blockBillingOnOutOfStock": { "type": "boolean" },
+            "warnOnLowStockBilling": { "type": "boolean" },
+            "showLowStockBadge": { "type": "boolean" },
+            "showDashboardBanner": { "type": "boolean" },
+            "autoReorderSuggestions": { "type": "boolean" },
+            "defaultReorderMultiplier": { "type": "number" },
+            "notifyOnBilling": { "type": "boolean" },
+            "emailAlertDigest": { "type": "boolean" }
+          }
+        },
+        "sessionTimeoutSettings": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name"]
     },
     "invoices": {
       "title": "Tax Invoices",
@@ -49,18 +105,26 @@
     },
     "products": {
       "title": "Products & Inventory",
-      "description": "Product catalog and stock inventory",
+      "description": "Product catalog and stock inventory with low-stock alert thresholds",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "companyId": { "type": "string" },
         "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "barcode": { "type": "string" },
+        "category": { "type": "string" },
         "hsnCode": { "type": "string" },
-        "salePrice": { "type": "number" },
+        "unit": { "type": "string" },
         "purchasePrice": { "type": "number" },
-        "taxRate": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "gstRate": { "type": "number" },
         "currentStock": { "type": "number" },
-        "unit": { "type": "string" }
+        "minStockAlert": { "type": "number" },
+        "isService": { "type": "boolean" },
+        "batches": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
       },
       "required": ["id", "name"]
     },
@@ -162,6 +226,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
+        "companyId": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string" },
         "role": { "type": "string" },

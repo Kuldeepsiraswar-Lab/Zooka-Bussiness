@@ -243,6 +243,7 @@ class CloudDbService {
       const businessData: BusinessProfile = rawBus ? {
         ...rawBus,
         headerConfig: rawBus.headerConfig || company.headerConfig,
+        footerConfig: rawBus.footerConfig || company.footerConfig,
         lowStockSettings: rawBus.lowStockSettings || company.lowStockSettings,
         sessionTimeoutSettings: rawBus.sessionTimeoutSettings || company.sessionTimeoutSettings,
       } : ({
@@ -271,6 +272,7 @@ class CloudDbService {
         enableEwayBill: true,
         showSignatureOnInvoice: true,
         headerConfig: company.headerConfig,
+        footerConfig: company.footerConfig,
         lowStockSettings: company.lowStockSettings,
         sessionTimeoutSettings: company.sessionTimeoutSettings,
       } as BusinessProfile);

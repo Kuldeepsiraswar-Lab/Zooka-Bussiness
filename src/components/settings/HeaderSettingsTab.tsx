@@ -28,6 +28,8 @@ import {
   Eye, 
   ShieldCheck, 
   Laptop, 
+  Tablet,
+  Smartphone,
   CheckCircle2, 
   CreditCard, 
   DollarSign, 
@@ -81,6 +83,7 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
 
   // Preview simulation state
   const [previewThemeMode, setPreviewThemeMode] = useState<'light' | 'dark'>('light');
+  const [previewViewport, setPreviewViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'presets' | 'branding' | 'search' | 'actions' | 'tools' | 'style'>('presets');
   const [showPreviewNotifications, setShowPreviewNotifications] = useState(false);
@@ -270,8 +273,51 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">Preview Mode:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Viewport Switcher */}
+            <div className="flex bg-white dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setPreviewViewport('desktop')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  previewViewport === 'desktop'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+                title="Desktop PC / Mac (1200px+)"
+              >
+                <Laptop className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Desktop</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewViewport('tablet')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  previewViewport === 'tablet'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+                title="Tablet / iPad (768px)"
+              >
+                <Tablet className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Tablet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewViewport('mobile')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  previewViewport === 'mobile'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+                title="Smartphone (380px)"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Phone</span>
+              </button>
+            </div>
+
+            {/* Light / Dark Mode Toggle */}
             <div className="flex bg-white dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
@@ -302,11 +348,18 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
         </div>
 
         {/* The Live Rendered Header Sandbox */}
-        <div className={`rounded-2xl border transition-all overflow-hidden ${
-          isDarkPreview 
-            ? 'bg-slate-950 border-slate-800 text-white' 
-            : 'bg-slate-100/90 border-slate-300 text-slate-900'
+        <div className={`transition-all duration-300 ${
+          previewViewport === 'mobile'
+            ? 'max-w-[390px] mx-auto'
+            : previewViewport === 'tablet'
+            ? 'max-w-[768px] mx-auto'
+            : 'w-full'
         }`}>
+          <div className={`rounded-2xl border transition-all overflow-hidden ${
+            isDarkPreview 
+              ? 'bg-slate-950 border-slate-800 text-white' 
+              : 'bg-slate-100/90 border-slate-300 text-slate-900'
+          }`}>
           {/* Header Bar */}
           <div className={`w-full flex items-center justify-between transition-all ${
             getDensityClasses(config.density)
@@ -556,6 +609,7 @@ export const HeaderSettingsTab: React.FC<HeaderSettingsTabProps> = ({
           </div>
         </div>
       </div>
+    </div>
 
       {/* TABS NAVIGATION FOR CUSTOMIZATION SECTIONS */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">

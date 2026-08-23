@@ -354,6 +354,7 @@ export interface Company {
   isActive?: boolean; // Controls whether this business is enabled or disabled
   disabledReason?: string; // Reason when disabled by Super Admin
   headerConfig?: HeaderConfig;
+  footerConfig?: FooterConfig;
   lowStockSettings?: LowStockSettings;
   sessionTimeoutSettings?: SessionTimeoutConfig;
   createdAt: string;
@@ -476,6 +477,72 @@ export interface HeaderConfig {
   sticky: boolean;
 }
 
+export type FooterStyle = 'CLASSIC' | 'MINIMAL' | 'DETAILED' | 'FLOATING' | 'GRADIENT' | 'MODERN_CARD';
+export type FooterDensity = 'COMPACT' | 'COMFORTABLE' | 'SPACIOUS';
+
+export interface FooterQuickLink {
+  id: string;
+  label: string;
+  tabId: string; // e.g. 'dashboard', 'invoices', 'inventory', 'pos_billing', 'gst_returns', 'reports', 'settings'
+  isEnabled: boolean;
+}
+
+export interface FooterBadge {
+  id: string;
+  label: string;
+  tooltip?: string;
+  iconName?: 'shield' | 'lock' | 'award' | 'server' | 'check' | 'zap';
+  isEnabled: boolean;
+}
+
+export interface FooterConfig {
+  enabled?: boolean;
+  style: FooterStyle;
+  density: FooterDensity;
+  
+  // Branding & Copyright
+  showBranding: boolean;
+  customBrandName?: string;
+  customTagline?: string;
+  copyrightText?: string; // Supports variables {year}, {companyName}, {gstin}
+  showMadeWithLove: boolean;
+  customBottomNote?: string;
+
+  // Business Credentials & Tax Compliance
+  showGstin: boolean;
+  showStateCode: boolean;
+  showFinancialYear: boolean;
+  showSecurityBadges: boolean;
+  badges?: FooterBadge[];
+
+  // Contact & Support Details
+  showContactInfo: boolean;
+  showPhone: boolean;
+  customPhone?: string;
+  showEmail: boolean;
+  customEmail?: string;
+  showAddress: boolean;
+  customAddress?: string;
+  supportHoursText?: string;
+
+  // Quick App Navigation Links
+  showQuickLinks: boolean;
+  quickLinksTitle?: string;
+  quickLinks?: FooterQuickLink[];
+
+  // System Tools & Status
+  showVersion: boolean;
+  versionText?: string;
+  showCloudSyncStatus: boolean;
+  showSuperAdminPortalBadge?: boolean;
+  showScrollToTop?: boolean;
+
+  // Layout & Visual Styling
+  customAccentColor?: 'auto' | 'indigo' | 'emerald' | 'blue' | 'amber' | 'purple' | 'rose' | 'slate' | 'cyan';
+  showBorderTop: boolean;
+  shadow: 'none' | 'xs' | 'sm' | 'md' | 'lg';
+}
+
 export type BottomNavStyle = 'FLOATING_PILL' | 'CLASSIC_DOCKED' | 'MODERN_CURVED' | 'COMPACT_SLIM';
 
 export interface BottomNavTabItem {
@@ -541,6 +608,7 @@ export interface BusinessProfile {
   customTemplates?: InvoiceTemplateConfig[];
   bottomNavConfig?: BottomNavConfig;
   headerConfig?: HeaderConfig;
+  footerConfig?: FooterConfig;
   lowStockSettings?: LowStockSettings;
   sessionTimeoutSettings?: SessionTimeoutConfig;
 }

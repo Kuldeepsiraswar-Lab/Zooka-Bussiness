@@ -658,7 +658,7 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
             }`}
           >
             <Sliders className="w-4 h-4" />
-            <span>Top Header Navigation Settings</span>
+            <span>Top Header Navigation</span>
           </button>
           <button
             type="button"

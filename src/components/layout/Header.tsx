@@ -278,12 +278,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
       )}
 
       {/* Right: Actions, Quick POS, Fullscreen Icon, Persona & Notifications */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
         {/* Mobile Search Icon Trigger when hidden on small screens */}
         {config.showSearch !== false && (
           <button
             onClick={onOpenQuickSearch}
-            className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-colors cursor-pointer"
+            className="md:hidden p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-colors cursor-pointer"
             title="Search (⌘K)"
             aria-label="Quick Search"
           >
@@ -293,9 +293,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
 
         {/* Cloud Sync Status Badge */}
         {config.showCloudSyncBadge && (
-          <div className="hidden sm:flex px-2 py-1 rounded-lg text-[10px] font-bold items-center gap-1.5 border bg-slate-100 dark:bg-slate-800/90 text-emerald-700 dark:text-emerald-400 border-slate-200 dark:border-slate-700">
+          <div className="flex px-1.5 sm:px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold items-center gap-1 sm:gap-1.5 border bg-slate-100 dark:bg-slate-800/90 text-emerald-700 dark:text-emerald-400 border-slate-200 dark:border-slate-700">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="hidden lg:inline">Cloud Synced</span>
+            <span className="hidden sm:inline">Synced</span>
           </div>
         )}
 
@@ -303,7 +303,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         {config.showQuickPosBtn && (
           <button
             onClick={() => setActiveTab('pos_billing')}
-            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
             title="Open High Speed POS Counter Billing"
           >
             <ShoppingCart className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
@@ -315,11 +315,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         {config.showQuickPaymentBtn && can('payments', 'create') && (
           <button
             onClick={() => setActiveTab('payments')}
-            className="hidden md:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
             title="Receive Customer Payment"
           >
             <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Receive ₹</span>
+            <span className="hidden md:inline">Receive ₹</span>
           </button>
         )}
 
@@ -327,11 +327,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         {config.showQuickExpenseBtn && can('purchases', 'create') && (
           <button
             onClick={() => setActiveTab('purchases')}
-            className="hidden md:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
             title="Record Business Purchase / Expense"
           >
             <Receipt className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>Add Expense</span>
+            <span className="hidden md:inline">Add Expense</span>
           </button>
         )}
 
@@ -339,7 +339,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         {config.showNewInvoiceBtn !== false && can('invoices', 'create') && (
           <button
             onClick={onOpenNewInvoice}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl shadow-md active:scale-95 transition-all cursor-pointer ${getAccentBg(config.customAccentColor)}`}
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl shadow-md active:scale-95 transition-all cursor-pointer ${getAccentBg(config.customAccentColor)}`}
           >
             <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">{config.newInvoiceBtnText || 'New Invoice'}</span>
@@ -351,7 +351,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         {config.showFullScreenBtn !== false && (
           <button
             onClick={toggleFullScreen}
-            className={`flex items-center justify-center p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
+            className={`flex items-center justify-center p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
               isFullscreen
                 ? 'bg-cyan-50 dark:bg-cyan-950/50 border-cyan-300 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60'
@@ -360,9 +360,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
             aria-label={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
           >
             {isFullscreen ? (
-              <Minimize2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600 dark:text-cyan-400" />
             ) : (
-              <Maximize2 className="w-4 h-4" />
+              <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
         )}
@@ -377,12 +377,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 rounded-xl transition-colors cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 rounded-xl transition-colors cursor-pointer"
               aria-label="Notifications"
             >
-              <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <Bell className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />
               {totalAlertsCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+                <span className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
               )}
             </button>
 

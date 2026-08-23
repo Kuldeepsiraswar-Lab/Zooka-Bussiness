@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
 import { MobileNav } from './components/layout/MobileNav';
 import { ToastContainer } from './components/common/ToastContainer';
 import { QuickSearchModal } from './components/common/QuickSearchModal';
@@ -175,10 +176,6 @@ const MainContent: React.FC = () => {
                 <InvoicePrintView
                   invoiceId={selectedInvoiceIdForPrint}
                   onBack={() => setSelectedInvoiceIdForPrint(null)}
-                  onEdit={(inv) => {
-                    setSelectedInvoiceIdForPrint(null);
-                    handleEditInvoice(inv);
-                  }}
                 />
               </motion.div>
             ) : isEditorOpen ? (
@@ -289,6 +286,9 @@ const MainContent: React.FC = () => {
             )}
           </AnimatePresence>
         </main>
+
+        {/* Global Business & Platform Footer */}
+        <Footer />
       </div>
 
       {/* Mobile Floating Bottom Bar */}

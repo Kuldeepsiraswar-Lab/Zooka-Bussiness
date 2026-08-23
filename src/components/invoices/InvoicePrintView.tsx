@@ -20,10 +20,9 @@ import { Invoice } from '../../types';
 interface InvoicePrintViewProps {
   invoiceId: string;
   onBack: () => void;
-  onEdit?: (invoice: Invoice) => void;
 }
 
-export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, onBack, onEdit }) => {
+export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, onBack }) => {
   const { invoices, business, updateBusiness, showToast } = useApp();
   const [printCopyType, setPrintCopyType] = useState<'ORIGINAL' | 'DUPLICATE' | 'TRIPLICATE'>('ORIGINAL');
   

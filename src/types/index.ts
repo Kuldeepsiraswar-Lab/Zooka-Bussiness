@@ -355,6 +355,7 @@ export interface Company {
   disabledReason?: string; // Reason when disabled by Super Admin
   headerConfig?: HeaderConfig;
   lowStockSettings?: LowStockSettings;
+  sessionTimeoutSettings?: SessionTimeoutConfig;
   createdAt: string;
   updatedAt?: string;
 }
@@ -541,6 +542,18 @@ export interface BusinessProfile {
   bottomNavConfig?: BottomNavConfig;
   headerConfig?: HeaderConfig;
   lowStockSettings?: LowStockSettings;
+  sessionTimeoutSettings?: SessionTimeoutConfig;
+}
+
+export type IdleSessionTimeoutAction = 'logout' | 'lock';
+
+export interface SessionTimeoutConfig {
+  enabled: boolean;
+  timeoutMinutes: number;
+  action: IdleSessionTimeoutAction;
+  showWarningModal: boolean;
+  warningSeconds: number;
+  exemptAdmin?: boolean;
 }
 
 export interface StateCodeMap {

@@ -26,6 +26,7 @@ import { AccessRestricted } from './components/auth/AccessRestricted';
 import { UserAuthModal } from './components/auth/UserAuthModal';
 import { LockScreenOverlay } from './components/auth/LockScreenOverlay';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { SessionInactivityManager } from './components/auth/SessionInactivityManager';
 import { Invoice, Product } from './types';
 import { calculateItemGst } from './utils/gstCalculations';
 
@@ -286,6 +287,9 @@ const MainContent: React.FC = () => {
 
       {/* Screen Lock Overlay */}
       <LockScreenOverlay />
+
+      {/* Global Inactivity Idle Timeout Manager */}
+      <SessionInactivityManager />
 
       {/* Global Toast Notifications */}
       <ToastContainer />

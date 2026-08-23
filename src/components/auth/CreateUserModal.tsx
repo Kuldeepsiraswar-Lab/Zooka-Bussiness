@@ -6,20 +6,18 @@ import {
   X, 
   UserPlus, 
   ShieldCheck, 
-  Mail, 
-  Phone, 
-  Building, 
   Briefcase, 
   Sliders, 
   Check, 
-  Save,
-  HelpCircle,
-  Lock,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
-  Eye,
-  EyeOff
+  Save, 
+  Lock, 
+  ChevronDown, 
+  ChevronUp, 
+  Trash2, 
+  Eye, 
+  EyeOff,
+  ShieldAlert,
+  KeyRound
 } from 'lucide-react';
 
 interface CreateUserModalProps {
@@ -46,8 +44,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 }) => {
   const { createUser, updateUser, deleteUser, currentUser, customRolePermissions, showToast } = useApp();
   const isCurrentUserAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isEditingSelf = Boolean(userToEdit && userToEdit.id === currentUser?.id);
+  const isAllowed = isCurrentUserAdmin || isEditingSelf;
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPin, setShowPin] = useState(false);
 
@@ -60,8 +60,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     role: (userToEdit?.role || 'SALESPERSON') as RoleType,
     avatarBg: userToEdit?.avatarBg || 'bg-indigo-600',
     isActive: userToEdit?.isActive ?? true,
-    password: userToEdit?.password || '',
-    pin: userToEdit?.pin || '',
+    password: '',
+    pin: '',
   });
 
   const [customPerms, setCustomPerms] = useState<UserPermissions>(() => {
@@ -84,8 +84,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           role: (userToEdit.role || 'SALESPERSON') as RoleType,
           avatarBg: userToEdit.avatarBg || 'bg-indigo-600',
           isActive: userToEdit.isActive ?? true,
-          password: userToEdit.password || '',
-          pin: userToEdit.pin || '',
+          password: '', // Never populate existing password in plaintext
+          pin: '', // Never populate existing PIN in plaintext
         });
         setCustomPerms(getUserEffectivePermissions(userToEdit, customRolePermissions));
       } else {
@@ -110,9 +110,18 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     }
   }, [isOpen, userToEdit, customRolePermissions]);
 
-  if (!isOpen) return null;
+  // Security guard: If non-admin attempts to open another user's configuration, block and close
+  useEffect(() => {
+    if (isOpen && !isAllowed) {
+      showToast('error', 'Access Denied', 'You do not have permission to view or edit this user.');
+      onClose();
+    }
+  }, [isOpen, isAllowed, onClose, showToast]);
+
+  if (!isOpen || !isAllowed) return null;
 
   const handleRoleChange = (newRole: RoleType) => {
+    if (!isCurrentUserAdmin) return;
     setFormData(prev => ({
       ...prev,
       role: newRole,
@@ -124,6 +133,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   const handleTogglePerm = (module: keyof UserPermissions, key: string) => {
+    if (!isCurrentUserAdmin) return;
     setCustomPerms(prev => {
       const mod = { ...(prev[module] as any) };
       mod[key] = !mod[key];
@@ -155,21 +165,47 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       .toUpperCase() || 'U';
 
     if (userToEdit) {
-      updateUser(userToEdit.id, {
+      // Editing existing user
+      if (!isCurrentUserAdmin && userToEdit.id !== currentUser.id) {
+        showToast('error', 'Access Denied', 'You cannot edit other team members.');
+        onClose();
+        return;
+      }
+
+      const updates: Partial<AppUser> = {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         department: formData.department.trim(),
-        roleTitle: formData.roleTitle.trim(),
-        role: formData.role,
         avatarBg: formData.avatarBg,
         avatarText: initials,
-        isActive: formData.isActive,
-        password: formData.password.trim() || 'admin',
-        pin: formData.pin.trim() || '1234',
-        customPermissions: customPerms,
-      });
+      };
+
+      // Only update password/pin if a new value was explicitly entered
+      if (formData.password.trim()) {
+        updates.password = formData.password.trim();
+      }
+      if (formData.pin.trim()) {
+        updates.pin = formData.pin.trim();
+      }
+
+      // Role and granular permissions can ONLY be modified by Admins
+      if (isCurrentUserAdmin) {
+        updates.roleTitle = formData.roleTitle.trim();
+        updates.role = formData.role;
+        updates.isActive = formData.isActive;
+        updates.customPermissions = customPerms;
+      }
+
+      updateUser(userToEdit.id, updates);
     } else {
+      // Creating new user (Admins only)
+      if (!isCurrentUserAdmin) {
+        showToast('error', 'Access Denied', 'Only Administrators can create new team members.');
+        onClose();
+        return;
+      }
+
       createUser({
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -200,10 +236,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">
-                {userToEdit ? 'Edit User Profile & Permissions' : 'Add New Team Member'}
+                {userToEdit 
+                  ? (isEditingSelf ? 'Edit Your Profile & Password' : `Edit User: ${userToEdit.name}`)
+                  : 'Add New Team Member'}
               </h2>
               <p className="text-xs text-slate-500">
-                Configure role access levels, department, and granular authorization rules
+                {userToEdit
+                  ? (isCurrentUserAdmin ? 'Configure role access levels, department, and credentials' : 'Update your personal profile and security credentials')
+                  : 'Set up work email, assigned system role, and access authorization'}
               </p>
             </div>
           </div>
@@ -305,73 +345,94 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" /> Assigned System Role
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {COMPANY_ASSIGNABLE_ROLES.map(rKey => {
-                const roleDef = ROLE_DEFINITIONS[rKey];
-                const isSelected = formData.role === rKey;
+            {isCurrentUserAdmin ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {COMPANY_ASSIGNABLE_ROLES.map(rKey => {
+                  const roleDef = ROLE_DEFINITIONS[rKey];
+                  const isSelected = formData.role === rKey;
 
-                return (
-                  <button
-                    key={rKey}
-                    type="button"
-                    onClick={() => handleRoleChange(rKey)}
-                    className={`p-3.5 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
-                      isSelected
-                        ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-500/20 shadow-xs'
-                        : 'bg-white hover:bg-slate-50 border-slate-200'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-xs text-slate-900">{roleDef.name}</span>
-                        <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded ${roleDef.badgeBg} ${roleDef.badgeText}`}>
-                          {rKey}
-                        </span>
+                  return (
+                    <button
+                      key={rKey}
+                      type="button"
+                      onClick={() => handleRoleChange(rKey)}
+                      className={`p-3.5 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-500/20 shadow-xs'
+                          : 'bg-white hover:bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs text-slate-900">{roleDef.name}</span>
+                          <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded ${roleDef.badgeBg} ${roleDef.badgeText}`}>
+                            {rKey}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug">
+                          {roleDef.description}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-500 leading-snug">
-                        {roleDef.description}
-                      </p>
-                    </div>
 
-                    {isSelected && (
-                      <div className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Selected Role
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                      {isSelected && (
+                        <div className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Selected Role
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs text-slate-900">
+                      {ROLE_DEFINITIONS[formData.role]?.name || formData.role}
+                    </span>
+                    <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded ${ROLE_DEFINITIONS[formData.role]?.badgeBg} ${ROLE_DEFINITIONS[formData.role]?.badgeText}`}>
+                      {formData.role}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Your system role is assigned by your Company Administrator. Contact an Admin to change access level.
+                  </p>
+                </div>
+                <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+              </div>
+            )}
           </div>
 
           {/* Section 3: Security Credentials (Password & PIN) */}
           <div className="space-y-3 pt-4 border-t border-slate-200">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-indigo-500" /> Login Credentials & Security
+                <Lock className="w-3.5 h-3.5 text-indigo-500" /> {userToEdit ? 'Reset Security Credentials' : 'Login Credentials & Security'}
               </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  const randomPwd = Math.random().toString(36).slice(-6);
-                  const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
-                  setFormData(prev => ({ ...prev, password: randomPwd, pin: randomPin }));
-                }}
-                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer hover:underline"
-              >
-                Generate Random
-              </button>
+              {isCurrentUserAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const randomPwd = Math.random().toString(36).slice(-6);
+                    const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
+                    setFormData(prev => ({ ...prev, password: randomPwd, pin: randomPin }));
+                  }}
+                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer hover:underline"
+                >
+                  Generate Random
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-indigo-50/40 rounded-2xl border border-indigo-100">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  User Account Password <span className="text-rose-500">*</span>
+                  {userToEdit ? 'New Password' : 'User Account Password'} {!userToEdit && <span className="text-rose-500">*</span>}
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Set secure password..."
+                    placeholder={userToEdit ? 'Leave blank to keep existing password' : 'Set secure password...'}
                     value={formData.password}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
@@ -379,23 +440,27 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">Used for browser login and session unlocking</p>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {userToEdit 
+                    ? '🔒 Existing password is protected. Enter only to set a new password.'
+                    : 'Used for browser login and session unlocking'}
+                </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Quick 4-Digit PIN <span className="text-rose-500">*</span>
+                  {userToEdit ? 'New 4-Digit PIN' : 'Quick 4-Digit PIN'} {!userToEdit && <span className="text-rose-500">*</span>}
                 </label>
                 <div className="relative">
                   <input
                     type={showPin ? 'text' : 'password'}
                     maxLength={6}
-                    placeholder="Set 4-digit PIN..."
+                    placeholder={userToEdit ? 'Leave blank to keep existing PIN' : 'Set 4-digit PIN...'}
                     value={formData.pin}
                     onChange={e => setFormData({ ...formData, pin: e.target.value })}
                     className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
@@ -403,78 +468,84 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPin(!showPin)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">For fast counter POS & quick screen unlocking</p>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {userToEdit 
+                    ? '🔒 Existing PIN is protected. Enter only to set a new PIN.' 
+                    : 'For fast counter POS & quick screen unlocking'}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Section 4: Granular Permission Customization Accordion */}
-          <div className="pt-4 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => setShowAdvancedPerms(!showAdvancedPerms)}
-              className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-indigo-600" />
-                <span>Fine-tune Granular Permissions (Module & Action Level)</span>
-              </div>
-              {showAdvancedPerms ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showAdvancedPerms && (
-              <div className="mt-3 p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-4 animate-in fade-in duration-150">
-                {/* Module Selector Tabs */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                  {(Object.keys(customPerms) as (keyof UserPermissions)[]).map(modKey => (
-                    <button
-                      key={modKey}
-                      type="button"
-                      onClick={() => setActivePermModule(modKey)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize shrink-0 transition-all cursor-pointer ${
-                        activePermModule === modKey
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-                      }`}
-                    >
-                      {modKey.replace(/_/g, ' ')}
-                    </button>
-                  ))}
+          {/* Section 4: Granular Permission Customization Accordion (Admins Only) */}
+          {isCurrentUserAdmin && (
+            <div className="pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowAdvancedPerms(!showAdvancedPerms)}
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-indigo-600" />
+                  <span>Fine-tune Granular Permissions (Module & Action Level)</span>
                 </div>
+                {showAdvancedPerms ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
 
-                {/* Active Module Permissions List */}
-                <div className="bg-white rounded-xl p-3 border border-slate-200 space-y-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-100">
-                    {activePermModule.replace(/_/g, ' ')} Capabilities
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {Object.entries((customPerms[activePermModule] || {}) as Record<string, boolean>).map(([permKey, isAllowed]) => (
-                      <label
-                        key={permKey}
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer text-xs"
+              {showAdvancedPerms && (
+                <div className="mt-3 p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-4 animate-in fade-in duration-150">
+                  {/* Module Selector Tabs */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {(Object.keys(customPerms) as (keyof UserPermissions)[]).map(modKey => (
+                      <button
+                        key={modKey}
+                        type="button"
+                        onClick={() => setActivePermModule(modKey)}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize shrink-0 transition-all cursor-pointer ${
+                          activePermModule === modKey
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isAllowed}
-                          onChange={() => handleTogglePerm(activePermModule, permKey)}
-                          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="text-slate-700 font-medium capitalize">
-                          {permKey.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                        </span>
-                      </label>
+                        {modKey.replace(/_/g, ' ')}
+                      </button>
                     ))}
                   </div>
+
+                  {/* Active Module Permissions List */}
+                  <div className="bg-white rounded-xl p-3 border border-slate-200 space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-100">
+                      {activePermModule.replace(/_/g, ' ')} Capabilities
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      {Object.entries((customPerms[activePermModule] || {}) as Record<string, boolean>).map(([permKey, isAllowed]) => (
+                        <label
+                          key={permKey}
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isAllowed}
+                            onChange={() => handleTogglePerm(activePermModule, permKey)}
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="text-slate-700 font-medium capitalize">
+                            {permKey.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Footer Submit & Delete */}
           <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -529,7 +600,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                <span>{userToEdit ? 'Save Changes' : 'Create User & Send Invite'}</span>
+                <span>{userToEdit ? 'Save Profile' : 'Create User & Send Invite'}</span>
               </button>
             </div>
           </div>

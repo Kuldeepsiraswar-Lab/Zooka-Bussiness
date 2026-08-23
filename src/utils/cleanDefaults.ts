@@ -4,6 +4,7 @@ import { DEFAULT_BOTTOM_NAV_CONFIG } from './bottomNavDefaults';
 import { DEFAULT_HEADER_CONFIG, normalizeHeaderConfig } from './headerDefaults';
 import { DEFAULT_SUPER_ADMIN } from './rbacRules';
 import { DEFAULT_LOW_STOCK_SETTINGS, normalizeLowStockSettings } from './stockUtils';
+import { DEFAULT_SESSION_TIMEOUT_CONFIG, normalizeSessionTimeoutConfig } from './sessionTimeoutDefaults';
 
 export const cleanDefaultCompany: Company = {
   id: 'comp-main',
@@ -25,6 +26,7 @@ export const cleanDefaultCompany: Company = {
   themeColor: 'indigo',
   headerConfig: DEFAULT_HEADER_CONFIG,
   lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
+  sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
   createdAt: '2026-01-01T00:00:00Z',
 };
 
@@ -61,6 +63,7 @@ export const cleanDefaultBusinessProfile: BusinessProfile = {
   bottomNavConfig: DEFAULT_BOTTOM_NAV_CONFIG,
   headerConfig: DEFAULT_HEADER_CONFIG,
   lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
+  sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
   itemLineSettings: {
     enableDescription: true,
     enableSerialNumber: true,
@@ -174,7 +177,8 @@ export const normalizeBusinessProfile = (profile?: Partial<BusinessProfile> | nu
     itemLineSettings,
     bottomNavConfig,
     headerConfig: normalizeHeaderConfig(profile.headerConfig || base.headerConfig),
-    lowStockSettings: normalizeLowStockSettings(profile.lowStockSettings || base.lowStockSettings)
+    lowStockSettings: normalizeLowStockSettings(profile.lowStockSettings || base.lowStockSettings),
+    sessionTimeoutSettings: normalizeSessionTimeoutConfig(profile.sessionTimeoutSettings || base.sessionTimeoutSettings)
   };
 };
 

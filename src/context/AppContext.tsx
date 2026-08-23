@@ -3,7 +3,8 @@ import {
   Invoice, Product, Party, PurchaseBill, Expense, JournalEntry, AccountHead, BusinessProfile, 
   EInvoiceDetails, EWayBillDetails, PaymentMethod, InvoiceStatus, PaymentRecord, PaymentType,
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
-  BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData
+  BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
+  SessionTimeoutConfig
 } from '../types';
 import { 
   cleanDefaultCompany,
@@ -13,6 +14,10 @@ import {
   cleanDefaultAccountHeads,
   normalizeBusinessProfile
 } from '../utils/cleanDefaults';
+import { 
+  DEFAULT_SESSION_TIMEOUT_CONFIG, 
+  normalizeSessionTimeoutConfig 
+} from '../utils/sessionTimeoutDefaults';
 import { 
   initialUsers, initialAuditLogs, getUserEffectivePermissions, hasUserPermission, ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN 
 } from '../utils/rbacRules';
@@ -197,6 +202,10 @@ interface AppContextType {
   verifySuperAdminKey: (key: string) => boolean;
   loginAsSuperAdmin: () => void;
   logoutSuperAdmin: () => void;
+
+  // Session Inactivity Timeout Policy
+  sessionTimeoutConfig: SessionTimeoutConfig;
+  updateSessionTimeoutSettings: (config: Partial<SessionTimeoutConfig>) => void;
 
   // Theme Mode (Light / Dark / System)
   theme: 'light' | 'dark' | 'system';
@@ -1314,6 +1323,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const changeUserPassword = (userId: string, newPassword?: string, newPin?: string) => {
+    const isAuthorizedAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorizedAdmin && userId !== currentUser.id) {
+      showToast('error', 'Access Denied', 'You do not have authorization to change passwords for other users.');
+      logSecurityEvent('SECURITY_VIOLATION', 'Auth', `Unauthorized password change attempt on ${userId} by ${currentUser?.name}`);
+      return;
+    }
+
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
         const updated = {
@@ -1382,6 +1398,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logout();
   };
 
+  const sessionTimeoutConfig = useMemo(() => {
+    return normalizeSessionTimeoutConfig(business.sessionTimeoutSettings || DEFAULT_SESSION_TIMEOUT_CONFIG);
+  }, [business.sessionTimeoutSettings]);
+
+  const updateSessionTimeoutSettings = (settingsUpdates: Partial<SessionTimeoutConfig>) => {
+    const isAuthorizedAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' || can('settings', 'manageUsersAndRoles');
+    if (!isAuthorizedAdmin) {
+      showToast('error', 'Access Denied', 'Only Administrators can configure session timeout security policies.');
+      logSecurityEvent('SECURITY_VIOLATION', 'Security Settings', `Unauthorized attempt to modify session timeout policy by ${currentUser?.name}`);
+      return;
+    }
+
+    const merged = normalizeSessionTimeoutConfig({
+      ...(business.sessionTimeoutSettings || DEFAULT_SESSION_TIMEOUT_CONFIG),
+      ...settingsUpdates
+    });
+
+    setBusiness(prev => {
+      const updatedProfile = {
+        ...prev,
+        sessionTimeoutSettings: merged
+      };
+      cloudDb.saveBusinessProfile(currentCompanyId, updatedProfile).catch(console.warn);
+      return updatedProfile;
+    });
+
+    setCompanies(prev => prev.map(c => {
+      if (c.id === currentCompanyId) {
+        const updatedComp = {
+          ...c,
+          sessionTimeoutSettings: merged,
+          updatedAt: new Date().toISOString()
+        };
+        cloudDb.saveCompany(updatedComp).catch(console.warn);
+        return updatedComp;
+      }
+      return c;
+    }));
+
+    logSecurityEvent(
+      'SESSION_POLICY_UPDATED',
+      'Security Settings',
+      `Updated idle timeout: ${merged.enabled ? `${merged.timeoutMinutes} mins (${merged.action})` : 'Disabled'} by ${currentUser?.name}`
+    );
+    showToast('success', 'Security Policy Saved', 'Idle session timeout policy updated.');
+  };
+
   const verifySuperAdminKey = (key: string): boolean => {
     const cleanKey = key.trim();
     return cleanKey === superAdminAuth.password || 
@@ -1402,6 +1465,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createUser = (userData: Omit<AppUser, 'id' | 'createdAt'>): AppUser => {
+    const isAuthorizedAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorizedAdmin) {
+      showToast('error', 'Access Denied', 'RBAC Enforcement: Only Administrator accounts can create new staff accounts.');
+      logSecurityEvent('SECURITY_VIOLATION', 'User Management', `Unauthorized attempt to create user by ${currentUser?.name} (${currentUser?.role})`);
+      return null as any;
+    }
+
     const newUser: AppUser = {
       ...userData,
       id: 'usr-' + Date.now(),
@@ -1415,16 +1485,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateUser = (id: string, updates: Partial<AppUser>) => {
+    const isAuthorizedAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
+    if (!isAuthorizedAdmin && id !== currentUser.id) {
+      showToast('error', 'Access Denied', 'RBAC Enforcement: You cannot edit or view credentials of other staff members.');
+      logSecurityEvent('SECURITY_VIOLATION', 'User Management', `Unauthorized attempt to edit user ${id} by ${currentUser?.name} (${currentUser?.role})`);
+      return;
+    }
+
     setUsers(prev => prev.map(u => {
       if (u.id === id) {
-        const updated = { ...u, ...updates };
+        // If not admin, sanitize updates to prevent privilege escalation (cannot elevate role, change status, or assign permissions)
+        const safeUpdates: Partial<AppUser> = isAuthorizedAdmin ? updates : {
+          name: updates.name,
+          email: updates.email,
+          phone: updates.phone,
+          department: updates.department,
+          avatarBg: updates.avatarBg,
+          avatarText: updates.avatarText,
+          password: updates.password,
+          pin: updates.pin,
+        };
+
+        const cleanUpdates: Partial<AppUser> = {};
+        Object.entries(safeUpdates).forEach(([k, v]) => {
+          if (v !== undefined) {
+            (cleanUpdates as any)[k] = v;
+          }
+        });
+
+        const updated = { ...u, ...cleanUpdates };
         cloudDb.syncEntityDoc('users', currentCompanyId, updated).catch(console.warn);
         return updated;
       }
       return u;
     }));
-    logSecurityEvent('USER_UPDATED', 'Auth', `Updated user record for ${id}`);
-    showToast('success', 'User Updated', 'User profile and permissions saved.');
+    logSecurityEvent('USER_UPDATED', 'Auth', `Updated user record for ${id} by ${currentUser?.name}`);
+    showToast('success', 'User Updated', 'User profile saved.');
   };
 
   const deleteUser = (id: string): boolean => {
@@ -2888,6 +2984,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logSecurityEvent,
         verifySuperAdminKey,
         loginAsSuperAdmin,
+        sessionTimeoutConfig,
+        updateSessionTimeoutSettings,
         theme,
         resolvedTheme,
         setTheme,

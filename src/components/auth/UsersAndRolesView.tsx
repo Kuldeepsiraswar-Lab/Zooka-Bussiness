@@ -27,13 +27,16 @@ import {
   Layers,
   ChevronRight,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Clock
 } from 'lucide-react';
 
 export const UsersAndRolesView: React.FC = () => {
   const { 
     users, 
     currentUser, 
+    business,
+    setActiveTab,
     switchUser, 
     openAuthModal,
     changeUserPassword,
@@ -66,11 +69,19 @@ export const UsersAndRolesView: React.FC = () => {
   }, [users, roleFilter, searchQuery]);
 
   const handleOpenEdit = (user: AppUser) => {
+    if (!isCurrentUserAdmin && user.id !== currentUser.id) {
+      showToast('error', 'Access Denied', 'Only Administrators can edit other team members.');
+      return;
+    }
     setUserToEdit(user);
     setIsCreateModalOpen(true);
   };
 
   const handleOpenCreate = () => {
+    if (!isCurrentUserAdmin) {
+      showToast('error', 'Access Denied', 'Only Administrators can invite or create new team members.');
+      return;
+    }
     setUserToEdit(null);
     setIsCreateModalOpen(true);
   };
@@ -104,29 +115,57 @@ export const UsersAndRolesView: React.FC = () => {
               <span className="text-xl font-bold font-mono text-cyan-300">5 Defined</span>
             </div>
 
-            <button
-              onClick={handleOpenCreate}
-              className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Invite New User</span>
-            </button>
+            {isCurrentUserAdmin && (
+              <button
+                onClick={handleOpenCreate}
+                className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Invite New User</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Current User Session Bar inside Header */}
         <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400">Current Active Session:</span>
-            <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700">
-              <span className={`w-2 h-2 rounded-full ${currentUser.role === 'ADMIN' ? 'bg-indigo-400' : 'bg-emerald-400'}`} />
-              <strong className="text-white font-bold">{currentUser.name}</strong>
-              <span className="text-slate-400 font-mono">({currentUser.role})</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400">Active Session:</span>
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700">
+                <span className={`w-2 h-2 rounded-full ${currentUser.role === 'ADMIN' ? 'bg-indigo-400' : 'bg-emerald-400'}`} />
+                <strong className="text-white font-bold">{currentUser.name}</strong>
+                <span className="text-slate-400 font-mono">({currentUser.role})</span>
+              </div>
+            </div>
+
+            {/* Inactivity Security Policy Pill */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/60 border border-slate-700 text-slate-300">
+              <Clock className="w-3 h-3 text-indigo-400" />
+              <span>Inactivity Protection:</span>
+              <strong className="text-white font-mono">
+                {business.sessionTimeoutSettings?.enabled !== false 
+                  ? `${business.sessionTimeoutSettings?.timeoutMinutes || 30}m ${business.sessionTimeoutSettings?.action === 'lock' ? 'Lock' : 'Logout'}` 
+                  : 'Disabled'}
+              </strong>
             </div>
           </div>
-          <span className="text-slate-400 text-[11px]">
-            💡 Tip: Use the persona switcher anytime to test permissions from any employee&apos;s viewpoint.
-          </span>
+
+          <div className="flex items-center gap-3">
+            {isCurrentUserAdmin && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('settings')}
+                className="text-[11px] font-bold text-indigo-300 hover:text-white flex items-center gap-1 hover:underline cursor-pointer"
+              >
+                <span>Configure Idle Timeout</span>
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            )}
+            <span className="text-slate-400 text-[11px] hidden md:inline">
+              💡 Tip: Use persona switcher to test permissions.
+            </span>
+          </div>
         </div>
       </div>
 
@@ -307,13 +346,15 @@ export const UsersAndRolesView: React.FC = () => {
                     )}
 
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleOpenEdit(user)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
-                        title="Edit User & Permissions"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
+                      {(isCurrentUserAdmin || isCurrent) && (
+                        <button
+                          onClick={() => handleOpenEdit(user)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
+                          title={isCurrent ? "Edit Your Profile & Credentials" : `Edit ${user.name} & Permissions (Admin)`}
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      )}
 
                       {isCurrentUserAdmin && !isCurrent && (
                         <button

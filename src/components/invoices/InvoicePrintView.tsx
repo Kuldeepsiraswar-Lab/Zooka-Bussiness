@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { formatCurrency, formatDate, normalizeSignatureUrl } from '../../utils/formatters';
-import { getAllTemplates, getTemplateById } from '../../utils/invoiceTemplates';
+import { formatDate } from '../../utils/formatters';
+import { getTemplateById } from '../../utils/invoiceTemplates';
 import { InvoiceTemplateRenderer } from './InvoiceTemplateRenderer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
@@ -9,15 +9,10 @@ import {
   Printer, 
   Download, 
   ArrowLeft, 
-  ShieldCheck, 
   Loader2, 
   FileText, 
-  Sparkles, 
   Check, 
   FileSignature, 
-  Edit3,
-  Palette,
-  Layers,
   Image as ImageIcon
 } from 'lucide-react';
 import { Invoice } from '../../types';
@@ -31,20 +26,14 @@ interface InvoicePrintViewProps {
 export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, onBack, onEdit }) => {
   const { invoices, business, updateBusiness, showToast } = useApp();
   const [printCopyType, setPrintCopyType] = useState<'ORIGINAL' | 'DUPLICATE' | 'TRIPLICATE'>('ORIGINAL');
-
-  const allTemplates = useMemo(() => getAllTemplates(business.customTemplates), [business.customTemplates]);
-  
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
-    business.defaultTemplateId || 'OFFICIAL_GST'
-  );
   
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isGeneratingJpg, setIsGeneratingJpg] = useState(false);
   const [fitToOnePage, setFitToOnePage] = useState(false);
 
   const activeTemplate = useMemo(() => {
-    return getTemplateById(selectedTemplateId, business.customTemplates);
-  }, [selectedTemplateId, business.customTemplates]);
+    return getTemplateById(business.defaultTemplateId || 'OFFICIAL_GST', business.customTemplates);
+  }, [business.defaultTemplateId, business.customTemplates]);
 
   const isSignatureVisible = business.showSignatureOnInvoice !== false;
   const invoiceRef = useRef<HTMLDivElement>(null);
@@ -300,7 +289,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
               </span>
             </div>
             <p className="text-[11px] text-slate-500">
-              {invoice.customerName} • {formatDate(invoice.invoiceDate)} • {activeTemplate.name}
+              {invoice.customerName} • {formatDate(invoice.invoiceDate)}
             </p>
           </div>
         </div>
@@ -316,33 +305,6 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
             <option value="DUPLICATE">Duplicate for Transporter</option>
             <option value="TRIPLICATE">Triplicate for Supplier</option>
           </select>
-
-          {/* 10+ Template Switcher */}
-          <div className="flex items-center gap-1.5">
-            <Palette className="w-3.5 h-3.5 text-indigo-600 hidden sm:inline" />
-            <select
-              value={selectedTemplateId}
-              onChange={(e) => setSelectedTemplateId(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-indigo-50/70 border border-indigo-200 rounded-xl text-indigo-900 focus:outline-none cursor-pointer font-bold"
-            >
-              <optgroup label="Standard GST Billing Templates (10+)">
-                {allTemplates.filter(t => t.category === 'STANDARD' || t.category === 'POS').map(t => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} {t.badge ? `(${t.badge})` : ''}
-                  </option>
-                ))}
-              </optgroup>
-              {allTemplates.filter(t => t.category === 'CUSTOM').length > 0 && (
-                <optgroup label="My Custom Designed Templates">
-                  {allTemplates.filter(t => t.category === 'CUSTOM').map(t => (
-                    <option key={t.id} value={t.id}>
-                      ✨ {t.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-          </div>
 
           {/* Fit to 1 Page Toggle (for A4) */}
           {!isThermal && (
@@ -379,18 +341,6 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
             <FileSignature className="w-3.5 h-3.5 text-indigo-600" />
             <span>Signature: {isSignatureVisible ? 'ON' : 'OFF'}</span>
           </button>
-
-          {/* Edit Invoice Button */}
-          {onEdit && (
-            <button
-              onClick={() => onEdit(invoice)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 active:scale-95 rounded-xl transition-all cursor-pointer shadow-xs"
-              title="Edit this invoice details, line items, serial numbers, etc."
-            >
-              <Edit3 className="w-3.5 h-3.5 text-amber-600" />
-              <span>Edit Invoice</span>
-            </button>
-          )}
 
           {/* Download PDF Button */}
           <button

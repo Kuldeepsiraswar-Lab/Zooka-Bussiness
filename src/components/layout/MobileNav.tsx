@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, ActiveTab } from '../../context/AppContext';
+import { usePWA } from '../../hooks/usePWA';
+import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -20,7 +22,9 @@ import {
   Plus,
   Sparkles,
   ChevronRight,
-  Crown
+  Crown,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { 
   ALL_AVAILABLE_NAV_TABS, 
@@ -44,6 +48,8 @@ export const MobileNav: React.FC = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
+  const [showPwaModal, setShowPwaModal] = useState(false);
+  const { isInstalled, isOnline } = usePWA();
 
   // Retrieve current bottom navigation configuration
   const config = useApp().business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
@@ -293,7 +299,34 @@ export const MobileNav: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-6 p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs text-slate-400">
+              {!isInstalled && (
+                <div className="mt-4 p-3 bg-gradient-to-r from-indigo-950/80 to-blue-950/80 rounded-xl border border-indigo-500/40 text-xs text-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-cyan-300">
+                      <Smartphone className="w-4 h-4" />
+                      <span>Install Mobile App</span>
+                    </div>
+                    <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/30 text-indigo-200 rounded font-bold uppercase">
+                      PWA
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-indigo-200">
+                    Add to home screen for full offline GST billing and barcode scanning.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      setShowPwaModal(true);
+                    }}
+                    className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Install to Phone</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-4 p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs text-slate-400">
                 <div className="flex items-center gap-1.5 text-emerald-400 font-semibold mb-1">
                   <ShieldCheck className="w-4 h-4" /> GST Compliance Ready
                 </div>
@@ -303,6 +336,12 @@ export const MobileNav: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* PWA Mobile Installation Modal */}
+      <PwaInstallModal
+        isOpen={showPwaModal}
+        onClose={() => setShowPwaModal(false)}
+      />
 
       {/* Customizable Bottom Navigation Bar for Mobile/Tablet screens */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-all ${

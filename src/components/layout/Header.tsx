@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { usePWA } from '../../hooks/usePWA';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
+import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { 
   Building2, 
   Search, 
@@ -13,7 +15,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
-  Moon
+  Moon,
+  Smartphone,
+  Download
 } from 'lucide-react';
 import { isProductLowStock, normalizeLowStockSettings } from '../../utils/stockUtils';
 
@@ -38,6 +42,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
   } = useApp();
 
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showPwaInstallModal, setShowPwaInstallModal] = useState(false);
+  const { isInstalled } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     return typeof document !== 'undefined' && !!document.fullscreenElement;
   });
@@ -191,6 +197,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           )}
         </button>
 
+        {/* PWA Install App Button */}
+        {!isInstalled && (
+          <button
+            onClick={() => setShowPwaInstallModal(true)}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 border border-cyan-200 dark:border-cyan-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Install Zooka ERP as Desktop / Mobile App"
+          >
+            <Download className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+            <span className="hidden lg:inline">Install App</span>
+          </button>
+        )}
+
         {/* Super Admin Quick Launch Button */}
         <button
           onClick={loginAsSuperAdmin}
@@ -272,6 +290,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           )}
         </div>
       </div>
+
+      {/* PWA Installation Modal */}
+      <PwaInstallModal
+        isOpen={showPwaInstallModal}
+        onClose={() => setShowPwaInstallModal(false)}
+      />
     </header>
   );
 };

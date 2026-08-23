@@ -29,6 +29,8 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { SessionInactivityManager } from './components/auth/SessionInactivityManager';
 import { Invoice, Product } from './types';
 import { calculateItemGst } from './utils/gstCalculations';
+import { OfflineIndicatorBanner } from './components/pwa/OfflineIndicatorBanner';
+import { PwaUpdateToast } from './components/pwa/PwaUpdateToast';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12, filter: 'blur(2px)' },
@@ -66,6 +68,23 @@ const MainContent: React.FC = () => {
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [editingInvoiceData, setEditingInvoiceData] = useState<Partial<Invoice> | undefined>(undefined);
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState<boolean>(false);
+
+  // Handle PWA Manifest Shortcuts & URL Actions
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+      const tab = params.get('tab');
+
+      if (action === 'new_invoice') {
+        setIsEditorOpen(true);
+      }
+      if (tab) {
+        // Clean URL after consuming
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -293,6 +312,10 @@ const MainContent: React.FC = () => {
 
       {/* Global Toast Notifications */}
       <ToastContainer />
+
+      {/* PWA Offline Mode & Update Notifications */}
+      <OfflineIndicatorBanner />
+      <PwaUpdateToast />
     </div>
   );
 };

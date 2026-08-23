@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, ActiveTab } from '../../context/AppContext';
+import { usePWA } from '../../hooks/usePWA';
+import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
 import { 
   LayoutDashboard, 
@@ -23,7 +25,9 @@ import {
   Maximize,
   Minimize,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Download,
+  Smartphone
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -53,6 +57,8 @@ export const Sidebar: React.FC = () => {
     isSidebarCollapsed
   } = useApp();
 
+  const { isInstalled } = usePWA();
+  const [showPwaModal, setShowPwaModal] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     return typeof document !== 'undefined' && !!document.fullscreenElement;
   });
@@ -346,6 +352,31 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
+      {/* PWA Install Quick Card for Desktop */}
+      {!isInstalled && !isSidebarCollapsed && (
+        <div className="mx-3 mb-2 p-3 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-indigo-950/90 border border-indigo-500/30 text-xs text-white space-y-2 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-bold text-cyan-300">
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Desktop / PWA App</span>
+            </div>
+            <span className="text-[9px] px-1.5 py-0.2 bg-indigo-500/30 text-indigo-200 rounded font-bold uppercase">
+              Offline
+            </span>
+          </div>
+          <p className="text-[10px] text-slate-300 leading-snug">
+            Run Zooka as a standalone desktop app with full offline mode.
+          </p>
+          <button
+            onClick={() => setShowPwaModal(true)}
+            className="w-full py-1.5 px-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          >
+            <Download className="w-3 h-3" />
+            <span>Install Application</span>
+          </button>
+        </div>
+      )}
+
       {/* Current Active Persona & Bottom Utilities */}
       {!isSidebarCollapsed ? (
         <div className="p-3 m-3 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-xs space-y-2.5 shrink-0">
@@ -484,6 +515,12 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* PWA Install Modal */}
+      <PwaInstallModal
+        isOpen={showPwaModal}
+        onClose={() => setShowPwaModal(false)}
+      />
     </aside>
   );
 };

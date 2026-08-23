@@ -48,6 +48,7 @@ import { BottomNavSettingsTab } from './BottomNavSettingsTab';
 import { HeaderSettingsTab } from './HeaderSettingsTab';
 import { LowStockSettingsTab } from './LowStockSettingsTab';
 import { SessionTimeoutSettingsTab } from './SessionTimeoutSettingsTab';
+import { PwaSettingsTab } from './PwaSettingsTab';
 import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 
 export const SettingsView: React.FC = () => {
@@ -61,7 +62,7 @@ export const SettingsView: React.FC = () => {
     setActiveTab: setGlobalActiveTab
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'low_stock' | 'security' | 'backup'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'low_stock' | 'security' | 'pwa' | 'backup'>('profile');
   const [formData, setFormData] = useState({ ...business });
   const [importFileContent, setImportFileContent] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -501,6 +502,17 @@ export const SettingsView: React.FC = () => {
         >
           <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Session & Idle Timeout</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('pwa')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'pwa'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Smartphone className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+          <span>PWA & Offline App</span>
         </button>
         <button
           onClick={() => setActiveTab('backup')}
@@ -1480,6 +1492,11 @@ export const SettingsView: React.FC = () => {
           <SessionTimeoutSettingsTab />
         )}
 
+        {/* TAB: Progressive Web App & Offline Settings */}
+        {activeTab === 'pwa' && (
+          <PwaSettingsTab />
+        )}
+
         {/* TAB 6: Backup & Reset */}
         {activeTab === 'backup' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
@@ -1589,7 +1606,7 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        {activeTab !== 'security' && activeTab !== 'low_stock' && (
+        {activeTab !== 'security' && activeTab !== 'low_stock' && activeTab !== 'pwa' && (
           <div className="flex justify-end">
             <button
               type="submit"

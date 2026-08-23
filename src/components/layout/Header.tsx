@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { usePWA } from '../../hooks/usePWA';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
-import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { 
   Building2, 
   Search, 
   Plus, 
   Bell, 
   ArrowUpRight,
-  Crown,
   Maximize2,
   Minimize2,
   PanelLeftClose,
-  PanelLeftOpen,
-  Sun,
-  Moon,
-  Smartphone,
-  Download
+  PanelLeftOpen
 } from 'lucide-react';
 import { isProductLowStock, normalizeLowStockSettings } from '../../utils/stockUtils';
 
@@ -34,16 +27,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     invoices, 
     products, 
     can,
-    loginAsSuperAdmin,
     isSidebarCollapsed,
-    toggleSidebarCollapse,
-    resolvedTheme,
-    toggleTheme
+    toggleSidebarCollapse
   } = useApp();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showPwaInstallModal, setShowPwaInstallModal] = useState(false);
-  const { isInstalled } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     return typeof document !== 'undefined' && !!document.fullscreenElement;
   });
@@ -151,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
         </button>
       </div>
 
-      {/* Right: Actions, Fullscreen Icon, Theme Toggle, Super Admin, Persona & Notifications */}
+      {/* Right: Actions, Fullscreen Icon, Persona & Notifications */}
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Create GST Tax Invoice CTA */}
         {can('invoices', 'create') && (
@@ -181,42 +169,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           ) : (
             <Maximize2 className="w-4 h-4" />
           )}
-        </button>
-
-        {/* Light / Dark Theme Mode Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-colors cursor-pointer"
-          title={`Toggle Theme Mode (Current: ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
-          aria-label="Toggle Theme"
-        >
-          {resolvedTheme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4 text-slate-600" />
-          )}
-        </button>
-
-        {/* PWA Install App Button */}
-        {!isInstalled && (
-          <button
-            onClick={() => setShowPwaInstallModal(true)}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 border border-cyan-200 dark:border-cyan-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
-            title="Install Zooka ERP as Desktop / Mobile App"
-          >
-            <Download className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-            <span className="hidden lg:inline">Install App</span>
-          </button>
-        )}
-
-        {/* Super Admin Quick Launch Button */}
-        <button
-          onClick={loginAsSuperAdmin}
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
-          title="Login to Super Admin Master Control Dashboard"
-        >
-          <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-amber-400" />
-          <span className="hidden md:inline">Super Admin</span>
         </button>
 
         {/* User Role Persona Switcher */}
@@ -290,12 +242,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           )}
         </div>
       </div>
-
-      {/* PWA Installation Modal */}
-      <PwaInstallModal
-        isOpen={showPwaInstallModal}
-        onClose={() => setShowPwaInstallModal(false)}
-      />
     </header>
   );
 };

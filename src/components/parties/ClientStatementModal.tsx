@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Party, Invoice, PurchaseBill, PaymentMethod } from '../../types';
 import { formatCurrency, formatDate, normalizeSignatureUrl } from '../../utils/formatters';
+import { buildUpiPaymentUri, cleanUpiId } from '../../utils/upi';
 import { QrCodeSvg } from '../common/QrCodeSvg';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
@@ -1140,9 +1141,14 @@ Transactions: ${entries.length} records`;
                     {/* QR Code & Confirmation Note */}
                     <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                       {business.upiId && (
-                        <div className="shrink-0 bg-white p-1 rounded-lg border border-slate-200">
+                        <div className="shrink-0 bg-white p-1 rounded-lg border border-slate-200 flex flex-col items-center">
                           <QrCodeSvg 
-                            value={`upi://pay?pa=${business.upiId}&pn=${encodeURIComponent(business.name)}&am=${Math.max(0, closingBalance)}&cu=INR`}
+                            value={buildUpiPaymentUri({
+                              upiId: business.upiId,
+                              payeeName: business.tradeName || business.name,
+                              amount: closingBalance > 0 ? closingBalance : undefined,
+                              note: `Statement Settlement ${currentParty.name}`,
+                            })}
                             size={64}
                           />
                         </div>

@@ -36,8 +36,12 @@ import {
   Moon,
   Smartphone,
   Clock,
-  Shield
+  Shield,
+  Zap,
+  ExternalLink
 } from 'lucide-react';
+import { QrCodeSvg } from '../common/QrCodeSvg';
+import { isValidUpiId, buildUpiPaymentUri, cleanUpiId } from '../../utils/upi';
 import { STATE_CODE_LIST } from '../../utils/constants';
 import { DEFAULT_SIGNATURE_DATA_URL, DEFAULT_SIGNATURE_2_DATA_URL, normalizeSignatureUrl } from '../../utils/formatters';
 import { InvoiceLineSettings } from '../../types';
@@ -1070,20 +1074,103 @@ export const SettingsView: React.FC = () => {
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">UPI ID / VPA (for Instant QR Payments) *</label>
+              <div className="md:col-span-2 space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-slate-800 font-bold text-xs flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>UPI ID / Virtual Payment Address (VPA) *</span>
+                  </label>
+                  {formData.upiId && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                      isValidUpiId(formData.upiId) 
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                        : 'bg-amber-100 text-amber-700 border border-amber-200'
+                    }`}>
+                      {isValidUpiId(formData.upiId) ? (
+                        <>
+                          <CheckCircle className="w-3 h-3 text-emerald-600" />
+                          <span>Valid NPCI UPI VPA</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-3 h-3 text-amber-600" />
+                          <span>Format: name@bankhandle</span>
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
+
                 <div className="relative">
                   <input
                     type="text"
                     name="upiId"
-                    placeholder="yourcompany@okhdfcbank"
+                    placeholder="e.g. yourcompany@okhdfcbank or 9876543210@paytm"
                     value={formData.upiId}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 font-mono font-bold text-indigo-700 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3.5 py-2.5 font-mono font-bold text-indigo-700 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   />
-                  <QrCode className="w-4 h-4 text-indigo-500 absolute right-3 top-1/2 -translate-y-1/2" />
+                  <QrCode className="w-4 h-4 text-indigo-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 </div>
+
+                {/* Quick Handle Suffix Buttons */}
+                <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                  <span className="text-slate-400 font-semibold">Quick Bank Handles:</span>
+                  {['@okhdfcbank', '@okaxis', '@okicici', '@oksbi', '@paytm', '@ybl', '@ibl', '@upi'].map(handle => (
+                    <button
+                      key={handle}
+                      type="button"
+                      onClick={() => {
+                        const current = (formData.upiId || '').split('@')[0].trim();
+                        const base = current || (formData.phone ? formData.phone.replace(/[^0-9]/g, '').slice(-10) : 'mybusiness');
+                        setFormData(prev => ({ ...prev, upiId: `${base}${handle}` }));
+                      }}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 font-mono text-slate-600 cursor-pointer transition-colors"
+                    >
+                      {handle}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Live UPI QR Scanner Verification Card */}
+                {formData.upiId && (
+                  <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-md border border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="shrink-0 bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
+                      <QrCodeSvg 
+                        value={buildUpiPaymentUri({
+                          upiId: cleanUpiId(formData.upiId),
+                          payeeName: formData.tradeName || formData.name,
+                          amount: undefined, // Open amount for general testing
+                          note: `Payment to ${formData.tradeName || formData.name}`,
+                        })}
+                        size={100}
+                        showUpiBadge={true}
+                      />
+                      <span className="text-[9px] font-bold text-slate-800 mt-1 font-mono tracking-tight">100% Real NPCI QR</span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs flex-1 text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-2">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                          Live Scannable Test
+                        </span>
+                        <span className="text-slate-400 text-[11px]">Dynamic Vector QR</span>
+                      </div>
+                      <h4 className="font-bold text-sm text-white flex items-center justify-center sm:justify-start gap-1.5">
+                        <span>Scan & Verify with any UPI App</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Point your camera or open <strong>Google Pay, PhonePe, Paytm, BHIM, Cred, or Amazon Pay</strong> to verify this QR resolves directly to <strong className="text-indigo-300 font-mono">{formData.upiId}</strong>.
+                      </p>
+                      <div className="pt-1 flex items-center justify-center sm:justify-start gap-2 text-[10px] text-slate-400 font-mono">
+                        <span>Payee: {formData.tradeName || formData.name || 'Merchant'}</span>
+                        <span>•</span>
+                        <span>Currency: INR</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

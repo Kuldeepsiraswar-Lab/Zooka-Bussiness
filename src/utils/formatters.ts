@@ -175,57 +175,27 @@ export const generateEwayBillNo = (): string => {
   return `${p1}${p2}${p3}`;
 };
 
-// Build SVG matrix representation for QR Code display in invoices and IRN verification
-export const generateQrMatrix = (text: string, size: number = 21): boolean[][] => {
-  // Deterministic 2D grid matrix generation with standard 3 finder patterns
-  const matrix: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
-  
-  const drawFinder = (startX: number, startY: number) => {
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        if (
-          r === 0 || r === 6 || c === 0 || c === 6 ||
-          (r >= 2 && r <= 4 && c >= 2 && c <= 4)
-        ) {
-          if (startX + r < size && startY + c < size) {
-            matrix[startX + r][startY + c] = true;
-          }
-        }
+import QRCode from 'qrcode';
+
+// Build real, 100% standard ISO/IEC 18004 compliant QR Code 2D bit matrix
+export const generateQrMatrix = (text: string, _legacySize?: number): boolean[][] => {
+  if (!text || typeof text !== 'string') return [];
+  try {
+    const qr = QRCode.create(text, { errorCorrectionLevel: 'M' });
+    const size = qr.modules.size;
+    const matrix: boolean[][] = [];
+    for (let r = 0; r < size; r++) {
+      const row: boolean[] = [];
+      for (let c = 0; c < size; c++) {
+        row.push(qr.modules.get(r, c) === 1);
       }
+      matrix.push(row);
     }
-  };
-
-  // 3 standard corners
-  drawFinder(0, 0);
-  drawFinder(0, size - 7);
-  drawFinder(size - 7, 0);
-
-  // Timing lines
-  for (let i = 8; i < size - 8; i++) {
-    if (i % 2 === 0) {
-      matrix[6][i] = true;
-      matrix[i][6] = true;
-    }
+    return matrix;
+  } catch (err) {
+    console.error('Error generating genuine QR matrix:', err);
+    return [];
   }
-
-  // Data pattern hash representation
-  let charIdx = 0;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      // Don't overwrite finders
-      const inTopLeft = r < 8 && c < 8;
-      const inTopRight = r < 8 && c >= size - 8;
-      const inBottomLeft = r >= size - 8 && c < 8;
-      if (inTopLeft || inTopRight || inBottomLeft) continue;
-
-      const code = text.charCodeAt(charIdx % text.length) || 42;
-      const bit = ((code + (r * 13) + (c * 7)) % 3) === 0;
-      matrix[r][c] = bit;
-      charIdx++;
-    }
-  }
-
-  return matrix;
 };
 
 export const DEFAULT_SIGNATURE_DATA_URL = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMTAwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjEwMCI+PHBhdGggZD0iTTIwLDY1IEM0NSwyNSA3MCwxNSA5MCw0MCBDMTEwLDY1IDEwNSw4MCAxMzAsNDUgQzE1NSwxMCAxNzAsNzUgMTkwLDUwIEMyMTAsMjUgMjMwLDYwIDI3MCwzNSBNNTAsNzUgQzEwMCw3NSAyMjAsNzAgMjgwLDY4IiBzdHJva2U9IiMxZTNhOGEiIHN0cm9rZS13aWR0aD0iMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+';

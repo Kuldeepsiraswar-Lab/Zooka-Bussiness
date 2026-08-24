@@ -1,6 +1,7 @@
 import React from 'react';
 import { Invoice, BusinessProfile, InvoiceTemplateConfig, InvoiceItem } from '../../types';
 import { formatCurrency, formatDate, numberToIndianWords, normalizeSignatureUrl } from '../../utils/formatters';
+import { buildUpiPaymentUri, cleanUpiId } from '../../utils/upi';
 import { QrCodeSvg } from '../common/QrCodeSvg';
 import { ShieldCheck, Sparkles, Building, Phone, Mail, MapPin, Globe } from 'lucide-react';
 
@@ -23,7 +24,14 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
 }) => {
   const activeSignatureUrl = normalizeSignatureUrl(business.signatureUrl);
   const showSig = template.showSignature && (business.showSignatureOnInvoice !== false);
-  const upiPaymentUri = `upi://pay?pa=${business.upiId || 'bharattech@okhdfcbank'}&pn=${encodeURIComponent(business.tradeName || business.name)}&am=${invoice.grandTotal.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Invoice ${invoice.invoiceNumber}`)}`;
+  const effectiveUpiId = cleanUpiId(business.upiId) || 'bharattech@okhdfcbank';
+  const upiPaymentUri = buildUpiPaymentUri({
+    upiId: effectiveUpiId,
+    payeeName: business.tradeName || business.name,
+    amount: invoice.amountDue !== undefined && invoice.amountDue > 0 ? invoice.amountDue : invoice.grandTotal,
+    invoiceNumber: invoice.invoiceNumber,
+    note: `Invoice ${invoice.invoiceNumber}`,
+  });
 
   const copyLabel = printCopyType === 'ORIGINAL' 
     ? 'ORIGINAL FOR RECIPIENT' 

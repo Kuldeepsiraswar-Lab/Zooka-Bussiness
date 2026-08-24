@@ -86,35 +86,35 @@ export const UserAuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/70 backdrop-blur-sm overflow-y-auto modal-overlay animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[95vw] sm:max-w-md max-h-[95dvh] sm:max-h-[90dvh] flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         {/* Header with gradient badge */}
-        <div className={`p-6 relative text-white ${
+        <div className={`p-4 sm:p-6 shrink-0 relative text-white ${
           isTargetingSuperAdmin 
             ? 'bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950' 
             : 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900'
         }`}>
           <button
             onClick={closeAuthModal}
-            className="absolute top-4 right-4 p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
               isTargetingSuperAdmin 
                 ? 'bg-purple-600/30 border border-purple-400/40 text-amber-300' 
                 : 'bg-indigo-600/30 border border-indigo-400/30 text-cyan-300'
             }`}>
-              <Lock className="w-6 h-6" />
+              <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h2 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2 truncate">
                 <span>{isTargetingSuperAdmin ? 'Super Admin Authentication' : 'User Role Authentication'}</span>
               </h2>
-              <p className="text-xs text-slate-300">
+              <p className="text-[11px] sm:text-xs text-slate-300 truncate">
                 {isTargetingSuperAdmin 
                   ? 'Master platform governance & multi-company control' 
                   : `Secure login to ${business.tradeName || business.name}`}
@@ -124,7 +124,7 @@ export const UserAuthModal: React.FC = () => {
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto modal-content-scroll flex-1">
           {/* User Account Selector */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">

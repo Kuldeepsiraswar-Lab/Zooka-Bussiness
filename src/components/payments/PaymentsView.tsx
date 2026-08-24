@@ -1131,28 +1131,28 @@ export const PaymentsView: React.FC = () => {
 
       {/* RECORD / EDIT PAYMENT MODAL */}
       {isRecordModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-lg md:max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
             {/* Modal Header */}
-            <div className={`p-4 border-b flex items-center justify-between ${
+            <div className={`p-3.5 sm:p-4 border-b flex items-center justify-between shrink-0 ${
               formData.type === 'PAYMENT_IN' ? 'bg-emerald-50/70 border-emerald-100' :
               formData.type === 'PAYMENT_OUT' ? 'bg-rose-50/70 border-rose-100' : 'bg-blue-50/70 border-blue-100'
             }`}>
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold ${
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold shrink-0 ${
                   formData.type === 'PAYMENT_IN' ? 'bg-emerald-600' :
                   formData.type === 'PAYMENT_OUT' ? 'bg-rose-600' : 'bg-blue-600'
                 }`}>
                   {formData.type === 'PAYMENT_IN' ? <ArrowDownLeft className="w-4 h-4" /> :
                    formData.type === 'PAYMENT_OUT' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowLeftRight className="w-4 h-4" />}
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-slate-900 text-xs sm:text-sm truncate">
                     {editingPayment ? 'Edit Payment Voucher' : 
                      formData.type === 'PAYMENT_IN' ? 'Record Payment Received (Money In)' :
                      formData.type === 'PAYMENT_OUT' ? 'Record Payment Made (Money Out)' : 'Record Contra Bank/Cash Transfer'}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">
                     {formData.type === 'PAYMENT_IN' ? 'Log customer payment against sales invoice or advance' :
                      formData.type === 'PAYMENT_OUT' ? 'Log payment disbursed to supplier or vendor bill' : 'Transfer money between Bank and Cash accounts'}
                   </p>
@@ -1411,29 +1411,29 @@ export const PaymentsView: React.FC = () => {
 
       {/* PRINTABLE VOUCHER MODAL */}
       {voucherToPrint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[95vh] my-auto">
             {/* Modal Controls */}
-            <div className="p-3.5 bg-slate-800 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-emerald-400" />
-                <span className="font-bold text-sm">
+            <div className="p-3.5 bg-slate-800 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <Receipt className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-bold text-xs sm:text-sm truncate">
                   {voucherToPrint.type === 'PAYMENT_IN' ? 'Receipt Voucher' : 
                    voucherToPrint.type === 'PAYMENT_OUT' ? 'Payment Voucher' : 'Contra Voucher'}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">({voucherToPrint.voucherNumber})</span>
+                <span className="text-xs text-slate-400 font-mono truncate">({voucherToPrint.voucherNumber})</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print</span>
                 </button>
                 <button
                   onClick={() => setVoucherToPrint(null)}
-                  className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:text-white"
+                  className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1441,7 +1441,7 @@ export const PaymentsView: React.FC = () => {
             </div>
 
             {/* Printable Document Layout */}
-            <div id="printable-voucher-content" className="p-6 overflow-y-auto flex-1 text-slate-800 text-xs font-sans space-y-4">
+            <div id="printable-voucher-content" className="p-4 sm:p-6 overflow-y-auto modal-content-scroll flex-1 text-slate-800 text-xs font-sans space-y-4">
               {/* Document Header */}
               <div className="border-b-2 border-slate-800 pb-3 flex justify-between items-start">
                 <div>
@@ -1556,8 +1556,8 @@ export const PaymentsView: React.FC = () => {
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 text-center space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-sm rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-5 text-center space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>

@@ -31,6 +31,27 @@ body {
   background: #475569;
 }
 
+/* Device-responsive modal & dialog helpers */
+.modal-overlay {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-content-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile safe area padding utilities */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* 
  * A4 Printable Document Standards & Print Optimization
  * Standard A4: 210mm x 297mm

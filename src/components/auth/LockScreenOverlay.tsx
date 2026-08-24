@@ -54,8 +54,8 @@ export const LockScreenOverlay: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-8 text-center space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto modal-overlay">
+      <div className="relative w-full max-w-[96vw] sm:max-w-sm bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 text-center space-y-4 sm:space-y-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
         {/* Brand Lock Badge */}
         <div className="flex flex-col items-center">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold shadow-xl shadow-indigo-500/30 mb-3 ring-4 ring-slate-800">

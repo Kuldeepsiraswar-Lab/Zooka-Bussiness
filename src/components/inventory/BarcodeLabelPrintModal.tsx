@@ -34,19 +34,19 @@ export const BarcodeLabelPrintModal: React.FC<BarcodeLabelPrintModalProps> = ({
   const barcodeValue = product.barcode || product.sku;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto modal-overlay">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-[96vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl w-full overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[92dvh] my-auto">
         {/* Top Header */}
-        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-600 text-white">
-              <Tag className="w-5 h-5" />
+        <div className="p-3.5 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-indigo-600 text-white shrink-0">
+              <Tag className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-base font-bold text-white">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-bold text-white truncate">
                 Print Product Barcode Labels
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-[11px] sm:text-xs text-slate-400 truncate">
                 {product.name} ({barcodeValue})
               </p>
             </div>
@@ -54,14 +54,14 @@ export const BarcodeLabelPrintModal: React.FC<BarcodeLabelPrintModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Options & Sheet Layout */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/50">
+        <div className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-4 sm:space-y-6 flex-1 bg-slate-50/50">
           <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Sheet Format</label>

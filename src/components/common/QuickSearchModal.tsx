@@ -77,37 +77,37 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     : parties.slice(0, 3);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-14 md:pt-20 p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
       <div 
-        className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh]"
+        className="w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[88dvh] sm:max-h-[80dvh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 gap-3 bg-slate-50/50 dark:bg-slate-850">
-          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0" />
+        <div className="flex items-center px-3.5 py-3 sm:px-4 sm:py-3.5 border-b border-slate-200 dark:border-slate-800 gap-2.5 sm:gap-3 bg-slate-50/50 dark:bg-slate-850 shrink-0">
+          <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 dark:text-slate-500 shrink-0" />
           <input
             type="text"
-            placeholder="Search invoices by #, parties by name/GSTIN, products by HSN/SKU..."
+            placeholder="Search invoices by #, parties, products..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
-            className="w-full text-sm bg-transparent outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="w-full text-xs sm:text-sm bg-transparent outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-sm">
+          <kbd className="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
             ESC
           </kbd>
         </div>
 
         {/* Results Container */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5 divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="flex-1 overflow-y-auto modal-content-scroll p-3.5 sm:p-4 space-y-4 sm:space-y-5 divide-y divide-slate-100 dark:divide-slate-800">
           {/* Invoices Section */}
           {filteredInvoices.length > 0 && (
             <div>

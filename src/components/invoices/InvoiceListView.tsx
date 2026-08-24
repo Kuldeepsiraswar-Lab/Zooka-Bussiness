@@ -392,9 +392,9 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
 
       {/* Record Payment Modal */}
       {paymentModalInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="w-full max-w-[96vw] sm:max-w-md max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 my-auto">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1">
               Record Customer Payment
             </h3>
             <p className="text-xs text-slate-500 mb-4">

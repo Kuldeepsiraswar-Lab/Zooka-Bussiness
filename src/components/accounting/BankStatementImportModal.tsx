@@ -743,27 +743,27 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-6xl my-6 flex flex-col max-h-[92vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs overflow-y-auto modal-overlay animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-[98vw] md:max-w-5xl lg:max-w-6xl my-auto flex flex-col max-h-[96dvh] sm:max-h-[92dvh] overflow-hidden">
         
         {/* =========================================================================
             MODAL HEADER & WIZARD STEP INDICATOR
            ========================================================================= */}
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-850/80">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
-              <Landmark className="w-6 h-6" />
+        <div className="p-3.5 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-850/80 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30 shrink-0">
+              <Landmark className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-lg font-extrabold text-slate-900 dark:text-white truncate">
                   Bank Statement Auto Entry & Reconciliation
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                  AI Narration Engine
+                <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                  AI Engine
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
                 Import CSV bank statement, auto-classify Receipts, Vendor Payments, Expenses & Contra Transfers directly into Bank Ledger.
               </p>
             </div>
@@ -1426,9 +1426,9 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
 
       {/* Quick Add Bank Account Modal */}
       {showNewBankModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 backdrop-blur-2xs overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-2xl max-w-[96vw] sm:max-w-md w-full space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700 shrink-0">
               <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Landmark className="w-4 h-4 text-indigo-600" />
                 <span>Create Bank Account Ledger Head</span>

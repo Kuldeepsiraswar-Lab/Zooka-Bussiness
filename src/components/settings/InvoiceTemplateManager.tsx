@@ -539,23 +539,23 @@ export const InvoiceTemplateManager: React.FC = () => {
 
       {/* CUSTOM TEMPLATE DESIGNER MODAL */}
       {isEditingCustom && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-[98vw] md:max-w-4xl lg:max-w-5xl max-h-[96dvh] sm:max-h-[90dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
             {/* Modal Header */}
-            <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/30 rounded-xl">
-                  <Palette className="w-5 h-5 text-indigo-300" />
+            <div className="p-3.5 sm:p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="p-2 bg-indigo-500/30 rounded-xl shrink-0">
+                  <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-base tracking-tight">Custom GST Invoice Template Designer</h3>
-                  <p className="text-xs text-indigo-200/80">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm sm:text-base tracking-tight truncate">Custom GST Invoice Template Designer</h3>
+                  <p className="text-[11px] sm:text-xs text-indigo-200/80 truncate">
                     Customize branding colors, header typography, table borders, serial number display & print sections
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsEditingCustom(false)}
@@ -834,20 +834,20 @@ export const InvoiceTemplateManager: React.FC = () => {
 
       {/* FULL SCREEN PREVIEW MODAL */}
       {showFullModalPreview && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
-            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
-              <h3 className="font-bold text-sm">Preview: {selectedTemplateForPreview.name}</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 max-w-[98vw] md:max-w-4xl w-full max-h-[96dvh] sm:max-h-[92dvh] flex flex-col overflow-hidden my-auto">
+            <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+              <h3 className="font-bold text-xs sm:text-sm truncate">Preview: {selectedTemplateForPreview.name}</h3>
               <button
                 type="button"
                 onClick={() => setShowFullModalPreview(false)}
-                className="px-3 py-1 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg cursor-pointer"
+                className="px-3 py-1 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg cursor-pointer shrink-0"
               >
                 Close ✕
               </button>
             </div>
-            <div className="p-6 overflow-y-auto bg-slate-100 flex justify-center">
-              <div className="w-[794px] bg-white border border-slate-300 rounded-lg shadow-lg p-8">
+            <div className="p-3 sm:p-6 overflow-y-auto modal-content-scroll bg-slate-100 flex justify-center">
+              <div className="w-full max-w-[794px] bg-white border border-slate-300 rounded-lg shadow-lg p-3 sm:p-8 overflow-x-auto">
                 <InvoiceTemplateRenderer
                   invoice={sampleInvoice}
                   business={business}

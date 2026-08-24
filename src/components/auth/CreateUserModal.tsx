@@ -226,21 +226,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto modal-overlay animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-600/20">
-              <UserPlus className="w-5 h-5" />
+        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-600/20 shrink-0">
+              <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
                 {userToEdit 
                   ? (isEditingSelf ? 'Edit Your Profile & Password' : `Edit User: ${userToEdit.name}`)
                   : 'Add New Team Member'}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate">
                 {userToEdit
                   ? (isCurrentUserAdmin ? 'Configure role access levels, department, and credentials' : 'Update your personal profile and security credentials')
                   : 'Set up work email, assigned system role, and access authorization'}
@@ -249,14 +249,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto modal-content-scroll p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Section 1: Basic Information */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">

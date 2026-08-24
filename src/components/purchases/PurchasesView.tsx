@@ -626,8 +626,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Record Purchase Bill & Add Stock Modal */}
       {isPurchaseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="w-full max-w-[98vw] md:max-w-3xl lg:max-w-4xl bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[92dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -1103,8 +1103,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Bill View Details Modal */}
       {selectedBillForView && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -1143,8 +1143,8 @@ export const PurchasesView: React.FC = () => {
               {/* Items */}
               <div>
                 <span className="font-bold text-slate-800 uppercase text-[11px] block mb-2">Purchased Inventory Items</span>
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-xs border-collapse">
+                <div className="border border-slate-200 rounded-xl overflow-hidden overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse min-w-[500px]">
                     <thead className="bg-slate-100 text-slate-700 font-semibold">
                       <tr>
                         <th className="py-2 px-3">Item Description</th>
@@ -1180,7 +1180,7 @@ export const PurchasesView: React.FC = () => {
 
               {/* Totals */}
               <div className="flex justify-end pt-2">
-                <div className="w-64 space-y-1 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div className="w-full sm:w-64 space-y-1 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Taxable Value:</span>
                     <span className="font-mono">{formatCurrency(selectedBillForView.subTotalTaxable, business.currencySymbol)}</span>
@@ -1202,8 +1202,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Log Expense Modal */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="w-full max-w-[96vw] sm:max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <h3 className="text-base font-bold text-slate-900 mb-1">Record Operating Expense</h3>
             <p className="text-xs text-slate-500 mb-4">Post direct or indirect business expenses</p>
 

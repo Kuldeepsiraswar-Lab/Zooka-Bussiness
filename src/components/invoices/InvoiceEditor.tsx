@@ -1769,17 +1769,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           (prod?.sellingPrice !== undefined && effectiveBaseRate !== prod.sellingPrice);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto modal-overlay">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[96vw] sm:max-w-lg md:max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
               {/* Modal Header */}
-              <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+              <div className="px-4 py-3.5 sm:px-6 sm:py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
                     <SlidersHorizontal className="w-4 h-4" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-white">Custom Item Sale Amount & Rate Editor</h3>
-                    <p className="text-[11px] text-slate-400">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-xs sm:text-sm text-white truncate">Custom Item Sale Amount & Rate Editor</h3>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
                       Configure custom selling prices, inclusive line totals, quantities & GST breakdown
                     </p>
                   </div>
@@ -1787,14 +1787,14 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 <button
                   type="button"
                   onClick={() => setEditingItemIndex(null)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Modal Body */}
-              <div className="p-6 overflow-y-auto space-y-4">
+              <div className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-3.5 sm:space-y-4 flex-1">
                 {/* Selected Item Summary Card with Visual Badges & Revert */}
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3">
                   <div className="space-y-1">
@@ -2130,7 +2130,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditingItemIndex(null)}

@@ -544,10 +544,10 @@ Transactions: ${entries.length} records`;
 
   if (!currentParty) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto modal-overlay">
+        <div className="bg-white p-6 rounded-2xl max-w-[96vw] sm:max-w-sm w-full text-center my-auto shadow-2xl">
           <p className="text-sm text-slate-600">No parties found in the system.</p>
-          <button onClick={onClose} className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs rounded-xl font-semibold">
+          <button onClick={onClose} className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs rounded-xl font-semibold cursor-pointer">
             Close
           </button>
         </div>
@@ -556,8 +556,8 @@ Transactions: ${entries.length} records`;
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-5xl bg-slate-50 rounded-2xl border border-slate-200 shadow-2xl flex flex-col max-h-[96vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/70 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+      <div className="w-full max-w-[98vw] md:max-w-4xl lg:max-w-5xl bg-slate-50 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl flex flex-col max-h-[96dvh] sm:max-h-[96vh] overflow-hidden my-auto">
         
         {/* Top App Header & Controls */}
         <div className="p-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
@@ -1193,11 +1193,11 @@ Transactions: ${entries.length} records`;
 
         {/* Quick Payment Modal */}
         {isRecordPaymentOpen && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 max-w-md w-full text-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-5 max-w-[96vw] sm:max-w-md w-full max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll text-xs space-y-3 my-auto">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 shrink-0">
                 <h4 className="font-bold text-slate-900 text-sm">Record Client Payment</h4>
-                <button onClick={() => setIsRecordPaymentOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <button onClick={() => setIsRecordPaymentOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
               </div>

@@ -167,27 +167,27 @@ const EditSuperAdminModal: React.FC<EditSuperAdminModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-100 overflow-hidden my-8 animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/70 backdrop-blur-xs overflow-y-auto modal-overlay animate-fadeIn">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[96vw] sm:max-w-xl md:max-w-2xl w-full border border-slate-100 overflow-hidden my-auto max-h-[95dvh] sm:max-h-[90dvh] flex flex-col animate-in zoom-in-95 duration-150">
         {/* Header with Dark Royal Gradient */}
-        <div className="px-6 py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-amber-300 shadow-inner">
-              <Crown className="w-6 h-6" />
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black tracking-tight text-white">Edit Super Admin Details</h2>
-                <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-purple-500/30 text-purple-200 rounded-md border border-purple-400/30">
-                  PLATFORM ROOT
+                <h2 className="text-sm sm:text-lg font-black tracking-tight text-white truncate">Edit Super Admin Details</h2>
+                <span className="px-2 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-purple-500/30 text-purple-200 rounded-md border border-purple-400/30">
+                  ROOT
                 </span>
               </div>
-              <p className="text-xs text-purple-200/80">Configure Master Administrator Identity & Credentials</p>
+              <p className="text-[11px] sm:text-xs text-purple-200/80 truncate">Configure Master Administrator Identity & Credentials</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -614,21 +614,21 @@ const EditCompanyModal: React.FC<EditCompanyModalProps> = ({ company, isOpen, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-100 overflow-hidden my-8">
-        <div className="px-6 py-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-indigo-300" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto modal-overlay animate-fadeIn">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[98vw] md:max-w-2xl lg:max-w-3xl w-full border border-slate-100 overflow-hidden my-auto max-h-[96dvh] sm:max-h-[92dvh] flex flex-col">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold">Edit Business Profile & Header</h2>
-              <p className="text-xs text-indigo-200">Super Admin Workspace Control • ID: {company.id}</p>
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-lg font-bold truncate">Edit Business Profile & Header</h2>
+              <p className="text-[11px] sm:text-xs text-indigo-200 truncate">Super Admin Workspace Control • ID: {company.id}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -1558,8 +1558,8 @@ export const SuperAdminDashboard: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {deletingCompany && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto modal-overlay">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[96vw] sm:max-w-md w-full p-4 sm:p-6 border border-slate-100 space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
               <AlertTriangle className="w-6 h-6" />
             </div>

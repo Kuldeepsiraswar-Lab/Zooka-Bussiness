@@ -217,35 +217,36 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/80 backdrop-blur-sm overflow-y-auto modal-overlay animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[95dvh] sm:max-h-[90dvh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         
         {/* Modal Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-purple-900/40">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/30 text-white ring-2 ring-white/10">
-              <Crown className="w-5 h-5 text-amber-300" />
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-purple-900/40 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/30 text-white ring-2 ring-white/10 shrink-0">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-white leading-none">Register New Company / Business</h2>
-                <span className="text-[10px] font-extrabold uppercase bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full border border-purple-400/40">
-                  Super Admin Controlled
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-lg font-black text-white leading-none truncate">Register New Company / Business</h2>
+                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full border border-purple-400/40">
+                  Super Admin
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-1">Multi-entity provisioning with isolated GSTIN, books & user roles</p>
+              <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 sm:mt-1 truncate">Multi-entity provisioning with isolated GSTIN, books & user roles</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={handleFillDemo}
-              className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 hover:text-white text-xs font-semibold rounded-xl border border-purple-400/30 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 hover:text-white text-[11px] sm:text-xs font-semibold rounded-xl border border-purple-400/30 transition-all flex items-center gap-1 cursor-pointer"
               title="Auto-populate sample company details"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Sample Details</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span className="hidden sm:inline">Sample Details</span>
+              <span className="sm:hidden">Sample</span>
             </button>
 
             <button
@@ -258,7 +259,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
         </div>
 
         {/* Modal Body / Form */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-4 sm:space-y-6 flex-1 text-slate-800">
           
           {/* ======================================================================= */}
           {/* MANDATORY SUPER ADMIN AUTHORIZATION BANNER / SECURITY GATE             */}

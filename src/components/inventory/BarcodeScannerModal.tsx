@@ -219,22 +219,22 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto modal-overlay">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-[96vw] sm:max-w-xl md:max-w-2xl w-full overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-500/20 text-cyan-300 border border-indigo-500/30">
-              <Scan className="w-5 h-5 animate-pulse" />
+        <div className="p-3.5 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-indigo-500/20 text-cyan-300 border border-indigo-500/30 shrink-0">
+              <Scan className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
             </div>
-            <div>
-              <h2 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-2 truncate">
                 <span>Barcode Stock Scanner & Lookup</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">
-                  Live Scanner
+                <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">
+                  Live
                 </span>
               </h2>
-              <p className="text-xs text-slate-300">
+              <p className="text-[11px] sm:text-xs text-slate-300 truncate">
                 Scan barcode to locate stock, view inventory or add directly to invoice
               </p>
             </div>
@@ -242,7 +242,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>

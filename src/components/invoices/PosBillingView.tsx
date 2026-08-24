@@ -1349,27 +1349,27 @@ export const PosBillingView: React.FC = () => {
 
       {/* CUSTOM SETTLEMENT MODAL POPUP */}
       {showSettlementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-md rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-indigo-600 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold shrink-0">
                   ⚡
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm">POS Custom Settlement</h3>
-                  <p className="text-[11px] text-indigo-100">Pay partial, split amount, or book to customer ledger credit</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm truncate">POS Custom Settlement</h3>
+                  <p className="text-[10px] sm:text-[11px] text-indigo-100 truncate">Pay partial, split amount, or book to customer ledger credit</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowSettlementModal(false)}
-                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 space-y-4 text-xs">
+            <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-slate-500 font-medium">Customer:</span>
@@ -1521,27 +1521,27 @@ export const PosBillingView: React.FC = () => {
 
       {/* EDIT CUSTOM SALE AMOUNT & PRICING MODAL */}
       {editingCartItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shrink-0">
                   <Tag className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm">Custom Sale Amount & Pricing</h3>
-                  <p className="text-[11px] text-slate-300">Adjust selling rate, inclusive total, or item discount</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm truncate">Custom Sale Amount & Pricing</h3>
+                  <p className="text-[10px] sm:text-[11px] text-slate-300 truncate">Adjust selling rate, inclusive total, or item discount</p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingCartItem(null)}
-                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 space-y-4 text-xs">
+            <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
               {/* Product Info Bar */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
@@ -1828,27 +1828,27 @@ export const PosBillingView: React.FC = () => {
 
       {/* ADD BRAND-NEW CUSTOM / OPEN SALE ITEM MODAL */}
       {showCustomItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-indigo-600 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm">Add Custom Sale Item / Service</h3>
-                  <p className="text-[11px] text-indigo-100">Bill any ad-hoc product, labor, repair or custom charge</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm truncate">Add Custom Sale Item / Service</h3>
+                  <p className="text-[10px] sm:text-[11px] text-indigo-100 truncate">Bill any ad-hoc product, labor, repair or custom charge</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCustomItemModal(false)}
-                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                className="text-white/80 hover:text-white text-lg font-bold p-1 cursor-pointer shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 space-y-4 text-xs">
+            <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
               {/* Item Name */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Custom Item / Service Name *</label>

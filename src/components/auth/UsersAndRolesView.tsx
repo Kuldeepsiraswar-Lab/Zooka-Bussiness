@@ -519,8 +519,8 @@ export const UsersAndRolesView: React.FC = () => {
 
       {/* In-App Delete User Confirmation Modal */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100 overflow-y-auto modal-overlay">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full shadow-2xl border border-slate-200 space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto animate-in zoom-in-95 duration-100">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <Trash2 className="w-5 h-5" />

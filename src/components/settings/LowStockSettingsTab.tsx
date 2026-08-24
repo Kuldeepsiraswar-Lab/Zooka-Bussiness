@@ -694,8 +694,8 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
 
       {/* Confirmation Modal for Bulk Threshold Synchronization */}
       {showBulkConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-100 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto modal-overlay">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full border border-slate-100 shadow-2xl space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto animate-in zoom-in-95 duration-150">
             <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
               <AlertCircle className="w-6 h-6" />
             </div>

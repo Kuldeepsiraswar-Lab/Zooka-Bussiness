@@ -131,15 +131,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
   const getHeaderStyleClasses = (style: HeaderStyle) => {
     switch (style) {
       case 'SOLID':
-        return 'bg-white dark:bg-slate-900 shadow-xs';
+        return 'bg-white dark:bg-slate-900';
       case 'BORDERED':
-        return 'bg-slate-50 dark:bg-slate-950 border-b-2 border-slate-300 dark:border-slate-700 shadow-xs';
+        return 'bg-slate-50 dark:bg-slate-950 border-b-2 border-slate-300 dark:border-slate-700';
       case 'FLOATING':
-        return 'bg-white/98 dark:bg-slate-900/98 mx-2 sm:mx-4 my-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md';
+        return 'bg-white/95 dark:bg-slate-900/95 mx-2 sm:mx-4 my-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md';
       case 'MINIMAL':
-        return 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs';
+        return 'bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm';
       default: // GLASS
-        return 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs';
+        return 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md';
     }
   };
 
@@ -163,13 +163,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
   const activeFy = currentCompany?.financialYear || '2026-2027';
 
   return (
-    <header className={`w-full ${config.sticky !== false ? 'sticky top-0' : 'relative'} z-40 flex items-center justify-between transition-all duration-200 ${
+    <header className={`w-full ${config.sticky !== false ? 'sticky top-0' : 'relative'} z-30 flex items-center justify-between transition-all duration-200 ${
       getDensityClasses(config.density)
     } ${
       getHeaderStyleClasses(config.style)
     } ${
       config.showBorderBottom && config.style !== 'BORDERED' && config.style !== 'FLOATING'
-        ? 'border-b border-slate-200/80 dark:border-slate-800'
+        ? 'border-b border-slate-200 dark:border-slate-800'
         : ''
     } ${
       getShadowClass(config.shadow)

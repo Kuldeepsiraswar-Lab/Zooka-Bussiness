@@ -77,10 +77,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     : parties.slice(0, 3);
 
   return (
-    <div 
-      className="fixed inset-0 z-[70] flex items-start justify-center pt-16 sm:pt-20 p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
       <div 
         className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}

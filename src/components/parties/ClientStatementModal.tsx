@@ -544,10 +544,10 @@ Transactions: ${entries.length} records`;
 
   if (!currentParty) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm">
-        <div className="bg-white p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center">
           <p className="text-sm text-slate-600">No parties found in the system.</p>
-          <button onClick={onClose} className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs rounded-xl font-semibold cursor-pointer">
+          <button onClick={onClose} className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs rounded-xl font-semibold">
             Close
           </button>
         </div>
@@ -556,8 +556,8 @@ Transactions: ${entries.length} records`;
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
-      <div className="w-full max-w-5xl my-auto bg-slate-50 rounded-3xl border border-slate-200 shadow-2xl flex flex-col max-h-[96vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in">
+      <div className="w-full max-w-5xl bg-slate-50 rounded-2xl border border-slate-200 shadow-2xl flex flex-col max-h-[96vh] overflow-hidden">
         
         {/* Top App Header & Controls */}
         <div className="p-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
@@ -1193,8 +1193,8 @@ Transactions: ${entries.length} records`;
 
         {/* Quick Payment Modal */}
         {isRecordPaymentOpen && (
-          <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-5 max-w-md w-full my-auto text-xs space-y-3">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 max-w-md w-full text-xs space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                 <h4 className="font-bold text-slate-900 text-sm">Record Client Payment</h4>
                 <button onClick={() => setIsRecordPaymentOpen(false)} className="text-slate-400 hover:text-slate-700">

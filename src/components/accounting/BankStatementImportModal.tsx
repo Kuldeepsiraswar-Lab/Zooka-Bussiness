@@ -743,8 +743,8 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-6xl my-auto flex flex-col max-h-[92vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-6xl my-6 flex flex-col max-h-[92vh] overflow-hidden">
         
         {/* =========================================================================
             MODAL HEADER & WIZARD STEP INDICATOR
@@ -1426,8 +1426,8 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
 
       {/* Quick Add Bank Account Modal */}
       {showNewBankModal && (
-        <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full my-auto space-y-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
               <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Landmark className="w-4 h-4 text-indigo-600" />

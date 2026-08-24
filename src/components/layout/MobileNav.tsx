@@ -120,21 +120,21 @@ export const MobileNav: React.FC = () => {
       {/* Quick Action FAB Popover Sheet */}
       <AnimatePresence>
         {quickActionOpen && (
-          <div className="fixed inset-0 z-[60] lg:hidden">
+          <div className="fixed inset-0 z-50 lg:hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               onClick={() => setQuickActionOpen(false)}
-              className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 100 }}
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="fixed bottom-20 inset-x-3 max-w-md mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 z-[60] space-y-3"
+              className="fixed bottom-20 inset-x-3 max-w-md mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 z-50 space-y-3"
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export const MobileNav: React.FC = () => {
       {/* Drawer Overlay for Extra Operations on Mobile with Framer Motion */}
       <AnimatePresence>
         {drawerOpen && (
-          <div className="fixed inset-0 z-[60] lg:hidden">
+          <div className="fixed inset-0 z-50 lg:hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

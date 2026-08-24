@@ -42,6 +42,7 @@ import { STATE_CODE_LIST } from '../../utils/constants';
 import { DEFAULT_SIGNATURE_DATA_URL, DEFAULT_SIGNATURE_2_DATA_URL, normalizeSignatureUrl } from '../../utils/formatters';
 import { InvoiceLineSettings } from '../../types';
 import { normalizeBusinessProfile, cleanDefaultBusinessProfile } from '../../utils/cleanDefaults';
+import { auditInvoiceSequences, formatInvoiceSequence } from '../../utils/invoiceNumberUtils';
 import { InvoiceTemplateManager } from './InvoiceTemplateManager';
 import { ThemeSettingsTab } from './ThemeSettingsTab';
 import { BottomNavSettingsTab } from './BottomNavSettingsTab';
@@ -56,6 +57,8 @@ export const SettingsView: React.FC = () => {
   const { 
     business, 
     updateBusiness, 
+    invoices,
+    realignAndFixInvoiceSequences,
     resetAllData, 
     exportDatabaseJSON, 
     importDatabaseJSON, 
@@ -65,9 +68,17 @@ export const SettingsView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'footer' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'low_stock' | 'security' | 'pwa' | 'backup'>('profile');
   const [formData, setFormData] = useState({ ...business });
+  const [isFixingSequence, setIsFixingSequence] = useState(false);
   const [importFileContent, setImportFileContent] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [newWarrantyPreset, setNewWarrantyPreset] = useState('');
+
+  // Keep formData in sync when business updates
+  useEffect(() => {
+    setFormData({ ...business });
+  }, [business]);
+
+  const sequenceAudit = auditInvoiceSequences(invoices, business);
 
   // Digital Signature Canvas State
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -122,6 +133,9 @@ export const SettingsView: React.FC = () => {
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
+    } else if (name === 'nextInvoiceNumber' || name === 'nextPosInvoiceNumber' || type === 'number') {
+      const parsed = parseInt(value, 10);
+      setFormData(prev => ({ ...prev, [name]: isNaN(parsed) ? 1 : Math.max(1, parsed) }));
     } else if (name === 'state') {
       const found = STATE_CODE_LIST.find(s => s.name === value);
       setFormData(prev => ({
@@ -1075,58 +1089,142 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: Invoice Preferences */}
+        {/* TAB 4: Invoice Preferences & Unified Series */}
         {activeTab === 'invoicing' && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <h3 className="font-bold text-sm text-slate-900 pb-3 border-b border-slate-100 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-600" />
-              Invoice Prefix, Sequence & Default Terms
-            </h3>
+          <div className="space-y-6">
+            {/* Live Sequence Integrity & Self-Healing Card */}
+            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-5 text-white shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">Unified Tax & POS Invoice Serial Integrity</h3>
+                    <p className="text-[11px] text-slate-400">Rule 46 CGST single continuous consecutive numbering monitor</p>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Invoice Prefix</label>
-                <input
-                  type="text"
-                  name="invoicePrefix"
-                  value={formData.invoicePrefix}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 font-mono font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <p className="text-[10px] text-slate-400 mt-1">Example: INV-2026-</p>
+                <button
+                  type="button"
+                  disabled={isFixingSequence}
+                  onClick={async () => {
+                    setIsFixingSequence(true);
+                    try {
+                      await realignAndFixInvoiceSequences(parseInt(String(formData.nextInvoiceNumber), 10) || undefined);
+                    } finally {
+                      setIsFixingSequence(false);
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${isFixingSequence ? 'animate-spin' : ''}`} />
+                  <span>{isFixingSequence ? 'Aligning...' : 'Auto-Fix & Re-sync Sequences'}</span>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Next Serial Number</label>
-                <input
-                  type="number"
-                  name="nextInvoiceNumber"
-                  value={formData.nextInvoiceNumber}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 font-mono font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">Total Invoices</span>
+                  <span className="font-mono font-bold text-lg text-white">{sequenceAudit.totalInvoices}</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">Highest Serial Recorded</span>
+                  <span className="font-mono font-bold text-lg text-indigo-300">
+                    {sequenceAudit.highestInvoiceSeq > 0 ? (formData.invoicePrefix ? formatInvoiceSequence(formData.invoicePrefix, sequenceAudit.highestInvoiceSeq) : sequenceAudit.highestInvoiceSeq) : 'None'}
+                  </span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">Next Active Serial</span>
+                  <span className="font-mono font-bold text-lg text-emerald-400">
+                    {formatInvoiceSequence(business.invoicePrefix, business.nextInvoiceNumber)}
+                  </span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">Sequence Rule</span>
+                  <span className="font-bold text-xs inline-flex items-center gap-1 text-emerald-400 mt-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>Single Unified Rule</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">Default Terms & Conditions</label>
-                <textarea
-                  name="defaultTerms"
-                  rows={3}
-                  value={formData.defaultTerms}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              {sequenceAudit.duplicateNumbers.length > 0 && (
+                <div className="p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl text-xs text-amber-200 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Found potential duplicate entries: {sequenceAudit.duplicateNumbers.join(', ')}. Click &quot;Auto-Fix &amp; Re-sync Sequences&quot; to realign.</span>
+                </div>
+              )}
+            </div>
+
+            {/* Prefix & Numbering Series Configuration */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-indigo-600" />
+                  <span>Invoice Numbering & Default Terms</span>
+                </h3>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">Default Footer Notes</label>
-                <textarea
-                  name="defaultNotes"
-                  rows={2}
-                  value={formData.defaultNotes}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-blue-950">
+                  <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Unified Continuous Numbering Rule (GST Rule 46 Compliant)</span>
+                </div>
+                <p className="text-[11px] text-blue-700">
+                  Both Tax Invoices and POS Counter quick billing share this exact single sequential series. For instance, if you issue invoice <span className="font-mono font-bold">{formData.invoicePrefix ? `${formData.invoicePrefix}3406` : '3406'}</span>, the next POS bill or invoice will consecutively be <span className="font-mono font-bold">{formData.invoicePrefix ? `${formData.invoicePrefix}3407` : '3407'}</span>, then <span className="font-mono font-bold">{formData.invoicePrefix ? `${formData.invoicePrefix}3408` : '3408'}</span>.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Invoice Prefix (Optional)</label>
+                  <input
+                    type="text"
+                    name="invoicePrefix"
+                    placeholder="Leave empty for plain numbers (e.g. 3406)"
+                    value={formData.invoicePrefix}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 font-mono font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400 placeholder:font-normal"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Optional. Leave empty for pure numbers (e.g. 3406, 3407) or specify custom prefix</p>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Next Serial Number (Integer, e.g. 3406)</label>
+                  <input
+                    type="number"
+                    name="nextInvoiceNumber"
+                    value={formData.nextInvoiceNumber}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 font-mono font-bold border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Preview: {formatInvoiceSequence(formData.invoicePrefix, formData.nextInvoiceNumber || 1)}
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-slate-700 font-semibold mb-1">Default Terms & Conditions</label>
+                  <textarea
+                    name="defaultTerms"
+                    rows={3}
+                    value={formData.defaultTerms}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-slate-700 font-semibold mb-1">Default Footer Notes</label>
+                  <textarea
+                    name="defaultNotes"
+                    rows={2}
+                    value={formData.defaultNotes}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
             </div>
           </div>

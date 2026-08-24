@@ -58,7 +58,16 @@ interface CartItem extends InvoiceItem {
 }
 
 export const PosBillingView: React.FC = () => {
-  const { products, parties, business, createInvoice, createParty, setSelectedInvoiceIdForPrint, showToast } = useApp();
+  const { 
+    products, 
+    parties, 
+    business, 
+    createInvoice, 
+    createParty, 
+    getNextSequentialInvoiceNumber,
+    setSelectedInvoiceIdForPrint, 
+    showToast 
+  } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -417,11 +426,11 @@ export const PosBillingView: React.FC = () => {
     const calculatedDue = Math.max(0, totals.grandTotal - calculatedPaid);
     const invoiceStatus = (calculatedDue === 0 ? 'PAID' : (calculatedPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID')) as InvoiceStatus;
 
-    // Continue the exact consecutive Tax Invoice numbering series
-    const sequentialInvoiceNumber = `${business.invoicePrefix}${String(business.nextInvoiceNumber).padStart(3, '0')}`;
+    // Get dynamic next sequential invoice number guaranteed to be non-colliding
+    const liveNextInfo = getNextSequentialInvoiceNumber();
     
     const invoice = createInvoice({
-      invoiceNumber: sequentialInvoiceNumber,
+      invoiceNumber: liveNextInfo.invoiceNumber,
       invoiceType: 'TAX_INVOICE',
       invoiceDate: new Date().toISOString().split('T')[0],
       dueDate: new Date().toISOString().split('T')[0],
@@ -477,7 +486,7 @@ export const PosBillingView: React.FC = () => {
     setSelectedInvoiceIdForPrint(invoice.id);
   };
 
-  const nextSequentialInvoiceNo = `${business.invoicePrefix}${String(business.nextInvoiceNumber).padStart(3, '0')}`;
+  const currentNextInfo = getNextSequentialInvoiceNumber();
 
   return (
     <div className="space-y-4">
@@ -495,13 +504,15 @@ export const PosBillingView: React.FC = () => {
 
         {/* Unified Continuous Series Indicator */}
         <div className="flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center gap-2">
-            <span className="text-[10px] font-semibold text-indigo-700 uppercase">Tax Invoice No:</span>
-            <span className="font-mono font-bold text-xs text-indigo-950 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
-              {nextSequentialInvoiceNo}
+          <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center gap-2 shadow-2xs">
+            <span className="text-[10px] font-semibold text-indigo-700 uppercase">
+              Next Invoice No:
             </span>
-            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-              Continuous Series
+            <span className="font-mono font-bold text-xs text-indigo-950 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+              {currentNextInfo.invoiceNumber}
+            </span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100/80 border border-emerald-200">
+              Unified Serial Rule
             </span>
           </div>
         </div>
@@ -1338,8 +1349,8 @@ export const PosBillingView: React.FC = () => {
 
       {/* CUSTOM SETTLEMENT MODAL POPUP */}
       {showSettlementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
             <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
@@ -1510,8 +1521,8 @@ export const PosBillingView: React.FC = () => {
 
       {/* EDIT CUSTOM SALE AMOUNT & PRICING MODAL */}
       {editingCartItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
             <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white">
@@ -1817,8 +1828,8 @@ export const PosBillingView: React.FC = () => {
 
       {/* ADD BRAND-NEW CUSTOM / OPEN SALE ITEM MODAL */}
       {showCustomItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
             <div className="p-4 bg-indigo-600 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">

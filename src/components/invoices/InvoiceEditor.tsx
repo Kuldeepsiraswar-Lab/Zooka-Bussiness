@@ -64,13 +64,23 @@ interface InvoiceEditorProps {
 }
 
 export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialData }) => {
-  const { business, parties, products, createInvoice, updateInvoice, setSelectedInvoiceIdForPrint, showToast } = useApp();
+  const { 
+    business, 
+    parties, 
+    products, 
+    createInvoice, 
+    updateInvoice, 
+    getNextSequentialInvoiceNumber, 
+    setSelectedInvoiceIdForPrint, 
+    showToast 
+  } = useApp();
   const isEditing = !!initialData?.id;
 
   const [invoiceType, setInvoiceType] = useState<InvoiceType>(initialData?.invoiceType || 'TAX_INVOICE');
-  const [invoiceNumber, setInvoiceNumber] = useState<string>(
-    initialData?.invoiceNumber || `${business.invoicePrefix}${String(business.nextInvoiceNumber).padStart(3, '0')}`
-  );
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(() => {
+    if (initialData?.invoiceNumber) return initialData.invoiceNumber;
+    return getNextSequentialInvoiceNumber().invoiceNumber;
+  });
   const [invoiceDate, setInvoiceDate] = useState<string>(
     initialData?.invoiceDate || new Date().toISOString().split('T')[0]
   );
@@ -629,7 +639,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                {isEditing ? `Edit Invoice #${invoiceNumber}` : 'Create GST Tax Invoice'}
+                {isEditing ? `Edit Invoice ${invoiceNumber}` : 'Create GST Tax Invoice'}
               </h1>
               <span className={`px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border ${
                 isInterState 
@@ -701,7 +711,24 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Number</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">Invoice Number</label>
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const seq = getNextSequentialInvoiceNumber();
+                        setInvoiceNumber(seq.invoiceNumber);
+                        showToast('info', 'Sequence Refreshed', `Assigned next consecutive serial ${seq.invoiceNumber}`);
+                      }}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                      title="Fetch live consecutive invoice number"
+                    >
+                      <RotateCcw className="w-2.5 h-2.5" />
+                      <span>Auto-Sync</span>
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={invoiceNumber}
@@ -1742,8 +1769,8 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           (prod?.sellingPrice !== undefined && effectiveBaseRate !== prod.sellingPrice);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
               {/* Modal Header */}
               <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">

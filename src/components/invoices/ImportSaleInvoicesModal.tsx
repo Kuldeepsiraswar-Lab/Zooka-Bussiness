@@ -861,7 +861,7 @@ export const ImportSaleInvoicesModal: React.FC<ImportSaleInvoicesModalProps> = (
       // Check if invoice number already exists
       const alreadyExists = invoices.some(i => i.invoiceNumber.toLowerCase() === first.invoiceNumber.toLowerCase());
       if (alreadyExists) {
-        allMessages.push(`Invoice #${first.invoiceNumber} already exists in database (will be overwritten if enabled).`);
+        allMessages.push(`Invoice ${first.invoiceNumber} already exists in database (will be overwritten if enabled).`);
       }
 
       finalInvoices.push({
@@ -1036,7 +1036,7 @@ export const ImportSaleInvoicesModal: React.FC<ImportSaleInvoicesModalProps> = (
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
       <div 
         className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] my-auto transition-colors"
         onClick={e => e.stopPropagation()}
@@ -1404,7 +1404,7 @@ export const ImportSaleInvoicesModal: React.FC<ImportSaleInvoicesModalProps> = (
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-mono font-bold text-xs shrink-0 border border-indigo-100 dark:border-indigo-800">
-                            #{inv.invoiceNumber}
+                            {inv.invoiceNumber}
                           </div>
 
                           <div className="min-w-0">

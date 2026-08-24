@@ -732,8 +732,8 @@ export const CustomizablePermissionMatrix: React.FC = () => {
 
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-100">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-100">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full my-auto shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-100">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                 <RotateCcw className="w-5 h-5" />

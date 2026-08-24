@@ -1891,8 +1891,8 @@ export const AccountingView: React.FC = () => {
           LEDGER MASTER (ADD / EDIT ACCOUNT HEAD) MODAL
          ========================================================================= */}
       {showAccountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-lg w-full text-xs space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-lg w-full my-auto text-xs space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -2037,8 +2037,8 @@ export const AccountingView: React.FC = () => {
           DELETE ACCOUNT CONFIRMATION MODAL
          ========================================================================= */}
       {accountToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-md w-full text-xs space-y-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 max-w-md w-full my-auto text-xs space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
@@ -2082,8 +2082,8 @@ export const AccountingView: React.FC = () => {
           CREATE / EDIT JOURNAL VOUCHER MODAL
          ========================================================================= */}
       {showJvModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-2xl w-full text-xs space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-2xl w-full my-auto text-xs space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -2252,8 +2252,8 @@ export const AccountingView: React.FC = () => {
           DELETE JV CONFIRMATION MODAL
          ========================================================================= */}
       {entryToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-md w-full text-xs space-y-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 max-w-md w-full my-auto text-xs space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
@@ -2299,8 +2299,8 @@ export const AccountingView: React.FC = () => {
           CONFIRM CLEAR ALL LEDGER DATA MODAL
          ========================================================================= */}
       {showClearLedgerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-w-md w-full text-xs space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 max-w-md w-full my-auto text-xs space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <Trash2 className="w-5 h-5" />

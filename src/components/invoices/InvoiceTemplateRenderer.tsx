@@ -682,7 +682,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                   {invoice.invoiceType.replace(/_/g, ' ')}
                 </div>
                 <div className={`${fitToOnePage ? 'text-base' : 'text-lg'} font-black font-mono mt-0.5`}>
-                  #{invoice.invoiceNumber}
+                  {invoice.invoiceNumber}
                 </div>
                 <div className="text-[10px] text-white/90 mt-1 space-y-0.5">
                   <div>Date: <strong>{formatDate(invoice.invoiceDate)}</strong></div>
@@ -727,7 +727,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                 {invoice.invoiceType.replace(/_/g, ' ')}
               </div>
               <div className={`${fitToOnePage ? 'text-lg' : 'text-xl'} font-black font-mono text-slate-900 mt-0.5`}>
-                #{invoice.invoiceNumber}
+                {invoice.invoiceNumber}
               </div>
               <div className="text-[11px] text-slate-600 mt-1 space-y-0.5">
                 <div>Date: <strong className="text-slate-800">{formatDate(invoice.invoiceDate)}</strong></div>
@@ -765,7 +765,7 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
                     {invoice.invoiceType.replace(/_/g, ' ')}
                   </div>
                   <div className={`${fitToOnePage ? 'text-base' : 'text-lg'} font-extrabold font-mono text-slate-900`}>
-                    #{invoice.invoiceNumber}
+                    {invoice.invoiceNumber}
                   </div>
                 </div>
                 <div className="text-[10.5px] text-slate-600 mt-1 space-y-0.5">

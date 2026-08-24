@@ -626,8 +626,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Record Purchase Bill & Add Stock Modal */}
       {isPurchaseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="w-full max-w-4xl my-auto bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -1103,8 +1103,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Bill View Details Modal */}
       {selectedBillForView && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="w-full max-w-2xl my-auto bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -1202,8 +1202,8 @@ export const PurchasesView: React.FC = () => {
 
       {/* Log Expense Modal */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="w-full max-w-md my-auto bg-white rounded-3xl border border-slate-200 shadow-2xl p-5 overflow-hidden flex flex-col max-h-[90vh]">
             <h3 className="text-base font-bold text-slate-900 mb-1">Record Operating Expense</h3>
             <p className="text-xs text-slate-500 mb-4">Post direct or indirect business expenses</p>
 

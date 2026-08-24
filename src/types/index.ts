@@ -351,6 +351,8 @@ export interface Company {
   currencySymbol: string;
   logoUrl?: string;
   themeColor?: string;
+  invoicePrefix?: string;
+  nextInvoiceNumber?: number;
   isActive?: boolean; // Controls whether this business is enabled or disabled
   disabledReason?: string; // Reason when disabled by Super Admin
   headerConfig?: HeaderConfig;
@@ -598,6 +600,9 @@ export interface BusinessProfile {
   // Invoice settings
   invoicePrefix: string;
   nextInvoiceNumber: number;
+  posInvoiceSeriesMode?: 'UNIFIED' | 'SEPARATE';
+  posInvoicePrefix?: string;
+  nextPosInvoiceNumber?: number;
   defaultTerms: string;
   defaultNotes: string;
   enableEinvoice: boolean;

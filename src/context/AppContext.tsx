@@ -27,6 +27,12 @@ import {
 } from '../utils/rbacRules';
 import { generateSimulatedEInvoice, recalculateInvoiceTotals } from '../utils/gstCalculations';
 import { generateEwayBillNo, normalizeSignatureUrl } from '../utils/formatters';
+import { 
+  getNextAvailableInvoiceNumber, 
+  parseInvoiceNumber, 
+  auditInvoiceSequences,
+  formatInvoiceSequence
+} from '../utils/invoiceNumberUtils';
 import { cloudDb, defaultStandardAccountHeads } from '../services/cloudDb';
 
 export type ActiveTab = 
@@ -93,6 +99,8 @@ interface AppContextType {
   // Invoices & Billing
   invoices: Invoice[];
   createInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) => Invoice;
+  getNextSequentialInvoiceNumber: () => { invoiceNumber: string; nextNumber: number; prefix: string };
+  realignAndFixInvoiceSequences: (overrideSeq?: number) => Promise<{ fixedCount: number; nextInvoiceNo: string }>;
   bulkCreateInvoices: (
     invoices: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>[], 
     options?: { updateExisting?: boolean; autoCreateParties?: boolean; deductInventory?: boolean }
@@ -838,7 +846,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: newCompany.phone,
       email: newCompany.email,
       signatoryName: adminUser.name,
-      invoicePrefix: `${newCompany.name.substring(0, 3).toUpperCase()}/26-27/`,
+      invoicePrefix: '',
       nextInvoiceNumber: 1,
     };
 
@@ -1623,8 +1631,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Invoices & Billing
+  const getNextSequentialInvoiceNumber = () => {
+    return getNextAvailableInvoiceNumber(invoices, business);
+  };
+
+  const realignAndFixInvoiceSequences = async (overrideSeq?: number) => {
+    const audit = auditInvoiceSequences(invoices, business);
+    const targetSeq = typeof overrideSeq === 'number' && overrideSeq > 0
+      ? Math.floor(overrideSeq)
+      : audit.suggestedNextNumber;
+    
+    const updatedBusiness: BusinessProfile = {
+      ...business,
+      nextInvoiceNumber: targetSeq,
+      posInvoiceSeriesMode: 'UNIFIED'
+    };
+    
+    setBusiness(updatedBusiness);
+    setCompanies(prev => prev.map(c => c.id === currentCompanyId ? { 
+      ...c, 
+      nextInvoiceNumber: targetSeq,
+      updatedAt: new Date().toISOString()
+    } : c));
+
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_business`, JSON.stringify(updatedBusiness));
+    } catch (e) {}
+
+    await cloudDb.saveBusinessProfile(currentCompanyId, updatedBusiness).catch(console.warn);
+    
+    const nextInvoiceNo = formatInvoiceSequence(updatedBusiness.invoicePrefix, targetSeq);
+
+    logSecurityEvent(
+      'INVOICE_SEQUENCE_REALIGNED',
+      'Billing Integrity',
+      `Realigned unified invoice sequence to ${nextInvoiceNo} (Audited ${audit.totalInvoices} total invoices)`
+    );
+
+    showToast('success', 'Sequence Synchronized', `Single Unified Serial Active: ${nextInvoiceNo}`);
+    return {
+      fixedCount: audit.duplicateNumbers.length + audit.mismatchedNumbers.length,
+      nextInvoiceNo
+    };
+  };
+
   const createInvoice = (invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>): Invoice => {
-    const invoiceNumber = invoiceData.invoiceNumber || `${business.invoicePrefix}${business.nextInvoiceNumber.toString().padStart(3, '0')}`;
+    // Single Unified Serial Number Rule for both Tax Invoice and POS Billing
+    let invoiceNumber = invoiceData.invoiceNumber?.trim();
+    
+    const existingIndex = invoices.findIndex(i => 
+      (i.invoiceNumber || '').trim().toLowerCase() === (invoiceNumber || '').toLowerCase()
+    );
+    
+    if (!invoiceNumber || existingIndex !== -1) {
+      const generated = getNextAvailableInvoiceNumber(invoices, business);
+      invoiceNumber = generated.invoiceNumber;
+      if (invoiceData.invoiceNumber && existingIndex !== -1) {
+        showToast('info', 'Sequential Serial Assigned', `Serial number adjusted to ${invoiceNumber} to maintain continuous sequence.`);
+      }
+    }
     
     // Auto-create or link customer party in parties master if not existing
     let finalCustomerId = invoiceData.customerId;
@@ -1695,12 +1760,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setInvoices(prev => [newInvoice, ...prev]);
     cloudDb.syncEntityDoc('invoices', currentCompanyId, newInvoice).catch(console.warn);
 
-    // Increment next invoice number
+    // Calculate advance for next invoice number sequence as strict integer (e.g., 3406 -> 3407)
+    const parsed = parseInvoiceNumber(invoiceNumber);
+    const createdSeq = parsed ? Number(parsed.sequence) : 0;
+
+    // Persist incremented next invoice number in business and companies
     setBusiness(prev => {
-      const updated = { ...prev, nextInvoiceNumber: prev.nextInvoiceNumber + 1 };
+      const prevNum = Math.max(1, parseInt(String(prev.nextInvoiceNumber || 1), 10) || 1);
+      const nextNum = Math.max(prevNum, createdSeq > 0 ? createdSeq + 1 : prevNum + 1);
+      const updated: BusinessProfile = { 
+        ...prev, 
+        nextInvoiceNumber: nextNum,
+        posInvoiceSeriesMode: 'UNIFIED'
+      };
+      try {
+        localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_business`, JSON.stringify(updated));
+      } catch (e) {}
       cloudDb.saveBusinessProfile(currentCompanyId, updated).catch(console.warn);
       return updated;
     });
+
+    setCompanies(prevComps => prevComps.map(c => {
+      if (c.id === currentCompanyId) {
+        const cPrevNum = Math.max(1, parseInt(String(c.nextInvoiceNumber || 1), 10) || 1);
+        const cNextNum = Math.max(cPrevNum, createdSeq > 0 ? createdSeq + 1 : cPrevNum + 1);
+        const compUpdated: Company = {
+          ...c,
+          nextInvoiceNumber: cNextNum,
+          updatedAt: new Date().toISOString()
+        };
+        cloudDb.saveCompany(compUpdated).catch(console.warn);
+        return compUpdated;
+      }
+      return c;
+    }));
 
     // Auto update Party Balance if unpaid / partially paid (if not already updated above)
     if (newInvoice.customerId && newInvoice.amountDue > 0 && (!cleanCustomerName || cleanCustomerName.toLowerCase() === 'walk-in customer')) {
@@ -2960,6 +3053,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateLowStockSettings,
         invoices,
         createInvoice,
+        getNextSequentialInvoiceNumber,
+        realignAndFixInvoiceSequences,
         bulkCreateInvoices,
         updateInvoice,
         deleteInvoice,

@@ -266,7 +266,7 @@ export const PaymentsView: React.FC = () => {
       linkedBillNumber: '',
       fromAccount: 'Cash in Hand (acc-1)',
       toAccount: 'HDFC Current Bank Account (acc-2)',
-      notes: `Payment receipt against Invoice #${inv.invoiceNumber}`
+      notes: `Payment receipt against Invoice ${inv.invoiceNumber}`
     });
     setIsRecordModalOpen(true);
   };
@@ -299,7 +299,7 @@ export const PaymentsView: React.FC = () => {
       linkedBillNumber: bill.billNumber,
       fromAccount: 'HDFC Current Bank Account (acc-2)',
       toAccount: 'Vendor Bank / Cash',
-      notes: `Payment disbursed for Purchase Bill #${bill.billNumber}`
+      notes: `Payment disbursed for Purchase Bill ${bill.billNumber}`
     });
     setIsRecordModalOpen(true);
   };
@@ -1131,8 +1131,8 @@ export const PaymentsView: React.FC = () => {
 
       {/* RECORD / EDIT PAYMENT MODAL */}
       {isRecordModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-xl my-auto rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className={`p-4 border-b flex items-center justify-between ${
               formData.type === 'PAYMENT_IN' ? 'bg-emerald-50/70 border-emerald-100' :
@@ -1411,8 +1411,8 @@ export const PaymentsView: React.FC = () => {
 
       {/* PRINTABLE VOUCHER MODAL */}
       {voucherToPrint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95vh]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-2xl my-auto rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             {/* Modal Controls */}
             <div className="p-3.5 bg-slate-800 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1556,8 +1556,8 @@ export const PaymentsView: React.FC = () => {
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 text-center space-y-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-in fade-in">
+          <div className="bg-white w-full max-w-sm my-auto rounded-3xl border border-slate-200 shadow-2xl p-5 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>

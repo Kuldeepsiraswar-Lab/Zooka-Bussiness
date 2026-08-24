@@ -12,7 +12,11 @@ import {
   JournalEntry, 
   AppUser, 
   SecurityAuditLog,
-  SuperAdminAuthData
+  SuperAdminAuthData,
+  CustomHsnCode,
+  ChequeRecord,
+  ChequeBook,
+  ChequeTemplateConfig
 } from '../types';
 import { normalizeBusinessProfile } from '../utils/cleanDefaults';
 
@@ -77,6 +81,10 @@ export interface CloudCompanyData {
   journalEntries: JournalEntry[];
   users: AppUser[];
   auditLogs: SecurityAuditLog[];
+  customHsnCodes?: CustomHsnCode[];
+  cheques?: ChequeRecord[];
+  chequeBooks?: ChequeBook[];
+  chequeTemplates?: ChequeTemplateConfig[];
 }
 
 class CloudDbService {
@@ -187,7 +195,11 @@ class CloudDbService {
         'accountHeads',
         'journalEntries',
         'users',
-        'auditLogs'
+        'auditLogs',
+        'customHsnCodes',
+        'cheques',
+        'chequeBooks',
+        'chequeTemplates'
       ];
 
       for (const collName of collectionsToClean) {
@@ -303,7 +315,11 @@ class CloudDbService {
         accountHeads,
         journalEntries,
         users,
-        auditLogs
+        auditLogs,
+        customHsnCodes,
+        cheques,
+        chequeBooks,
+        chequeTemplates
       ] = await Promise.all([
         fetchList<Invoice>('invoices'),
         fetchList<Product>('products'),
@@ -314,7 +330,11 @@ class CloudDbService {
         fetchList<AccountHead>('accountHeads'),
         fetchList<JournalEntry>('journalEntries'),
         fetchList<AppUser>('users'),
-        fetchList<SecurityAuditLog>('auditLogs')
+        fetchList<SecurityAuditLog>('auditLogs'),
+        fetchList<CustomHsnCode>('customHsnCodes'),
+        fetchList<ChequeRecord>('cheques'),
+        fetchList<ChequeBook>('chequeBooks'),
+        fetchList<ChequeTemplateConfig>('chequeTemplates')
       ]);
 
       return {
@@ -329,7 +349,11 @@ class CloudDbService {
         accountHeads: accountHeads.length > 0 ? accountHeads : defaultStandardAccountHeads,
         journalEntries,
         users,
-        auditLogs
+        auditLogs,
+        customHsnCodes,
+        cheques,
+        chequeBooks,
+        chequeTemplates
       };
     } catch (e) {
       console.error(`CloudDb: Error fetching data partition for company ${companyId}:`, e);

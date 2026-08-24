@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   Receipt,
   PlusCircle,
-  QrCode
+  QrCode,
+  Landmark
 } from 'lucide-react';
 import React from 'react';
 
@@ -91,6 +92,13 @@ export const ALL_AVAILABLE_NAV_TABS: TabMetaDefinition[] = [
     icon: Calculator,
   },
   {
+    id: 'cheques',
+    defaultLabel: 'Cheque Printing & Books',
+    shortLabel: 'Cheques',
+    description: 'CTS-2010 bank cheque printing, cheque books & auto-ledger entries',
+    icon: Landmark,
+  },
+  {
     id: 'users',
     defaultLabel: 'Users & Permissions',
     shortLabel: 'Users',
@@ -116,8 +124,9 @@ export const DEFAULT_BOTTOM_NAV_TABS: BottomNavTabItem[] = [
   { id: 'purchases', label: 'Purchases', customLabel: '', isEnabled: false, order: 6 },
   { id: 'accounting', label: 'Accounts', customLabel: '', isEnabled: false, order: 7 },
   { id: 'gst_returns', label: 'GST Tax', customLabel: '', isEnabled: false, order: 8 },
-  { id: 'users', label: 'Users', customLabel: '', isEnabled: false, order: 9 },
-  { id: 'settings', label: 'Settings', customLabel: '', isEnabled: false, order: 10 },
+  { id: 'cheques', label: 'Cheques', customLabel: '', isEnabled: false, order: 9 },
+  { id: 'users', label: 'Users', customLabel: '', isEnabled: false, order: 10 },
+  { id: 'settings', label: 'Settings', customLabel: '', isEnabled: false, order: 11 },
 ];
 
 export const DEFAULT_BOTTOM_NAV_CONFIG: BottomNavConfig = {

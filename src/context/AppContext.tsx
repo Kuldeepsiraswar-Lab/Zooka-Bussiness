@@ -4,8 +4,15 @@ import {
   EInvoiceDetails, EWayBillDetails, PaymentMethod, InvoiceStatus, PaymentRecord, PaymentType,
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
-  SessionTimeoutConfig, LowStockSettings
+  SessionTimeoutConfig, LowStockSettings, CustomHsnCode,
+  ChequeRecord, ChequeBook, ChequeTemplateConfig
 } from '../types';
+import { 
+  BANK_CHEQUE_PRESETS,
+  DEFAULT_CTS2010_TEMPLATE,
+  getNextChequeNumber,
+  formatChequeNumber
+} from '../utils/chequeConstants';
 import { 
   cleanDefaultCompany,
   cleanDefaultBusinessProfile,
@@ -45,6 +52,7 @@ export type ActiveTab =
   | 'purchases'
   | 'accounting'
   | 'gst_returns'
+  | 'cheques'
   | 'users'
   | 'settings'
   | 'super_admin_dashboard';
@@ -121,6 +129,13 @@ interface AppContextType {
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   adjustStock: (id: string, newStock: number, reason: string) => void;
+
+  // Custom HSN / SAC Master Directory
+  customHsnCodes: CustomHsnCode[];
+  addCustomHsnCode: (hsn: Omit<CustomHsnCode, 'id'>) => CustomHsnCode;
+  updateCustomHsnCode: (id: string, updates: Partial<CustomHsnCode>) => void;
+  deleteCustomHsnCode: (id: string) => void;
+  bulkImportCustomHsnCodes: (items: Omit<CustomHsnCode, 'id'>[]) => number;
   
   // Parties (Customers & Vendors)
   parties: Party[];
@@ -146,6 +161,22 @@ interface AppContextType {
   expenses: Expense[];
   createExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => Expense;
   deleteExpense: (id: string) => void;
+
+  // Cheque Printing & Books Management
+  cheques: ChequeRecord[];
+  chequeBooks: ChequeBook[];
+  chequeTemplates: ChequeTemplateConfig[];
+  createCheque: (chequeData: Omit<ChequeRecord, 'id' | 'createdAt'>) => ChequeRecord;
+  updateCheque: (id: string, updates: Partial<ChequeRecord>) => void;
+  deleteCheque: (id: string) => void;
+  markChequeAsPrinted: (id: string) => void;
+  markChequeAsCleared: (id: string, clearanceDate?: string) => void;
+  markChequeAsBounced: (id: string, reason?: string) => void;
+  createChequeBook: (bookData: Omit<ChequeBook, 'id' | 'createdAt'>) => ChequeBook;
+  updateChequeBook: (id: string, updates: Partial<ChequeBook>) => void;
+  deleteChequeBook: (id: string) => void;
+  saveChequeTemplate: (template: ChequeTemplateConfig) => void;
+  deleteChequeTemplate: (id: string) => void;
   
   // Accounting & Ledger
   accountHeads: AccountHead[];
@@ -361,6 +392,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [expenses, setExpenses] = useState<Expense[]>(() => loadState('expenses', []));
   const [accountHeads, setAccountHeads] = useState<AccountHead[]>(() => loadState('accountHeads', cleanDefaultAccountHeads));
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(() => loadState('journalEntries', []));
+  const [customHsnCodes, setCustomHsnCodes] = useState<CustomHsnCode[]>(() => loadState('customHsnCodes', []));
+  const [cheques, setCheques] = useState<ChequeRecord[]>(() => loadState('cheques', []));
+  const [chequeBooks, setChequeBooks] = useState<ChequeBook[]>(() => loadState('chequeBooks', [
+    {
+      id: 'cb-default-1',
+      bankName: 'HDFC Bank Ltd',
+      accountNumber: '50200012345678',
+      startChequeNo: '000101',
+      endChequeNo: '000150',
+      totalLeaves: 50,
+      currentChequeNo: '000101',
+      status: 'ACTIVE',
+      notes: 'Primary Company Cheque Book',
+      createdAt: new Date().toISOString()
+    }
+  ]));
+  const [chequeTemplates, setChequeTemplates] = useState<ChequeTemplateConfig[]>(() => loadState('chequeTemplates', BANK_CHEQUE_PRESETS));
   
   // RBAC & Authentication State (Company Users only, Super Admin is global master)
   const [users, setUsers] = useState<AppUser[]>(() => {
@@ -700,6 +748,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_auditLogs`, JSON.stringify(auditLogs));
   }, [auditLogs, currentCompanyId]);
 
+  useEffect(() => { 
+    localStorage.setItem(STORAGE_PREFIX + 'customHsnCodes', JSON.stringify(customHsnCodes)); 
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_customHsnCodes`, JSON.stringify(customHsnCodes));
+  }, [customHsnCodes, currentCompanyId]);
+
+  useEffect(() => { 
+    localStorage.setItem(STORAGE_PREFIX + 'cheques', JSON.stringify(cheques)); 
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_cheques`, JSON.stringify(cheques));
+  }, [cheques, currentCompanyId]);
+
+  useEffect(() => { 
+    localStorage.setItem(STORAGE_PREFIX + 'chequeBooks', JSON.stringify(chequeBooks)); 
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_chequeBooks`, JSON.stringify(chequeBooks));
+  }, [chequeBooks, currentCompanyId]);
+
+  useEffect(() => { 
+    localStorage.setItem(STORAGE_PREFIX + 'chequeTemplates', JSON.stringify(chequeTemplates)); 
+    localStorage.setItem(`${STORAGE_PREFIX}c_${currentCompanyId}_chequeTemplates`, JSON.stringify(chequeTemplates));
+  }, [chequeTemplates, currentCompanyId]);
+
   // Load company partition helper
   const loadCompanyDataPartition = (targetCompId: string) => {
     const rawBus = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_business`);
@@ -714,6 +782,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const rawUsers = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_users`);
     const rawUserId = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_currentUserId`);
     const rawLogs = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_auditLogs`);
+    const rawHsn = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_customHsnCodes`);
+    const rawCheques = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_cheques`);
+    const rawBooks = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_chequeBooks`);
+    const rawTemplates = localStorage.getItem(`${STORAGE_PREFIX}c_${targetCompId}_chequeTemplates`);
 
     let loadedBusiness: BusinessProfile;
     let loadedProducts: Product[] = rawProd ? JSON.parse(rawProd) : [];
@@ -726,6 +798,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let loadedHeads: AccountHead[] = rawHeads ? JSON.parse(rawHeads) : cleanDefaultAccountHeads;
     let loadedJournals: JournalEntry[] = rawJournals ? JSON.parse(rawJournals) : [];
     let loadedAudit: SecurityAuditLog[] = rawLogs ? JSON.parse(rawLogs) : [];
+    let loadedCustomHsn: CustomHsnCode[] = rawHsn ? JSON.parse(rawHsn) : [];
+    let loadedCheques: ChequeRecord[] = rawCheques ? JSON.parse(rawCheques) : [];
+    let loadedBooks: ChequeBook[] = rawBooks ? JSON.parse(rawBooks) : [];
+    let loadedTemplates: ChequeTemplateConfig[] = rawTemplates ? JSON.parse(rawTemplates) : BANK_CHEQUE_PRESETS;
 
     if (rawBus) {
       loadedBusiness = JSON.parse(rawBus);
@@ -762,6 +838,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       users: loadedUsers,
       currentUserId: defaultUserId,
       auditLogs: loadedAudit,
+      customHsnCodes: loadedCustomHsn,
+      cheques: loadedCheques,
+      chequeBooks: loadedBooks,
+      chequeTemplates: loadedTemplates,
     };
   };
 
@@ -787,6 +867,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setJournalEntries(partition.journalEntries);
     setUsers(partition.users);
     setAuditLogs(partition.auditLogs);
+    setCustomHsnCodes(partition.customHsnCodes);
+    setCheques(partition.cheques);
+    setChequeBooks(partition.chequeBooks);
+    setChequeTemplates(partition.chequeTemplates);
 
     if (autoLoginUserId) {
       setCurrentUserId(autoLoginUserId);
@@ -864,6 +948,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`${STORAGE_PREFIX}c_${compId}_users`, JSON.stringify([newAdmin]));
       localStorage.setItem(`${STORAGE_PREFIX}c_${compId}_currentUserId`, JSON.stringify(adminId));
       localStorage.setItem(`${STORAGE_PREFIX}c_${compId}_auditLogs`, JSON.stringify([]));
+      localStorage.setItem(`${STORAGE_PREFIX}c_${compId}_customHsnCodes`, JSON.stringify([]));
     } catch (e) {
       console.warn('Error creating company storage:', e);
     }
@@ -891,6 +976,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUsers([newAdmin]);
     setCurrentUserId(adminId);
     setAuditLogs([]);
+    setCustomHsnCodes([]);
 
     showToast('success', 'Company Created Successfully', `Welcome to ${newCompany.tradeName || newCompany.name}! Admin login configured.`);
     return newCompany;
@@ -1038,7 +1124,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const keysToClean = [
       'business', 'invoices', 'products', 'parties', 'purchaseBills', 
       'payments', 'expenses', 'accountHeads', 'journalEntries', 'users', 
-      'currentUserId', 'auditLogs'
+      'currentUserId', 'auditLogs', 'customHsnCodes'
     ];
     keysToClean.forEach(k => {
       try {
@@ -2179,6 +2265,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('success', 'Stock Adjusted', `Inventory updated (${reason}).`);
   };
 
+  // Custom HSN & SAC Master Management
+  const addCustomHsnCode = (hsnData: Omit<CustomHsnCode, 'id'>): CustomHsnCode => {
+    const newItem: CustomHsnCode = {
+      ...hsnData,
+      id: 'hsn-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      createdAt: new Date().toISOString()
+    };
+    setCustomHsnCodes(prev => [newItem, ...prev.filter(h => h.code.toLowerCase() !== newItem.code.toLowerCase())]);
+    cloudDb.syncEntityDoc('customHsnCodes', currentCompanyId, newItem).catch(console.warn);
+    return newItem;
+  };
+
+  const updateCustomHsnCode = (id: string, updates: Partial<CustomHsnCode>) => {
+    setCustomHsnCodes(prev => prev.map(h => {
+      if (h.id === id) {
+        const updated = { ...h, ...updates };
+        cloudDb.syncEntityDoc('customHsnCodes', currentCompanyId, updated).catch(console.warn);
+        return updated;
+      }
+      return h;
+    }));
+  };
+
+  const deleteCustomHsnCode = (id: string) => {
+    setCustomHsnCodes(prev => prev.filter(h => h.id !== id));
+    cloudDb.deleteEntityDoc('customHsnCodes', currentCompanyId, id).catch(console.warn);
+  };
+
+  const bulkImportCustomHsnCodes = (items: Omit<CustomHsnCode, 'id'>[]): number => {
+    let count = 0;
+    const newItems: CustomHsnCode[] = items.map(item => {
+      count++;
+      return {
+        ...item,
+        id: 'hsn-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+        createdAt: new Date().toISOString()
+      };
+    });
+
+    setCustomHsnCodes(prev => {
+      const codeMap = new Map<string, CustomHsnCode>();
+      prev.forEach(p => codeMap.set(p.code.toUpperCase(), p));
+      newItems.forEach(n => codeMap.set(n.code.toUpperCase(), n));
+      return Array.from(codeMap.values());
+    });
+
+    newItems.forEach(n => {
+      cloudDb.syncEntityDoc('customHsnCodes', currentCompanyId, n).catch(console.warn);
+    });
+
+    return count;
+  };
+
   // Parties
   const createParty = (partyData: Omit<Party, 'id' | 'createdAt' | 'currentBalance'>): Party => {
     const newParty: Party = {
@@ -2577,6 +2716,217 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setExpenses(prev => prev.filter(e => e.id !== id));
     cloudDb.deleteEntityDoc('expenses', currentCompanyId, id).catch(console.warn);
     showToast('info', 'Expense Removed', `Expense for ${target?.category || ''} deleted.`);
+  };
+
+  // Cheque Printing & Management
+  const createCheque = (chequeData: Omit<ChequeRecord, 'id' | 'createdAt'>): ChequeRecord => {
+    let linkedPayId: string | undefined = chequeData.linkedPaymentId;
+    let linkedJournalId: string | undefined = chequeData.linkedJournalEntryId;
+
+    // Automatic Entry in Client Ledger & Banking
+    if (chequeData.autoPostLedger) {
+      try {
+        const paymentType: PaymentType = chequeData.chequeType === 'PAYMENT_IN' ? 'PAYMENT_IN' : 'PAYMENT_OUT';
+        const isMoneyIn = paymentType === 'PAYMENT_IN';
+
+        // 1. Create Payment Voucher (Voucher No: PV-CHQ-123456)
+        const paymentVoucher = createPayment({
+          voucherNumber: `PV-CHQ-${chequeData.chequeNumber}`,
+          type: paymentType,
+          partyId: chequeData.partyId,
+          partyName: chequeData.partyName || chequeData.payeeName,
+          partyType: (chequeData.partyType === 'CUSTOMER' || chequeData.partyType === 'VENDOR') ? chequeData.partyType : (isMoneyIn ? 'CUSTOMER' : 'VENDOR'),
+          date: chequeData.chequeDate,
+          amount: chequeData.amount,
+          paymentMethod: 'CHEQUE',
+          referenceNo: `CHQ-${chequeData.chequeNumber}`,
+          chequeDate: chequeData.chequeDate,
+          bankAccountName: chequeData.bankName,
+          notes: chequeData.memo || `Cheque #${chequeData.chequeNumber} (${chequeData.payeeName})`,
+          linkedInvoiceId: chequeData.linkedInvoiceId,
+          linkedBillId: chequeData.linkedBillId
+        });
+        linkedPayId = paymentVoucher.id;
+
+        // 2. Create Double-Entry Journal Entry
+        const bankAccount = accountHeads.find(a => a.type === 'BANK' || a.name.toLowerCase().includes('bank')) || 
+          accountHeads.find(a => a.code === '1002') || { id: 'acc-bank-default', name: chequeData.bankName || 'Bank Account' };
+        
+        const partyAccount = accountHeads.find(a => a.name.toLowerCase() === (chequeData.payeeName || '').toLowerCase()) ||
+          accountHeads.find(a => isMoneyIn ? a.code === '1004' : a.code === '2001') || {
+            id: 'acc-party-default',
+            name: chequeData.payeeName
+          };
+
+        const journalEntry = createJournalEntry({
+          entryNumber: `JV-CHQ-${chequeData.chequeNumber}`,
+          date: chequeData.chequeDate,
+          description: `${isMoneyIn ? 'Received cheque' : 'Issued cheque'} #${chequeData.chequeNumber} for ${chequeData.payeeName}. Memo: ${chequeData.memo || 'Auto-ledger posting'}`,
+          reference: `CHQ-${chequeData.chequeNumber}`,
+          chequeId: chequeData.chequeNumber,
+          lines: isMoneyIn ? [
+            {
+              accountId: bankAccount.id,
+              accountName: bankAccount.name,
+              debit: chequeData.amount,
+              credit: 0
+            },
+            {
+              accountId: partyAccount.id,
+              accountName: partyAccount.name,
+              debit: 0,
+              credit: chequeData.amount
+            }
+          ] : [
+            {
+              accountId: partyAccount.id,
+              accountName: partyAccount.name,
+              debit: chequeData.amount,
+              credit: 0
+            },
+            {
+              accountId: bankAccount.id,
+              accountName: bankAccount.name,
+              debit: 0,
+              credit: chequeData.amount
+            }
+          ]
+        });
+        linkedJournalId = journalEntry.id;
+      } catch (err) {
+        console.warn('Error during auto-ledger posting for cheque:', err);
+      }
+    }
+
+    // 3. Increment active Cheque Book series if available
+    setChequeBooks(prev => prev.map(book => {
+      if (book.bankName.toLowerCase() === chequeData.bankName.toLowerCase() && book.status === 'ACTIVE') {
+        const nextNo = getNextChequeNumber(chequeData.chequeNumber);
+        const updatedBook: ChequeBook = {
+          ...book,
+          currentChequeNo: nextNo
+        };
+        cloudDb.syncEntityDoc('chequeBooks', currentCompanyId, updatedBook).catch(console.warn);
+        return updatedBook;
+      }
+      return book;
+    }));
+
+    const newCheque: ChequeRecord = {
+      ...chequeData,
+      id: 'chq-' + Date.now(),
+      linkedPaymentId: linkedPayId,
+      linkedJournalEntryId: linkedJournalId,
+      createdAt: new Date().toISOString()
+    };
+
+    setCheques(prev => [newCheque, ...prev]);
+    cloudDb.syncEntityDoc('cheques', currentCompanyId, newCheque).catch(console.warn);
+
+    showToast('success', 'Cheque Recorded & Ledger Synced', `Cheque #${newCheque.chequeNumber} for ${business.currencySymbol}${newCheque.amount} saved.`);
+    return newCheque;
+  };
+
+  const updateCheque = (id: string, updates: Partial<ChequeRecord>) => {
+    setCheques(prev => prev.map(c => {
+      if (c.id === id) {
+        const updated = { ...c, ...updates };
+        cloudDb.syncEntityDoc('cheques', currentCompanyId, updated).catch(console.warn);
+        return updated;
+      }
+      return c;
+    }));
+    showToast('success', 'Cheque Updated', 'Cheque details modified.');
+  };
+
+  const deleteCheque = (id: string) => {
+    const target = cheques.find(c => c.id === id);
+    setCheques(prev => prev.filter(c => c.id !== id));
+    cloudDb.deleteEntityDoc('cheques', currentCompanyId, id).catch(console.warn);
+    showToast('info', 'Cheque Removed', `Cheque #${target?.chequeNumber || ''} deleted.`);
+  };
+
+  const markChequeAsPrinted = (id: string) => {
+    const now = new Date().toISOString();
+    updateCheque(id, {
+      status: 'PRINTED',
+      printedAt: now
+    });
+    showToast('success', 'Cheque Printed', 'Cheque marked as printed.');
+  };
+
+  const markChequeAsCleared = (id: string, clearanceDate?: string) => {
+    const dateStr = clearanceDate || new Date().toISOString().split('T')[0];
+    const target = cheques.find(c => c.id === id);
+    updateCheque(id, {
+      status: 'CLEARED',
+      clearedAt: dateStr
+    });
+
+    showToast('success', 'Cheque Cleared', `Cheque #${target?.chequeNumber || ''} marked cleared on ${dateStr}.`);
+  };
+
+  const markChequeAsBounced = (id: string, reason?: string) => {
+    const target = cheques.find(c => c.id === id);
+    const now = new Date().toISOString();
+    updateCheque(id, {
+      status: 'BOUNCED',
+      bouncedAt: now,
+      bouncedReason: reason || 'Cheque returned unpaid'
+    });
+
+    showToast('warning', 'Cheque Marked Bounced', `Cheque #${target?.chequeNumber || ''} updated as bounced.`);
+  };
+
+  const createChequeBook = (bookData: Omit<ChequeBook, 'id' | 'createdAt'>): ChequeBook => {
+    const newBook: ChequeBook = {
+      ...bookData,
+      id: 'cb-' + Date.now(),
+      createdAt: new Date().toISOString()
+    };
+    setChequeBooks(prev => [newBook, ...prev]);
+    cloudDb.syncEntityDoc('chequeBooks', currentCompanyId, newBook).catch(console.warn);
+    showToast('success', 'Cheque Book Added', `Series #${newBook.startChequeNo} - #${newBook.endChequeNo} registered.`);
+    return newBook;
+  };
+
+  const updateChequeBook = (id: string, updates: Partial<ChequeBook>) => {
+    setChequeBooks(prev => prev.map(b => {
+      if (b.id === id) {
+        const updated = { ...b, ...updates };
+        cloudDb.syncEntityDoc('chequeBooks', currentCompanyId, updated).catch(console.warn);
+        return updated;
+      }
+      return b;
+    }));
+    showToast('success', 'Cheque Book Updated', 'Cheque book series updated.');
+  };
+
+  const deleteChequeBook = (id: string) => {
+    const target = chequeBooks.find(b => b.id === id);
+    setChequeBooks(prev => prev.filter(b => b.id !== id));
+    cloudDb.deleteEntityDoc('chequeBooks', currentCompanyId, id).catch(console.warn);
+    showToast('info', 'Cheque Book Removed', `Cheque book #${target?.startChequeNo || ''} deleted.`);
+  };
+
+  const saveChequeTemplate = (template: ChequeTemplateConfig) => {
+    setChequeTemplates(prev => {
+      const exists = prev.some(t => t.id === template.id);
+      let updated: ChequeTemplateConfig[];
+      if (exists) {
+        updated = prev.map(t => t.id === template.id ? template : t);
+      } else {
+        updated = [...prev, template];
+      }
+      cloudDb.syncEntityDoc('chequeTemplates', currentCompanyId, template).catch(console.warn);
+      return updated;
+    });
+  };
+
+  const deleteChequeTemplate = (id: string) => {
+    setChequeTemplates(prev => prev.filter(t => t.id !== id));
+    cloudDb.deleteEntityDoc('chequeTemplates', currentCompanyId, id).catch(console.warn);
+    showToast('info', 'Template Removed', 'Custom cheque template removed.');
   };
 
   // Accounting & Ledger
@@ -2985,6 +3335,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       accountHeads,
       journalEntries,
       users,
+      cheques,
+      chequeBooks,
+      chequeTemplates,
       exportedAt: new Date().toISOString(),
       appName: 'VyaparFlow'
     };
@@ -3014,6 +3367,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAccountHeads(parsed.accountHeads || cleanDefaultAccountHeads);
         setJournalEntries(parsed.journalEntries || []);
         if (parsed.users) setUsers(parsed.users);
+        if (parsed.cheques) setCheques(parsed.cheques);
+        if (parsed.chequeBooks) setChequeBooks(parsed.chequeBooks);
+        if (parsed.chequeTemplates) setChequeTemplates(parsed.chequeTemplates);
         triggerCloudSync().catch(console.warn);
         showToast('success', 'Data Restored', 'Database backup imported successfully.');
         return true;
@@ -3070,6 +3426,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateProduct,
         deleteProduct,
         adjustStock,
+        customHsnCodes,
+        addCustomHsnCode,
+        updateCustomHsnCode,
+        deleteCustomHsnCode,
+        bulkImportCustomHsnCodes,
         parties,
         createParty,
         bulkCreateParties,
@@ -3088,6 +3449,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         expenses,
         createExpense,
         deleteExpense,
+        cheques,
+        chequeBooks,
+        chequeTemplates,
+        createCheque,
+        updateCheque,
+        deleteCheque,
+        markChequeAsPrinted,
+        markChequeAsCleared,
+        markChequeAsBounced,
+        createChequeBook,
+        updateChequeBook,
+        deleteChequeBook,
+        saveChequeTemplate,
+        deleteChequeTemplate,
         accountHeads,
         createAccountHead,
         updateAccountHead,

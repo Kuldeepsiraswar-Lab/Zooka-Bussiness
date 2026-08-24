@@ -18,6 +18,7 @@ import { InventoryView } from './components/inventory/InventoryView';
 import { PartiesView } from './components/parties/PartiesView';
 import { PurchasesView } from './components/purchases/PurchasesView';
 import { PaymentsView } from './components/payments/PaymentsView';
+import { ChequePrintingView } from './components/cheques/ChequePrintingView';
 import { AccountingView } from './components/accounting/AccountingView';
 import { GstReturnsView } from './components/reports/GstReturnsView';
 import { SettingsView } from './components/settings/SettingsView';
@@ -223,6 +224,13 @@ const MainContent: React.FC = () => {
                     <PaymentsView />
                   ) : (
                     <AccessRestricted moduleName="Payments & Receipts" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
+                  )
+                )}
+                {activeTab === 'cheques' && (
+                  can('payments', 'view') ? (
+                    <ChequePrintingView />
+                  ) : (
+                    <AccessRestricted moduleName="Cheque Printing & Management" allowedRoles={['ADMIN', 'ACCOUNTANT', 'SALESPERSON']} />
                   )
                 )}
                 {activeTab === 'pos_billing' && (

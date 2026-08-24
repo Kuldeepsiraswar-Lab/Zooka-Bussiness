@@ -144,6 +144,10 @@ export const numberToIndianWords = (amount: number): string => {
   return words + ' Only';
 };
 
+export const formatAmountInWords = (amount: number): string => {
+  return numberToIndianWords(amount);
+};
+
 // Generates an official-looking 64-char hex SHA256 simulation for IRN
 export const generateIRN = (sellerGstin: string, docType: string, docNo: string, finYear: string): string => {
   const raw = `${sellerGstin}${docType}${docNo}${finYear}`;

@@ -9,7 +9,8 @@ import {
   Truck, 
   ArrowRight,
   TrendingUp,
-  Tag
+  Tag,
+  Landmark
 } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
 
@@ -24,7 +25,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   onClose,
   onSelectInvoice
 }) => {
-  const { invoices, products, parties, purchaseBills, setActiveTab } = useApp();
+  const { invoices, products, parties, purchaseBills, cheques, setActiveTab } = useApp();
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -75,6 +76,15 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           p.city.toLowerCase().includes(cleanQuery)
       ).slice(0, 5)
     : parties.slice(0, 3);
+
+  const filteredCheques = cleanQuery
+    ? cheques.filter(
+        c =>
+          c.chequeNumber.toLowerCase().includes(cleanQuery) ||
+          c.payeeName.toLowerCase().includes(cleanQuery) ||
+          c.bankName.toLowerCase().includes(cleanQuery)
+      ).slice(0, 4)
+    : cheques.slice(0, 2);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-14 md:pt-20 p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
@@ -264,7 +274,57 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             </div>
           )}
 
-          {filteredInvoices.length === 0 && filteredProducts.length === 0 && filteredParties.length === 0 && (
+          {/* Cheques Section */}
+          {filteredCheques.length > 0 && (
+            <div className="pt-4">
+              <div className="flex items-center justify-between text-xs font-bold uppercase text-slate-400 dark:text-slate-500 px-2 mb-2">
+                <span className="flex items-center gap-1.5">
+                  <Landmark className="w-3.5 h-3.5 text-blue-600" />
+                  Cheques & Banking
+                </span>
+                <span>{filteredCheques.length} items</span>
+              </div>
+              <div className="space-y-1">
+                {filteredCheques.map(chq => (
+                  <div
+                    key={chq.id}
+                    onClick={() => {
+                      setActiveTab('cheques');
+                      onClose();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/70 dark:hover:bg-blue-950/40 text-xs transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 font-bold flex items-center justify-center text-[10px] border border-blue-200 dark:border-blue-800">
+                        CHQ
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <span>#{chq.chequeNumber}</span>
+                          <span className="text-slate-400 dark:text-slate-500 font-normal">• {chq.payeeName}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                          <span>{chq.bankName}</span>
+                          <span>•</span>
+                          <span>{chq.chequeDate}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-slate-900 dark:text-white">
+                        {formatINR(chq.amount)}
+                      </div>
+                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                        {chq.status}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredInvoices.length === 0 && filteredProducts.length === 0 && filteredParties.length === 0 && filteredCheques.length === 0 && (
             <div className="py-12 text-center text-slate-400 dark:text-slate-500">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-40" />
               <p className="text-sm font-medium">No results found for "{query}"</p>

@@ -15,6 +15,7 @@ import {
   Calculator, 
   Settings, 
   Receipt,
+  Landmark,
   ShieldCheck, 
   Lock, 
   UserCheck, 
@@ -130,6 +131,14 @@ export const Sidebar: React.FC = () => {
       badge: 'Money In/Out',
       badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
       description: 'Payment In, Out & Contra'
+    },
+    {
+      id: 'cheques',
+      label: 'Cheque Printing',
+      icon: Landmark,
+      badge: 'CTS-2010',
+      badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
+      description: 'Print, cheque books & auto-ledger'
     },
     {
       id: 'pos_billing',

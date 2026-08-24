@@ -292,6 +292,7 @@ export interface JournalEntry {
   date: string;
   description: string;
   reference?: string;
+  chequeId?: string;
   lines: {
     accountId: string;
     accountName: string;
@@ -299,6 +300,126 @@ export interface JournalEntry {
     credit: number;
   }[];
   createdAt: string;
+}
+
+// -------------------------------------------------------------
+// Cheque Printing & Management System Models (CTS-2010 Standard)
+// -------------------------------------------------------------
+
+export type ChequeType = 'PAYMENT_OUT' | 'PAYMENT_IN' | 'SELF_CASH';
+export type ChequeStatus = 'DRAFT' | 'ISSUED' | 'PRINTED' | 'CLEARED' | 'CANCELLED' | 'BOUNCED';
+
+export interface ChequeRecord {
+  id: string;
+  chequeNumber: string; // e.g. "004821" (6-digit CTS-2010 format)
+  chequeDate: string; // YYYY-MM-DD
+  payeeName: string; // Party name or "Yourself / Cash"
+  partyId?: string; // Linked Customer or Vendor
+  partyName?: string;
+  partyType?: 'CUSTOMER' | 'VENDOR' | 'OTHER';
+  amount: number;
+  amountInWords?: string; // e.g. "Rupees Forty-Five Thousand Eight Hundred and Fifty Only"
+  bankAccountId?: string;
+  bankName: string; // e.g. "HDFC Bank", "State Bank of India", "ICICI Bank"
+  accountNumber: string;
+  chequeType: ChequeType;
+  status: ChequeStatus;
+  isAccountPayeeOnly: boolean; // "A/C PAYEE ONLY" top-left crossing
+  isNonNegotiable?: boolean;
+  strikeBearer: boolean; // Strike out "Or Bearer"
+  memo?: string;
+  billReference?: string; // Reference to invoice/bill/order
+  linkedInvoiceId?: string;
+  linkedInvoiceNumber?: string;
+  linkedBillId?: string;
+  linkedBillNumber?: string;
+  linkedPaymentId?: string; // Automatically created PaymentRecord ID
+  linkedJournalEntryId?: string; // Automatically created JournalEntry ID
+  templateConfigId?: string; // Template used for coordinate positioning
+  signatoryText?: string; // e.g. "For ACME ENTERPRISES PVT LTD"
+  printedAt?: string;
+  clearedAt?: string;
+  bouncedAt?: string;
+  bouncedReason?: string;
+  autoPostLedger: boolean; // Auto creates ledger & accounting entries
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ChequeBook {
+  id: string;
+  bankAccountId?: string;
+  bankName: string;
+  accountNumber: string;
+  seriesPrefix?: string;
+  startChequeNo: string; // e.g. "000101"
+  endChequeNo: string; // e.g. "000200"
+  totalLeaves: number;
+  currentChequeNo: string; // Next available cheque number
+  status: 'ACTIVE' | 'EXHAUSTED' | 'ARCHIVED';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ChequeTemplateConfig {
+  id: string;
+  name: string;
+  bankPreset: string; // 'HDFC' | 'SBI' | 'ICICI' | 'AXIS' | 'PNB' | 'KOTAK' | 'BOB' | 'CANARA' | 'UNIVERSAL_CTS2010' | 'CUSTOM'
+  widthMm: number; // Standard CTS-2010 is 203mm
+  heightMm: number; // Standard CTS-2010 is 93mm
+  // Coordinate positions in Millimeters (mm) from Top-Left corner of cheque
+  datePositions: {
+    mode: 'BOXES' | 'CONTINUOUS'; // CTS-2010 has 8 individual boxes for DD MM YYYY
+    xMm: number;
+    yMm: number;
+    boxSpacingMm: number; // Spacing between individual digit boxes
+    fontSizePt: number;
+    letterSpacingMm: number;
+  };
+  payeePositions: {
+    xMm: number;
+    yMm: number;
+    maxWidthMm: number;
+    fontSizePt: number;
+    prefixStars: boolean;
+  };
+  amountInWordsPositions: {
+    line1: { xMm: number; yMm: number; maxWidthMm: number };
+    line2: { xMm: number; yMm: number; maxWidthMm: number };
+    fontSizePt: number;
+    lineHeightMm: number;
+    prefixRupees: boolean;
+    suffixOnly: boolean;
+  };
+  amountInFiguresPositions: {
+    xMm: number;
+    yMm: number;
+    fontSizePt: number;
+    prefixStars: boolean;
+    suffixSlash: boolean;
+  };
+  accountPayeePositions: {
+    xMm: number;
+    yMm: number;
+    rotationDeg: number;
+    text: string;
+  };
+  bearerPositions: {
+    xMm: number;
+    yMm: number;
+    strikeOut: boolean;
+  };
+  signatoryPositions: {
+    xMm: number;
+    yMm: number;
+    showCompanyName: boolean;
+    fontSizePt: number;
+  };
+  printerOffset: {
+    topOffsetMm: number;
+    leftOffsetMm: number;
+  };
+  isDefault?: boolean;
 }
 
 export interface AccountHead {
@@ -828,4 +949,15 @@ export interface BankStatementImportResult {
   contraCreated: number;
   journalsCreated: number;
   partiesCreated: number;
+}
+
+export interface CustomHsnCode {
+  id: string;
+  code: string;
+  description: string;
+  type: 'HSN' | 'SAC';
+  gstRate: GstTaxRate;
+  uqc?: string;
+  isCustom?: boolean;
+  createdAt?: string;
 }

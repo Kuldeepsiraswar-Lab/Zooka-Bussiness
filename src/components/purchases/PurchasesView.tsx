@@ -4,6 +4,7 @@ import { PurchaseBill, PurchaseBillItem, Expense, GstTaxRate, PaymentMethod } fr
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { STANDARD_UNITS, COMMON_HSN_CODES } from '../../utils/constants';
 import { calculateBaseRateFromInclusive } from '../../utils/gstCalculations';
+import { CustomHsnModal } from '../common/CustomHsnModal';
 import { 
   Truck, 
   Search, 
@@ -22,7 +23,8 @@ import {
   Info,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  Tag
 } from 'lucide-react';
 
 export const PurchasesView: React.FC = () => {
@@ -31,6 +33,7 @@ export const PurchasesView: React.FC = () => {
     expenses, 
     parties, 
     products, 
+    customHsnCodes,
     business, 
     createPurchaseBill, 
     deletePurchaseBill, 
@@ -46,6 +49,7 @@ export const PurchasesView: React.FC = () => {
   // Modals
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState(false);
   const [selectedBillForView, setSelectedBillForView] = useState<PurchaseBill | null>(null);
 
   // Purchase form state
@@ -66,7 +70,7 @@ export const PurchasesView: React.FC = () => {
       id: 'pbi-1',
       productId: products[0]?.id || '',
       name: products[0]?.name || 'Standard Raw Material / Product',
-      hsnCode: products[0]?.hsnCode || '8471',
+      hsnCode: products[0]?.hsnCode || '',
       quantity: 10,
       unit: products[0]?.unit || 'PCS',
       rate: products[0]?.purchasePrice || 1000,
@@ -207,6 +211,23 @@ export const PurchasesView: React.FC = () => {
         ...next[index],
         [field]: value
       };
+
+      if (field === 'hsnCode') {
+        const valStr = String(value).trim();
+        const matchCustom = customHsnCodes.find(c => c.code.toLowerCase() === valStr.toLowerCase());
+        if (matchCustom) {
+          updatedItem.gstRate = matchCustom.gstRate;
+          if (matchCustom.uqc && matchCustom.uqc !== 'OTH' && (!updatedItem.unit || updatedItem.unit === 'PCS')) {
+            updatedItem.unit = matchCustom.uqc;
+          }
+        } else {
+          const matchStandard = COMMON_HSN_CODES.find(c => c.code === valStr);
+          if (matchStandard) {
+            updatedItem.gstRate = matchStandard.defaultGst as GstTaxRate;
+          }
+        }
+      }
+
       next[index] = recalculateItem(updatedItem, isInterState);
       return next;
     });
@@ -251,7 +272,7 @@ export const PurchasesView: React.FC = () => {
       id: 'pbi-' + Date.now() + Math.random().toString(36).substr(2, 4),
       productId: firstProd?.id || '',
       name: firstProd?.name || 'New Inward Item',
-      hsnCode: firstProd?.hsnCode || '8471',
+      hsnCode: firstProd?.hsnCode || '',
       quantity: 5,
       unit: firstProd?.unit || 'PCS',
       rate: firstProd?.purchasePrice || 500,
@@ -820,7 +841,19 @@ export const PurchasesView: React.FC = () => {
                     <thead>
                       <tr className="bg-slate-100 text-slate-700 font-bold text-[11px] border-b border-slate-200">
                         <th className="py-2.5 px-3">Item / Product Name</th>
-                        <th className="py-2.5 px-2 text-center w-24">HSN</th>
+                        <th className="py-2.5 px-2 text-center w-28">
+                          <div className="flex items-center justify-center gap-1">
+                            <span>HSN</span>
+                            <button
+                              type="button"
+                              onClick={() => setIsCustomHsnModalOpen(true)}
+                              className="text-[9px] text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer"
+                              title="Custom HSN Codes"
+                            >
+                              ⚙
+                            </button>
+                          </div>
+                        </th>
                         <th className="py-2.5 px-2 text-center w-28">Batch / Exp</th>
                         <th className="py-2.5 px-2 text-center w-18">Qty</th>
                         <th className="py-2.5 px-2 text-center w-18">Unit</th>
@@ -886,12 +919,28 @@ export const PurchasesView: React.FC = () => {
 
                             {/* HSN */}
                             <td className="py-2.5 px-2 text-center align-top">
-                              <input
-                                type="text"
-                                value={item.hsnCode}
-                                onChange={(e) => handleItemFieldChange(idx, 'hsnCode', e.target.value)}
-                                className="w-full px-2 py-1 text-xs font-mono text-center border border-slate-200 rounded-lg"
-                              />
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  list={`purch-hsn-list-${idx}`}
+                                  value={item.hsnCode}
+                                  onChange={(e) => handleItemFieldChange(idx, 'hsnCode', e.target.value)}
+                                  placeholder="HSN/SAC"
+                                  className="w-full px-2 py-1 text-xs font-mono uppercase text-center border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                />
+                                <datalist id={`purch-hsn-list-${idx}`}>
+                                  {customHsnCodes.map(h => (
+                                    <option key={`c-${h.id}`} value={h.code}>
+                                      [Custom] {h.code} - {h.description} ({h.gstRate}%)
+                                    </option>
+                                  ))}
+                                  {COMMON_HSN_CODES.map(h => (
+                                    <option key={`s-${h.code}`} value={h.code}>
+                                      {h.code} - {h.description} ({h.defaultGst}%)
+                                    </option>
+                                  ))}
+                                </datalist>
+                              </div>
                             </td>
 
                             {/* Batch & Expiry */}
@@ -1297,6 +1346,20 @@ export const PurchasesView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Custom HSN & SAC Management Modal */}
+      <CustomHsnModal
+        isOpen={isCustomHsnModalOpen}
+        onClose={() => setIsCustomHsnModalOpen(false)}
+        onSelectHsn={(item) => {
+          if (pItems.length > 0) {
+            const targetIdx = pItems.length - 1;
+            handleItemFieldChange(targetIdx, 'hsnCode', item.code);
+            handleItemFieldChange(targetIdx, 'gstRate', item.gstRate);
+            if (item.uqc && item.uqc !== 'OTH') handleItemFieldChange(targetIdx, 'unit', item.uqc);
+          }
+        }}
+      />
     </div>
   );
 };

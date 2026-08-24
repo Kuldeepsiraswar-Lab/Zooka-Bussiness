@@ -19,6 +19,7 @@ import {
 } from '../../utils/gstCalculations';
 import { formatCurrency, validateGstin, normalizeSignatureUrl } from '../../utils/formatters';
 import { cleanDefaultBusinessProfile } from '../../utils/cleanDefaults';
+import { CustomHsnModal } from '../common/CustomHsnModal';
 import { 
   Plus, 
   Trash2, 
@@ -68,6 +69,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     business, 
     parties, 
     products, 
+    customHsnCodes,
     createInvoice, 
     updateInvoice, 
     getNextSequentialInvoiceNumber, 
@@ -75,6 +77,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     showToast 
   } = useApp();
   const isEditing = !!initialData?.id;
+  const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState<boolean>(false);
 
   const [invoiceType, setInvoiceType] = useState<InvoiceType>(initialData?.invoiceType || 'TAX_INVOICE');
   const [invoiceNumber, setInvoiceNumber] = useState<string>(() => {
@@ -158,24 +161,26 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       return initialData.items;
     }
     const initialIsInter = (initialData?.placeOfSupplyStateCode || business.stateCode) !== business.stateCode;
-    const defaultRate = 51999;
-    const calcs = calculateItemGst(defaultRate, 1, 0, 18, initialIsInter);
+    const firstProd = products[0];
+    const defaultRate = firstProd ? firstProd.sellingPrice : 0;
+    const defaultGst = firstProd ? firstProd.gstRate : 18;
+    const defaultHsn = firstProd ? firstProd.hsnCode : '';
+    const calcs = calculateItemGst(defaultRate, 1, 0, defaultGst, initialIsInter);
     return [
       {
         id: 'item-' + Date.now(),
-        productId: 'prod-1',
-        name: 'Dell UltraSharp 27" 4K Monitor',
-        description: '4K IPS Black USB-C Hub Monitor with 98% DCI-P3',
-        serialNumber: 'SN-DELL-U2723-99812A',
-        warranty: lineSettings.defaultWarranty || '3 Years Limited Warranty',
-        hsnCode: '8528',
+        productId: firstProd?.id || '',
+        name: firstProd?.name || '',
+        description: firstProd?.description || '',
+        serialNumber: '',
+        warranty: lineSettings.defaultWarranty || '1 Year Comprehensive',
+        hsnCode: defaultHsn,
         quantity: 1,
-        unit: 'PCS',
+        unit: firstProd?.unit || 'PCS',
         rate: defaultRate,
         discountPercent: 0,
         discountAmount: 0,
-        ...calcs,
-        batchNumber: 'DL-2026-A1'
+        ...calcs
       }
     ];
   });
@@ -266,7 +271,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       description: '',
       serialNumber: '',
       warranty: lineSettings.defaultWarranty || '1 Year Comprehensive',
-      hsnCode: '8471',
+      hsnCode: '',
       unit: 'PCS',
       ...calcs
     };
@@ -475,9 +480,18 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
       // Check if HSN code was changed, and if so, check if we can auto-suggest GST rate
       if (field === 'hsnCode') {
-        const suggestedGst = suggestRateForHsn(String(val));
-        if (suggestedGst !== undefined && target.gstRate !== suggestedGst) {
-          target.gstRate = suggestedGst;
+        const valStr = String(val).trim();
+        const matchCustom = customHsnCodes.find(c => c.code.toLowerCase() === valStr.toLowerCase());
+        if (matchCustom) {
+          target.gstRate = matchCustom.gstRate;
+          if (matchCustom.uqc && matchCustom.uqc !== 'OTH' && (!target.unit || target.unit === 'PCS')) {
+            target.unit = matchCustom.uqc;
+          }
+        } else {
+          const suggestedGst = suggestRateForHsn(valStr);
+          if (suggestedGst !== undefined && target.gstRate !== suggestedGst) {
+            target.gstRate = suggestedGst;
+          }
         }
       }
       
@@ -1011,7 +1025,20 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-600 font-semibold bg-slate-50/80">
                       <th className="py-2.5 px-3">Item Particulars & Details</th>
-                      <th className="py-2.5 px-2 w-28">HSN/SAC</th>
+                      <th className="py-2.5 px-2 w-32">
+                        <div className="flex items-center justify-between">
+                          <span>HSN/SAC</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsCustomHsnModalOpen(true)}
+                            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                            title="Manage custom HSN/SAC codes"
+                          >
+                            <Tag className="w-2.5 h-2.5" />
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      </th>
                       <th className="py-2.5 px-2 w-16 text-center">Qty</th>
                       <th className="py-2.5 px-2 w-20">Unit</th>
                       <th className={`py-2.5 px-2 w-28 ${priceEntryMode === 'EXCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
@@ -1178,17 +1205,46 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                             </td>
 
                             <td className="py-2.5 px-2 align-top">
-                              <input
-                                type="text"
-                                value={item.hsnCode}
-                                onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
-                                placeholder="e.g. 8471"
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              />
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  list={`inv-hsn-list-${idx}`}
+                                  value={item.hsnCode}
+                                  onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
+                                  placeholder="HSN / SAC"
+                                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono uppercase focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                />
+                                <datalist id={`inv-hsn-list-${idx}`}>
+                                  {customHsnCodes.map(h => (
+                                    <option key={`c-${h.id}`} value={h.code}>
+                                      [Custom] {h.code} - {h.description} ({h.gstRate}%)
+                                    </option>
+                                  ))}
+                                  {COMMON_HSN_CODES.map(h => (
+                                    <option key={`s-${h.code}`} value={h.code}>
+                                      {h.code} - {h.description} ({h.defaultGst}%)
+                                    </option>
+                                  ))}
+                                </datalist>
+                              </div>
                               <select
+                                value=""
                                 onChange={(e) => {
-                                  if (e.target.value) {
-                                    const match = COMMON_HSN_CODES.find(h => h.code === e.target.value);
+                                  const val = e.target.value;
+                                  if (val === '__manage_custom__') {
+                                    setIsCustomHsnModalOpen(true);
+                                    return;
+                                  }
+                                  if (val.startsWith('custom:')) {
+                                    const cId = val.replace('custom:', '');
+                                    const match = customHsnCodes.find(h => h.id === cId);
+                                    if (match) {
+                                      handleItemChange(idx, 'hsnCode', match.code);
+                                      handleItemChange(idx, 'gstRate', match.gstRate);
+                                      if (match.uqc && match.uqc !== 'OTH') handleItemChange(idx, 'unit', match.uqc);
+                                    }
+                                  } else if (val) {
+                                    const match = COMMON_HSN_CODES.find(h => h.code === val);
                                     if (match) {
                                       handleItemChange(idx, 'hsnCode', match.code);
                                       handleItemChange(idx, 'gstRate', match.defaultGst);
@@ -1197,10 +1253,24 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 }}
                                 className="mt-1 w-full text-[9px] text-slate-400 bg-transparent border-0 truncate cursor-pointer"
                               >
-                                <option value="">HSN Master...</option>
-                                {COMMON_HSN_CODES.map(h => (
-                                  <option key={h.code} value={h.code}>{h.code} - {h.description.slice(0, 20)} ({h.defaultGst}%)</option>
-                                ))}
+                                <option value="">Lookup Code...</option>
+                                {customHsnCodes.length > 0 && (
+                                  <optgroup label={`Custom Codes (${customHsnCodes.length})`}>
+                                    {customHsnCodes.map(h => (
+                                      <option key={h.id} value={`custom:${h.id}`}>
+                                        ⭐ {h.code} - {h.description.slice(0, 18)} ({h.gstRate}%)
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                )}
+                                <optgroup label={`Standard Master (${COMMON_HSN_CODES.length})`}>
+                                  {COMMON_HSN_CODES.map(h => (
+                                    <option key={h.code} value={h.code}>
+                                      {h.code} - {h.description.slice(0, 18)} ({h.defaultGst}%)
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <option value="__manage_custom__">⚙ + Manage Custom Directory...</option>
                               </select>
                             </td>
 
@@ -2151,6 +2221,21 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </div>
         );
       })()}
+
+      {/* Custom HSN & SAC Management Modal */}
+      <CustomHsnModal
+        isOpen={isCustomHsnModalOpen}
+        onClose={() => setIsCustomHsnModalOpen(false)}
+        onSelectHsn={(item) => {
+          // If editing an item or last added item, populate it
+          if (items.length > 0) {
+            const targetIdx = editingItemIndex !== null ? editingItemIndex : items.length - 1;
+            handleItemChange(targetIdx, 'hsnCode', item.code);
+            handleItemChange(targetIdx, 'gstRate', item.gstRate);
+            if (item.uqc && item.uqc !== 'OTH') handleItemChange(targetIdx, 'unit', item.uqc);
+          }
+        }}
+      />
     </div>
   );
 };

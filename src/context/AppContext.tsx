@@ -5,7 +5,7 @@ import {
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
   SessionTimeoutConfig, LowStockSettings, CustomHsnCode,
-  ChequeRecord, ChequeBook, ChequeTemplateConfig
+  ChequeRecord, ChequeBook, ChequeTemplateConfig, ChequeClearancePayload, ChequeBouncePayload
 } from '../types';
 import { 
   BANK_CHEQUE_PRESETS,
@@ -170,8 +170,8 @@ interface AppContextType {
   updateCheque: (id: string, updates: Partial<ChequeRecord>) => void;
   deleteCheque: (id: string) => void;
   markChequeAsPrinted: (id: string) => void;
-  markChequeAsCleared: (id: string, clearanceDate?: string) => void;
-  markChequeAsBounced: (id: string, reason?: string) => void;
+  markChequeAsCleared: (id: string, clearanceData?: string | ChequeClearancePayload) => void;
+  markChequeAsBounced: (id: string, bounceData?: string | ChequeBouncePayload) => void;
   createChequeBook: (bookData: Omit<ChequeBook, 'id' | 'createdAt'>) => ChequeBook;
   updateChequeBook: (id: string, updates: Partial<ChequeBook>) => void;
   deleteChequeBook: (id: string) => void;
@@ -2855,27 +2855,117 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('success', 'Cheque Printed', 'Cheque marked as printed.');
   };
 
-  const markChequeAsCleared = (id: string, clearanceDate?: string) => {
-    const dateStr = clearanceDate || new Date().toISOString().split('T')[0];
+  const markChequeAsCleared = (id: string, clearanceData?: string | ChequeClearancePayload) => {
+    let dateStr = new Date().toISOString().split('T')[0];
+    let refStr: string | undefined;
+    let notesStr: string | undefined;
+
+    if (typeof clearanceData === 'string') {
+      dateStr = clearanceData || dateStr;
+    } else if (clearanceData) {
+      dateStr = clearanceData.clearedAt || dateStr;
+      refStr = clearanceData.clearanceReference;
+      notesStr = clearanceData.clearanceNotes;
+    }
+
     const target = cheques.find(c => c.id === id);
     updateCheque(id, {
       status: 'CLEARED',
-      clearedAt: dateStr
+      clearedAt: dateStr,
+      clearanceReference: refStr,
+      clearanceNotes: notesStr
     });
 
-    showToast('success', 'Cheque Cleared', `Cheque #${target?.chequeNumber || ''} marked cleared on ${dateStr}.`);
+    if (target?.linkedPaymentId) {
+      setPayments(prev => prev.map(p => {
+        if (p.id === target.linkedPaymentId) {
+          const updated = {
+            ...p,
+            notes: (p.notes || '') + (refStr ? ` | Bank UTR: ${refStr}` : '') + ` [Cleared: ${dateStr}]`
+          };
+          cloudDb.syncEntityDoc('payments', currentCompanyId, updated).catch(console.warn);
+          return updated;
+        }
+        return p;
+      }));
+    }
+
+    showToast('success', 'Cheque Cleared', `Cheque #${target?.chequeNumber || ''} marked cleared on ${dateStr}${refStr ? ` (Ref: ${refStr})` : ''}.`);
   };
 
-  const markChequeAsBounced = (id: string, reason?: string) => {
+  const markChequeAsBounced = (id: string, bounceData?: string | ChequeBouncePayload) => {
     const target = cheques.find(c => c.id === id);
     const now = new Date().toISOString();
+    let reason = 'Cheque returned unpaid';
+    let reasonCode: string | undefined;
+    let memoRef: string | undefined;
+    let penaltyFee: number | undefined;
+    let reverseInvoice = true;
+    let autoExpense = true;
+    let bounceDate = now.split('T')[0];
+
+    if (typeof bounceData === 'string') {
+      reason = bounceData || reason;
+    } else if (bounceData) {
+      reason = bounceData.bouncedReason || reason;
+      reasonCode = bounceData.bouncedReasonCode;
+      memoRef = bounceData.bouncedMemoRef;
+      penaltyFee = bounceData.bouncedPenaltyFee;
+      reverseInvoice = bounceData.reverseLinkedInvoice !== false;
+      autoExpense = bounceData.autoRecordPenaltyExpense !== false;
+      bounceDate = bounceData.bouncedAt || bounceDate;
+    }
+
     updateCheque(id, {
       status: 'BOUNCED',
-      bouncedAt: now,
-      bouncedReason: reason || 'Cheque returned unpaid'
+      bouncedAt: bounceDate,
+      bouncedReason: reason,
+      bouncedReasonCode: reasonCode,
+      bouncedMemoRef: memoRef,
+      bouncedPenaltyFee: penaltyFee
     });
 
-    showToast('warning', 'Cheque Marked Bounced', `Cheque #${target?.chequeNumber || ''} updated as bounced.`);
+    // 1. Revert Linked Invoice if requested
+    if (reverseInvoice && target?.linkedInvoiceId) {
+      const invId = target.linkedInvoiceId;
+      setInvoices(prev => prev.map(inv => {
+        if (inv.id === invId) {
+          const newAmountPaid = Math.max(0, (inv.amountPaid || 0) - target.amount);
+          const newAmountDue = Math.max(0, inv.grandTotal - newAmountPaid);
+          const newStatus: InvoiceStatus = newAmountPaid <= 0 ? 'UNPAID' : (newAmountDue > 0 ? 'PARTIALLY_PAID' : 'PAID');
+          const updatedInv: Invoice = {
+            ...inv,
+            amountPaid: newAmountPaid,
+            amountDue: newAmountDue,
+            status: newStatus
+          };
+          cloudDb.syncEntityDoc('invoices', currentCompanyId, updatedInv).catch(console.warn);
+          return updatedInv;
+        }
+        return inv;
+      }));
+    }
+
+    // 2. Automatically log Bank Charges expense for penalty fee if specified
+    if (autoExpense && penaltyFee && penaltyFee > 0 && target) {
+      try {
+        createExpense({
+          date: bounceDate,
+          category: 'Bank Charges',
+          payee: target.bankName || 'Bank',
+          amount: penaltyFee,
+          gstRate: 18,
+          gstAmount: Math.round(penaltyFee * 0.18),
+          hasGstBill: false,
+          paymentMethod: 'BANK_TRANSFER',
+          notes: `Bank Cheque Bounce Penalty - Cheque #${target.chequeNumber} (${target.payeeName}) - Reason: ${reason}`
+        });
+      } catch (err) {
+        console.warn('Could not auto-create bounce expense:', err);
+      }
+    }
+
+    showToast('warning', 'Cheque Marked Bounced', `Cheque #${target?.chequeNumber || ''} marked bounced (${reason}).`);
   };
 
   const createChequeBook = (bookData: Omit<ChequeBook, 'id' | 'createdAt'>): ChequeBook => {

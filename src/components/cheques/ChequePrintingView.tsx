@@ -4,9 +4,12 @@ import {
   ChequeRecord, 
   ChequeType, 
   ChequeStatus, 
-  ChequeBook 
+  ChequeBook,
+  ChequeClearancePayload,
+  ChequeBouncePayload
 } from '../../types';
 import { formatINR, formatDate } from '../../utils/formatters';
+import { getChequeReminderMetrics } from '../../utils/chequeReminders';
 import { 
   IssueChequeModal 
 } from './IssueChequeModal';
@@ -20,32 +23,40 @@ import {
   ChequeCalibrationTab 
 } from './ChequeCalibrationTab';
 import { 
+  ChequeClearanceModal 
+} from './ChequeClearanceModal';
+import { 
+  ChequeBounceModal 
+} from './ChequeBounceModal';
+import { 
+  ChequeReminderDrawerModal 
+} from './ChequeReminderDrawerModal';
+import { 
+  ChequeReturnMemoModal 
+} from './ChequeReturnMemoModal';
+import { 
   Landmark, 
   Plus, 
   Printer, 
   Search, 
-  Filter, 
   CheckCircle2, 
   Clock, 
   AlertTriangle, 
-  XCircle, 
-  Download, 
-  Sliders, 
   BookOpen, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  Layers, 
   Trash2, 
-  Edit, 
-  Eye, 
   FileText,
   Calendar,
+  Send,
+  MessageSquare,
+  FileWarning,
+  RotateCcw,
+  Check,
+  Bell,
+  AlertCircle,
   Sparkles,
-  RefreshCw,
-  TrendingUp,
-  TrendingDown,
-  Building2,
-  Check
+  Info
 } from 'lucide-react';
 
 export const ChequePrintingView: React.FC = () => {
@@ -56,6 +67,7 @@ export const ChequePrintingView: React.FC = () => {
     deleteCheque, 
     deleteChequeBook,
     updateChequeBook,
+    updateCheque,
     markChequeAsPrinted,
     markChequeAsCleared,
     markChequeAsBounced,
@@ -71,6 +83,7 @@ export const ChequePrintingView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [bankFilter, setBankFilter] = useState<string>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'THIS_MONTH' | 'LAST_30_DAYS' | 'CURRENT_FY'>('ALL');
+  const [reminderQuickFilter, setReminderQuickFilter] = useState<'ALL' | 'DUE_TODAY' | 'UPCOMING_PDC' | 'OVERDUE' | 'STALE' | 'BOUNCED'>('ALL');
 
   // Modals state
   const [isIssueModalOpen, setIsIssueModalOpen] = useState<boolean>(false);
@@ -78,22 +91,36 @@ export const ChequePrintingView: React.FC = () => {
   const [activeChequeForPrint, setActiveChequeForPrint] = useState<ChequeRecord | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
 
+  // Clearance Modal
+  const [clearanceModalCheque, setClearanceModalCheque] = useState<ChequeRecord | null>(null);
+
+  // Bounce Modal
+  const [bounceModalCheque, setBounceModalCheque] = useState<ChequeRecord | null>(null);
+
+  // Reminder / WhatsApp Notice Modal
+  const [reminderModalCheque, setReminderModalCheque] = useState<ChequeRecord | null>(null);
+  const [reminderNoticeType, setReminderNoticeType] = useState<'DUE_TODAY' | 'UPCOMING_PDC' | 'BOUNCED' | 'CLEARANCE_NOTICE'>('DUE_TODAY');
+
+  // Return Memo Modal (Printable Cheque Return Advice)
+  const [memoModalCheque, setMemoModalCheque] = useState<ChequeRecord | null>(null);
+
   // Deletion confirmation states
   const [chequeToDelete, setChequeToDelete] = useState<ChequeRecord | null>(null);
   const [bookToDelete, setBookToDelete] = useState<ChequeBook | null>(null);
 
-  // Clearance confirmation modal / prompt
-  const [clearanceModalCheque, setClearanceModalCheque] = useState<ChequeRecord | null>(null);
-  const [clearanceDate, setClearanceDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
-
-  // Unique Banks for filter
+  // Unique Banks for filter dropdown
   const uniqueBanks = useMemo(() => {
     const set = new Set<string>();
     cheques.forEach(c => { if (c.bankName) set.add(c.bankName); });
     return Array.from(set);
   }, [cheques]);
 
-  // Summary Metrics
+  // Reminder Metrics Calculation
+  const reminderMetrics = useMemo(() => {
+    return getChequeReminderMetrics(cheques);
+  }, [cheques]);
+
+  // General Summary Metrics
   const metrics = useMemo(() => {
     let totalIssuedAmt = 0;
     let totalIssuedCount = 0;
@@ -103,9 +130,16 @@ export const ChequePrintingView: React.FC = () => {
     let pendingClearanceCount = 0;
     let clearedAmt = 0;
     let clearedCount = 0;
+    let bouncedAmt = 0;
+    let bouncedCount = 0;
 
     cheques.forEach(c => {
-      if (c.status === 'CANCELLED' || c.status === 'BOUNCED') return;
+      if (c.status === 'BOUNCED') {
+        bouncedAmt += c.amount;
+        bouncedCount++;
+        return;
+      }
+      if (c.status === 'CANCELLED') return;
 
       if (c.chequeType === 'PAYMENT_OUT' || c.chequeType === 'SELF_CASH') {
         totalIssuedAmt += c.amount;
@@ -132,16 +166,48 @@ export const ChequePrintingView: React.FC = () => {
       pendingClearanceAmt,
       pendingClearanceCount,
       clearedAmt,
-      clearedCount
+      clearedCount,
+      bouncedAmt,
+      bouncedCount
     };
   }, [cheques]);
 
   // Filtered Cheques List
   const filteredCheques = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return cheques.filter(c => {
       // Tab filter
       if (activeTab === 'ISSUED' && c.chequeType !== 'PAYMENT_OUT' && c.chequeType !== 'SELF_CASH') return false;
       if (activeTab === 'RECEIVED' && c.chequeType !== 'PAYMENT_IN') return false;
+
+      // Reminder Quick Filter
+      if (reminderQuickFilter !== 'ALL') {
+        const chqDate = new Date(c.chequeDate);
+        chqDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((chqDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (reminderQuickFilter === 'DUE_TODAY') {
+          if (c.status === 'CLEARED' || c.status === 'CANCELLED' || c.status === 'BOUNCED' || diffDays !== 0) {
+            return false;
+          }
+        } else if (reminderQuickFilter === 'UPCOMING_PDC') {
+          if (c.status === 'CLEARED' || c.status === 'CANCELLED' || c.status === 'BOUNCED' || diffDays <= 0 || diffDays > 7) {
+            return false;
+          }
+        } else if (reminderQuickFilter === 'OVERDUE') {
+          if (c.status === 'CLEARED' || c.status === 'CANCELLED' || c.status === 'BOUNCED' || diffDays >= -2 || diffDays < -89) {
+            return false;
+          }
+        } else if (reminderQuickFilter === 'STALE') {
+          if (c.status === 'CLEARED' || c.status === 'CANCELLED' || c.status === 'BOUNCED' || diffDays > -90) {
+            return false;
+          }
+        } else if (reminderQuickFilter === 'BOUNCED') {
+          if (c.status !== 'BOUNCED') return false;
+        }
+      }
 
       // Status filter
       if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
@@ -158,14 +224,15 @@ export const ChequePrintingView: React.FC = () => {
         const matchRef = (c.billReference || '').toLowerCase().includes(q);
         const matchMemo = (c.memo || '').toLowerCase().includes(q);
         const matchAmt = String(c.amount).includes(q);
-        if (!matchNum && !matchPayee && !matchBank && !matchRef && !matchMemo && !matchAmt) {
+        const matchReason = (c.bouncedReason || '').toLowerCase().includes(q);
+        const matchClearRef = (c.clearanceReference || '').toLowerCase().includes(q);
+        if (!matchNum && !matchPayee && !matchBank && !matchRef && !matchMemo && !matchAmt && !matchReason && !matchClearRef) {
           return false;
         }
       }
 
       // Date filter
       if (dateFilter !== 'ALL') {
-        const today = new Date();
         const chequeD = new Date(c.chequeDate);
         if (dateFilter === 'THIS_MONTH') {
           if (chequeD.getMonth() !== today.getMonth() || chequeD.getFullYear() !== today.getFullYear()) {
@@ -186,12 +253,36 @@ export const ChequePrintingView: React.FC = () => {
 
       return true;
     });
-  }, [cheques, activeTab, statusFilter, bankFilter, searchQuery, dateFilter]);
+  }, [cheques, activeTab, reminderQuickFilter, statusFilter, bankFilter, searchQuery, dateFilter]);
 
   // Open Print Modal for a cheque
   const handleOpenPrint = (cheque: ChequeRecord) => {
     setActiveChequeForPrint(cheque);
     setIsPrintModalOpen(true);
+  };
+
+  // Open Reminder / WhatsApp Modal
+  const handleOpenReminder = (cheque: ChequeRecord, type?: 'DUE_TODAY' | 'UPCOMING_PDC' | 'BOUNCED' | 'CLEARANCE_NOTICE') => {
+    setReminderModalCheque(cheque);
+    if (type) {
+      setReminderNoticeType(type);
+    } else {
+      if (cheque.status === 'BOUNCED') {
+        setReminderNoticeType('BOUNCED');
+      } else if (cheque.status === 'CLEARED') {
+        setReminderNoticeType('CLEARANCE_NOTICE');
+      } else {
+        const chqDate = new Date(cheque.chequeDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        chqDate.setHours(0, 0, 0, 0);
+        if (chqDate.getTime() === today.getTime()) {
+          setReminderNoticeType('DUE_TODAY');
+        } else {
+          setReminderNoticeType('UPCOMING_PDC');
+        }
+      }
+    }
   };
 
   // Handle Cheque Creation Success
@@ -202,11 +293,16 @@ export const ChequePrintingView: React.FC = () => {
     }
   };
 
-  // Confirm clearance
-  const handleConfirmClearance = () => {
-    if (!clearanceModalCheque) return;
-    markChequeAsCleared(clearanceModalCheque.id, clearanceDate);
+  // Handle Clearance Confirmation from Modal
+  const handleConfirmClearance = (id: string, payload: ChequeClearancePayload) => {
+    markChequeAsCleared(id, payload);
     setClearanceModalCheque(null);
+  };
+
+  // Handle Bounce Confirmation from Modal
+  const handleConfirmBounce = (id: string, payload: ChequeBouncePayload) => {
+    markChequeAsBounced(id, payload);
+    setBounceModalCheque(null);
   };
 
   return (
@@ -232,7 +328,7 @@ export const ChequePrintingView: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Print Indian bank cheques, manage cheque books, and automatically sync client ledgers & banking.
+                Print Indian bank cheques, manage cheque reminders, track clear & bounce statuses, and reconcile accounts.
               </p>
             </div>
           </div>
@@ -243,7 +339,7 @@ export const ChequePrintingView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsBookModalOpen(true)}
-            className="px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-2"
+            className="px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer"
           >
             <BookOpen className="w-4 h-4 text-purple-600" />
             <span>Cheque Books ({chequeBooks.length})</span>
@@ -252,7 +348,7 @@ export const ChequePrintingView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsIssueModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Issue & Print Cheque</span>
@@ -261,7 +357,7 @@ export const ChequePrintingView: React.FC = () => {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         
         {/* Total Issued */}
         <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
@@ -273,7 +369,7 @@ export const ChequePrintingView: React.FC = () => {
               {formatINR(metrics.totalIssuedAmt)}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
-              <span className="font-bold text-rose-600">{metrics.totalIssuedCount}</span> cheques to vendors/clients
+              <span className="font-bold text-rose-600">{metrics.totalIssuedCount}</span> issued out
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 flex items-center justify-center">
@@ -291,7 +387,7 @@ export const ChequePrintingView: React.FC = () => {
               {formatINR(metrics.totalReceivedAmt)}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
-              <span className="font-bold text-emerald-600">{metrics.totalReceivedCount}</span> cheques from customers
+              <span className="font-bold text-emerald-600">{metrics.totalReceivedCount}</span> received in
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 flex items-center justify-center">
@@ -309,7 +405,7 @@ export const ChequePrintingView: React.FC = () => {
               {formatINR(metrics.pendingClearanceAmt)}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
-              <span className="font-bold text-amber-600">{metrics.pendingClearanceCount}</span> cheques in-transit / clearing
+              <span className="font-bold text-amber-600">{metrics.pendingClearanceCount}</span> uncleared / in-transit
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-600 flex items-center justify-center">
@@ -323,19 +419,207 @@ export const ChequePrintingView: React.FC = () => {
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Cleared & Settled
             </span>
-            <div className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1 font-mono">
+            <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
               {formatINR(metrics.clearedAmt)}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
-              <span className="font-bold text-blue-600">{metrics.clearedCount}</span> cheques fully reconciled
+              <span className="font-bold text-emerald-600">{metrics.clearedCount}</span> reconciled
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 flex items-center justify-center">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
+        {/* Bounced Cheques */}
+        <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Bounced / Returned
+            </span>
+            <div className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 font-mono">
+              {formatINR(metrics.bouncedAmt)}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
+              <span className="font-bold text-rose-600">{metrics.bouncedCount}</span> returned unpaid
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
+
       </div>
+
+      {/* CHEQUE REMINDERS & ACTION CENTER BANNER */}
+      {reminderMetrics.totalActionRequiredCount > 0 && (
+        <div className="p-4 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-slate-50 dark:from-slate-900 dark:via-indigo-950/20 dark:to-slate-900 rounded-2xl border border-blue-200/80 dark:border-blue-900/50 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Cheque Reminder & Realization Center</span>
+                  <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    {reminderMetrics.totalActionRequiredCount} action items
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Track cheques due today, upcoming post-dated instruments, and bounced cheque recovery notices.
+                </p>
+              </div>
+            </div>
+
+            {reminderQuickFilter !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setReminderQuickFilter('ALL')}
+                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 self-start md:self-auto"
+              >
+                <span>Clear Reminder Filter</span>
+              </button>
+            )}
+          </div>
+
+          {/* Action Chips */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+            
+            {/* Due Today Chip */}
+            <button
+              type="button"
+              onClick={() => setReminderQuickFilter(prev => prev === 'DUE_TODAY' ? 'ALL' : 'DUE_TODAY')}
+              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                reminderQuickFilter === 'DUE_TODAY'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={reminderQuickFilter === 'DUE_TODAY' ? 'text-white' : 'text-blue-700 dark:text-blue-300'}>
+                  Due Today
+                </span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  reminderQuickFilter === 'DUE_TODAY' ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
+                }`}>
+                  {reminderMetrics.dueToday.length}
+                </span>
+              </div>
+              <div className="text-[11px] opacity-80 mt-1 truncate">
+                {reminderMetrics.dueToday.length > 0
+                  ? formatINR(reminderMetrics.dueToday.reduce((acc, c) => acc + c.amount, 0))
+                  : 'No cheques today'}
+              </div>
+            </button>
+
+            {/* Upcoming PDC Chip */}
+            <button
+              type="button"
+              onClick={() => setReminderQuickFilter(prev => prev === 'UPCOMING_PDC' ? 'ALL' : 'UPCOMING_PDC')}
+              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                reminderQuickFilter === 'UPCOMING_PDC'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={reminderQuickFilter === 'UPCOMING_PDC' ? 'text-white' : 'text-indigo-700 dark:text-indigo-300'}>
+                  Upcoming PDC (7d)
+                </span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  reminderQuickFilter === 'UPCOMING_PDC' ? 'bg-white/20 text-white' : 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300'
+                }`}>
+                  {reminderMetrics.upcomingPdc.length}
+                </span>
+              </div>
+              <div className="text-[11px] opacity-80 mt-1 truncate">
+                {reminderMetrics.upcomingPdc.length > 0
+                  ? formatINR(reminderMetrics.upcomingPdc.reduce((acc, c) => acc + c.amount, 0))
+                  : 'No upcoming PDC'}
+              </div>
+            </button>
+
+            {/* Overdue Uncleared Chip */}
+            <button
+              type="button"
+              onClick={() => setReminderQuickFilter(prev => prev === 'OVERDUE' ? 'ALL' : 'OVERDUE')}
+              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                reminderQuickFilter === 'OVERDUE'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={reminderQuickFilter === 'OVERDUE' ? 'text-white' : 'text-amber-700 dark:text-amber-300'}>
+                  Pending &gt; 3 Days
+                </span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  reminderQuickFilter === 'OVERDUE' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
+                }`}>
+                  {reminderMetrics.overdueUncleared.length}
+                </span>
+              </div>
+              <div className="text-[11px] opacity-80 mt-1 truncate">
+                {reminderMetrics.overdueUncleared.length > 0
+                  ? formatINR(reminderMetrics.overdueUncleared.reduce((acc, c) => acc + c.amount, 0))
+                  : 'None pending'}
+              </div>
+            </button>
+
+            {/* Stale Cheques (>90 Days) Chip */}
+            <button
+              type="button"
+              onClick={() => setReminderQuickFilter(prev => prev === 'STALE' ? 'ALL' : 'STALE')}
+              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                reminderQuickFilter === 'STALE'
+                  ? 'bg-slate-700 text-white border-slate-700 shadow-md'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-slate-400'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={reminderQuickFilter === 'STALE' ? 'text-white' : 'text-slate-700 dark:text-slate-300'}>
+                  Stale (&gt;90 Days)
+                </span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  reminderQuickFilter === 'STALE' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                }`}>
+                  {reminderMetrics.staleCheques.length}
+                </span>
+              </div>
+              <div className="text-[11px] opacity-80 mt-1 truncate">
+                {reminderMetrics.staleCheques.length > 0 ? 'CTS Expired' : 'Zero stale cheques'}
+              </div>
+            </button>
+
+            {/* Bounced Action Chip */}
+            <button
+              type="button"
+              onClick={() => setReminderQuickFilter(prev => prev === 'BOUNCED' ? 'ALL' : 'BOUNCED')}
+              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between col-span-2 sm:col-span-1 ${
+                reminderQuickFilter === 'BOUNCED'
+                  ? 'bg-rose-600 text-white border-rose-600 shadow-md'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-rose-400'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={reminderQuickFilter === 'BOUNCED' ? 'text-white' : 'text-rose-700 dark:text-rose-300'}>
+                  Bounced Follow-up
+                </span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  reminderQuickFilter === 'BOUNCED' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
+                }`}>
+                  {reminderMetrics.recentlyBounced.length}
+                </span>
+              </div>
+              <div className="text-[11px] opacity-80 mt-1 truncate">
+                {reminderMetrics.recentlyBounced.length > 0 ? 'Recovery action needed' : 'All clear'}
+              </div>
+            </button>
+
+          </div>
+        </div>
+      )}
 
       {/* Main Tabs Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -350,8 +634,11 @@ export const ChequePrintingView: React.FC = () => {
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTabState(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
+              onClick={() => {
+                setActiveTabState(tab.id as any);
+                setReminderQuickFilter('ALL');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === tab.id
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -392,7 +679,7 @@ export const ChequePrintingView: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsBookModalOpen(true)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Register New Cheque Book</span>
@@ -481,7 +768,7 @@ export const ChequePrintingView: React.FC = () => {
                           const newStatus = book.status === 'ACTIVE' ? 'EXHAUSTED' : 'ACTIVE';
                           updateChequeBook(book.id, { status: newStatus });
                         }}
-                        className="px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition"
+                        className="px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer"
                       >
                         {book.status === 'ACTIVE' ? 'Mark Exhausted' : 'Activate Series'}
                       </button>
@@ -490,7 +777,7 @@ export const ChequePrintingView: React.FC = () => {
                         type="button"
                         onClick={() => setBookToDelete(book)}
                         title="Delete Cheque Book"
-                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-1 text-[11px]"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-1 text-[11px] cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span>Delete</span>
@@ -518,24 +805,28 @@ export const ChequePrintingView: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by Cheque #, Payee, Bank, Ref #, Amount..."
+                placeholder="Search by Cheque #, Payee, Bank, Ref #, Amount, Return Reason..."
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs">
+              
               {/* Status Filter */}
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setReminderQuickFilter('ALL');
+                }}
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="DRAFT">Draft</option>
                 <option value="ISSUED">Issued</option>
                 <option value="PRINTED">Printed</option>
                 <option value="CLEARED">Cleared</option>
-                <option value="BOUNCED">Bounced</option>
+                <option value="BOUNCED">Bounced / Returned</option>
                 <option value="CANCELLED">Cancelled</option>
               </select>
 
@@ -544,7 +835,7 @@ export const ChequePrintingView: React.FC = () => {
                 <select
                   value={bankFilter}
                   onChange={(e) => setBankFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Banks</option>
                   {uniqueBanks.map(b => (
@@ -557,7 +848,7 @@ export const ChequePrintingView: React.FC = () => {
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as any)}
-                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
               >
                 <option value="ALL">All Dates</option>
                 <option value="THIS_MONTH">This Month</option>
@@ -591,18 +882,28 @@ export const ChequePrintingView: React.FC = () => {
                         <Landmark className="w-10 h-10 mx-auto mb-2 opacity-30" />
                         <p className="text-sm font-semibold">No cheques found</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          {searchQuery ? 'No cheques match the applied search filter.' : 'Click "Issue & Print Cheque" to record your first cheque.'}
+                          {searchQuery || reminderQuickFilter !== 'ALL' 
+                            ? 'No cheques match the current filter or search criteria.' 
+                            : 'Click "Issue & Print Cheque" to record your first cheque.'}
                         </p>
                       </td>
                     </tr>
                   ) : (
                     filteredCheques.map(cheque => {
                       const isPaymentOut = cheque.chequeType === 'PAYMENT_OUT' || cheque.chequeType === 'SELF_CASH';
+                      const chqDate = new Date(cheque.chequeDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      chqDate.setHours(0, 0, 0, 0);
+                      const isDueToday = chqDate.getTime() === today.getTime() && cheque.status !== 'CLEARED' && cheque.status !== 'BOUNCED' && cheque.status !== 'CANCELLED';
 
                       return (
                         <tr
                           key={cheque.id}
-                          className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                          className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
+                            cheque.status === 'BOUNCED' ? 'bg-rose-50/20 dark:bg-rose-950/10' :
+                            isDueToday ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''
+                          }`}
                         >
                           {/* Cheque # */}
                           <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
@@ -611,6 +912,11 @@ export const ChequePrintingView: React.FC = () => {
                               {cheque.isAccountPayeeOnly && (
                                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300" title="A/C Payee Only">
                                   A/C
+                                </span>
+                              )}
+                              {isDueToday && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 animate-pulse">
+                                  Today
                                 </span>
                               )}
                             </div>
@@ -668,19 +974,43 @@ export const ChequePrintingView: React.FC = () => {
 
                           {/* Status */}
                           <td className="py-3 px-4 text-center whitespace-nowrap">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              cheque.status === 'CLEARED'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                : cheque.status === 'PRINTED'
-                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
-                                : cheque.status === 'ISSUED'
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
-                                : cheque.status === 'BOUNCED'
-                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
-                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
-                            }`}>
-                              {cheque.status}
-                            </span>
+                            {cheque.status === 'CLEARED' ? (
+                              <div className="inline-flex flex-col items-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 inline-flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>CLEARED</span>
+                                </span>
+                                {cheque.clearedAt && (
+                                  <span className="text-[9px] text-emerald-700 dark:text-emerald-400 font-mono mt-0.5">
+                                    {formatDate(cheque.clearedAt)}
+                                  </span>
+                                )}
+                              </div>
+                            ) : cheque.status === 'BOUNCED' ? (
+                              <div className="inline-flex flex-col items-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 inline-flex items-center gap-1" title={cheque.bouncedReason}>
+                                  <AlertTriangle className="w-3 h-3" />
+                                  <span>BOUNCED</span>
+                                </span>
+                                <span className="text-[9px] text-rose-600 dark:text-rose-400 truncate max-w-[110px] mt-0.5" title={cheque.bouncedReason}>
+                                  {cheque.bouncedReason || 'Unpaid'}
+                                </span>
+                              </div>
+                            ) : cheque.status === 'PRINTED' ? (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 inline-flex items-center gap-1">
+                                <Printer className="w-3 h-3" />
+                                <span>PRINTED</span>
+                              </span>
+                            ) : cheque.status === 'ISSUED' ? (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 inline-flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>ISSUED</span>
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                                {cheque.status}
+                              </span>
+                            )}
                           </td>
 
                           {/* Ledger Sync Status */}
@@ -703,33 +1033,68 @@ export const ChequePrintingView: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOpenPrint(cheque)}
-                                title="Print Cheque"
-                                className="p-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition"
+                                title="Print Cheque Instrument"
+                                className="p-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition cursor-pointer"
                               >
                                 <Printer className="w-4 h-4" />
                               </button>
 
-                              {/* Mark Cleared */}
+                              {/* Send Reminder / WhatsApp */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenReminder(cheque)}
+                                title="Send WhatsApp Reminder / Notice"
+                                className="p-1.5 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer"
+                              >
+                                <MessageSquare className="w-4 h-4" />
+                              </button>
+
+                              {/* Mark Cleared Action */}
                               {cheque.status !== 'CLEARED' && (
                                 <button
                                   type="button"
                                   onClick={() => setClearanceModalCheque(cheque)}
                                   title="Mark as Cleared in Bank"
-                                  className="p-1.5 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition"
+                                  className="p-1.5 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition cursor-pointer"
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
                               )}
 
-                              {/* Delete */}
+                              {/* Mark Bounced Action */}
+                              {cheque.status !== 'BOUNCED' && cheque.status !== 'CANCELLED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setBounceModalCheque(cheque)}
+                                  title="Record Cheque Bounce / Return Memo"
+                                  className="p-1.5 text-rose-600 hover:text-rose-800 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
+                                >
+                                  <AlertTriangle className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* View Return Memo (For Bounced Cheques) */}
+                              {cheque.status === 'BOUNCED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setMemoModalCheque(cheque)}
+                                  title="Print Return Advice Memo"
+                                  className="p-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 transition cursor-pointer"
+                                >
+                                  <FileWarning className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Delete Cheque */}
                               <button
                                 type="button"
                                 onClick={() => setChequeToDelete(cheque)}
                                 title="Delete Cheque"
-                                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
+
                             </div>
                           </td>
                         </tr>
@@ -767,6 +1132,51 @@ export const ChequePrintingView: React.FC = () => {
         onClose={() => setIsBookModalOpen(false)}
       />
 
+      {/* CHEQUE CLEARANCE MODAL */}
+      <ChequeClearanceModal
+        isOpen={!!clearanceModalCheque}
+        cheque={clearanceModalCheque}
+        currencySymbol={business.currencySymbol}
+        onClose={() => setClearanceModalCheque(null)}
+        onConfirmClearance={handleConfirmClearance}
+      />
+
+      {/* CHEQUE BOUNCE MODAL */}
+      <ChequeBounceModal
+        isOpen={!!bounceModalCheque}
+        cheque={bounceModalCheque}
+        business={business}
+        currencySymbol={business.currencySymbol}
+        onClose={() => setBounceModalCheque(null)}
+        onConfirmBounce={handleConfirmBounce}
+        onOpenReminderNotice={(chq, type) => {
+          setBounceModalCheque(null);
+          handleOpenReminder(chq, type);
+        }}
+      />
+
+      {/* CHEQUE REMINDER DRAWER MODAL */}
+      <ChequeReminderDrawerModal
+        isOpen={!!reminderModalCheque}
+        cheque={reminderModalCheque}
+        business={business}
+        initialType={reminderNoticeType}
+        onClose={() => setReminderModalCheque(null)}
+        onReminderSent={(id) => {
+          updateCheque(id, { reminderSentAt: new Date().toISOString() });
+          showToast('success', 'Reminder Logged', 'Reminder notification recorded for cheque.');
+        }}
+      />
+
+      {/* CHEQUE RETURN ADVICE MEMO MODAL */}
+      <ChequeReturnMemoModal
+        isOpen={!!memoModalCheque}
+        cheque={memoModalCheque}
+        business={business}
+        currencySymbol={business.currencySymbol}
+        onClose={() => setMemoModalCheque(null)}
+      />
+
       {/* CHEQUE DELETION MODAL */}
       {chequeToDelete && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 animate-fade-in">
@@ -793,7 +1203,7 @@ export const ChequePrintingView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setChequeToDelete(null)}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -804,7 +1214,7 @@ export const ChequePrintingView: React.FC = () => {
                   deleteCheque(chequeToDelete.id);
                   setChequeToDelete(null);
                 }}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete Cheque</span>
@@ -814,7 +1224,7 @@ export const ChequePrintingView: React.FC = () => {
         </div>
       )}
 
-      {/* CHEQUE BOOK DELETION MODAL (FROM OVERVIEW TAB) */}
+      {/* CHEQUE BOOK DELETION MODAL */}
       {bookToDelete && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
@@ -840,7 +1250,7 @@ export const ChequePrintingView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setBookToDelete(null)}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -851,72 +1261,10 @@ export const ChequePrintingView: React.FC = () => {
                   deleteChequeBook(bookToDelete.id);
                   setBookToDelete(null);
                 }}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete Cheque Book</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* BANK CLEARANCE MODAL */}
-      {clearanceModalCheque && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 flex items-center justify-center font-bold">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-                  Reconcile & Clear Cheque #{clearanceModalCheque.chequeNumber}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {clearanceModalCheque.bankName} • {formatINR(clearanceModalCheque.amount)}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Bank Realization / Clearance Date
-              </label>
-              <input
-                type="date"
-                value={clearanceDate}
-                onChange={(e) => setClearanceDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setClearanceModalCheque(null)}
-                className="px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  markChequeAsBounced(clearanceModalCheque.id, 'Cheque returned unpaid / insufficient funds');
-                  setClearanceModalCheque(null);
-                }}
-                className="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-xl transition"
-              >
-                Mark Bounced
-              </button>
-
-              <button
-                type="button"
-                onClick={handleConfirmClearance}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition"
-              >
-                Confirm Cleared
               </button>
             </div>
           </div>

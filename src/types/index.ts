@@ -309,6 +309,22 @@ export interface JournalEntry {
 export type ChequeType = 'PAYMENT_OUT' | 'PAYMENT_IN' | 'SELF_CASH';
 export type ChequeStatus = 'DRAFT' | 'ISSUED' | 'PRINTED' | 'CLEARED' | 'CANCELLED' | 'BOUNCED';
 
+export interface ChequeClearancePayload {
+  clearedAt: string;
+  clearanceReference?: string; // UTR or Bank Ref
+  clearanceNotes?: string;
+}
+
+export interface ChequeBouncePayload {
+  bouncedAt: string;
+  bouncedReason: string;
+  bouncedReasonCode?: string; // CTS Return Code e.g. "01", "10", "02"
+  bouncedMemoRef?: string; // Bank Return Memo Number
+  bouncedPenaltyFee?: number; // Bank charges / penalty e.g. 250 / 500
+  reverseLinkedInvoice?: boolean; // Reverse linked invoice/payment status
+  autoRecordPenaltyExpense?: boolean; // Automatically log penalty fee in Expenses
+}
+
 export interface ChequeRecord {
   id: string;
   chequeNumber: string; // e.g. "004821" (6-digit CTS-2010 format)
@@ -317,6 +333,7 @@ export interface ChequeRecord {
   partyId?: string; // Linked Customer or Vendor
   partyName?: string;
   partyType?: 'CUSTOMER' | 'VENDOR' | 'OTHER';
+  partyPhone?: string;
   amount: number;
   amountInWords?: string; // e.g. "Rupees Forty-Five Thousand Eight Hundred and Fifty Only"
   bankAccountId?: string;
@@ -339,8 +356,15 @@ export interface ChequeRecord {
   signatoryText?: string; // e.g. "For ACME ENTERPRISES PVT LTD"
   printedAt?: string;
   clearedAt?: string;
+  clearanceReference?: string;
+  clearanceNotes?: string;
   bouncedAt?: string;
   bouncedReason?: string;
+  bouncedReasonCode?: string;
+  bouncedMemoRef?: string;
+  bouncedPenaltyFee?: number;
+  reminderSentAt?: string;
+  depositDate?: string;
   autoPostLedger: boolean; // Auto creates ledger & accounting entries
   createdAt: string;
   updatedAt?: string;

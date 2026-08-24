@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { isProductLowStock, normalizeLowStockSettings } from '../../utils/stockUtils';
 import { normalizeHeaderConfig } from '../../utils/headerDefaults';
+import { getChequeReminderMetrics } from '../../utils/chequeReminders';
+import { formatINR } from '../../utils/formatters';
 import { HeaderDensity, HeaderStyle } from '../../types';
 
 interface HeaderProps {
@@ -31,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     setActiveTab, 
     invoices, 
     products, 
+    cheques,
     can,
     isSidebarCollapsed,
     toggleSidebarCollapse
@@ -81,13 +84,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     return null;
   }
 
-  // Compute live alerts (e.g. low stock, unpaid overdue invoices)
+  // Compute live alerts (e.g. low stock, unpaid overdue invoices, cheque reminders)
   const stockSettings = normalizeLowStockSettings(business.lowStockSettings);
   const lowStockItems = stockSettings.enabled && stockSettings.showLowStockBadge
     ? products.filter(p => isProductLowStock(p, stockSettings))
     : [];
   const overdueInvoices = invoices.filter(i => i.status === 'UNPAID' && new Date(i.dueDate) < new Date());
-  const totalAlertsCount = lowStockItems.length + overdueInvoices.length;
+  
+  const chequeMetrics = getChequeReminderMetrics(cheques || []);
+  const totalChequeAlerts = chequeMetrics.dueToday.length + chequeMetrics.recentlyBounced.length;
+  const totalAlertsCount = lowStockItems.length + overdueInvoices.length + totalChequeAlerts;
 
   // Custom accent background and text helpers
   const getAccentBg = (color?: string) => {
@@ -410,6 +416,43 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
                         className="mt-1.5 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline inline-flex items-center"
                       >
                         Restock items <ArrowUpRight className="w-3 h-3 ml-0.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Cheques Due Today Alert */}
+                  {chequeMetrics.dueToday.length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs">
+                      <div className="font-semibold text-blue-900 dark:text-blue-200 mb-1 flex items-center gap-1">
+                        <span>🏦 Cheques Due Today ({chequeMetrics.dueToday.length})</span>
+                      </div>
+                      <p className="text-blue-800 dark:text-blue-300">
+                        {chequeMetrics.dueToday[0]?.payeeName} (#{chequeMetrics.dueToday[0]?.chequeNumber}) - {formatINR(chequeMetrics.dueToday[0]?.amount)}
+                        {chequeMetrics.dueToday.length > 1 ? ` and ${chequeMetrics.dueToday.length - 1} other(s)` : ''}
+                      </p>
+                      <button
+                        onClick={() => { setActiveTab('cheques' as any); setShowNotifications(false); }}
+                        className="mt-1.5 text-blue-600 dark:text-blue-400 font-semibold hover:underline inline-flex items-center"
+                      >
+                        Process cheques <ArrowUpRight className="w-3 h-3 ml-0.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bounced Cheques Alert */}
+                  {chequeMetrics.recentlyBounced.length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs">
+                      <div className="font-semibold text-rose-900 dark:text-rose-200 mb-1 flex items-center gap-1">
+                        <span>🚨 Cheque Dishonoured / Bounced ({chequeMetrics.recentlyBounced.length})</span>
+                      </div>
+                      <p className="text-rose-800 dark:text-rose-300">
+                        Cheque #{chequeMetrics.recentlyBounced[0]?.chequeNumber} for {chequeMetrics.recentlyBounced[0]?.payeeName} ({chequeMetrics.recentlyBounced[0]?.bouncedReason || 'Unpaid'})
+                      </p>
+                      <button
+                        onClick={() => { setActiveTab('cheques' as any); setShowNotifications(false); }}
+                        className="mt-1.5 text-rose-600 dark:text-rose-400 font-semibold hover:underline inline-flex items-center"
+                      >
+                        Review bounced cheques <ArrowUpRight className="w-3 h-3 ml-0.5" />
                       </button>
                     </div>
                   )}

@@ -75,7 +75,7 @@ const EditSuperAdminModal: React.FC<EditSuperAdminModalProps> = ({
   onSave,
 }) => {
   const [modalTab, setModalTab] = useState<'profile' | 'avatar' | 'security'>('profile');
-  const [name, setName] = useState(superAdminAuth.name || 'Vikram Singhania');
+  const [name, setName] = useState(superAdminAuth.name || 'Kuldeepn Siraswar');
   const [email, setEmail] = useState(superAdminAuth.email || 'superadmin@vyaparflow.in');
   const [phone, setPhone] = useState(superAdminAuth.phone || '+91 99999 88888');
   const [roleTitle, setRoleTitle] = useState(superAdminAuth.roleTitle || 'Platform Super Administrator');

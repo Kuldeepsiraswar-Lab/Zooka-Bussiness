@@ -95,7 +95,7 @@ const EditSuperAdminModal: React.FC<EditSuperAdminModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setName(superAdminAuth.name || 'Vikram Singhania');
+      setName(superAdminAuth.name || 'Kuldeep Siraswar');
       setEmail(superAdminAuth.email || 'superadmin@vyaparflow.in');
       setPhone(superAdminAuth.phone || '+91 99999 88888');
       setRoleTitle(superAdminAuth.roleTitle || 'Platform Super Administrator');

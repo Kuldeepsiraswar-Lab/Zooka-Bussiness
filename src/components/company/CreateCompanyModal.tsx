@@ -297,7 +297,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
                   <p className="text-xs text-slate-600 mt-1">
                     {isSuperAdminAuthorized
-                      ? 'Verified as Super Administrator (Vikram Singhania). You have master clearance to create business entities.'
+                      ? 'Verified as Super Administrator (Kuldeep Siraswar). You have master clearance to create business entities.'
                       : 'Without Super Admin verification, no company can be created in the system. Enter the Super Admin password or PIN to unlock.'}
                   </p>
                 </div>

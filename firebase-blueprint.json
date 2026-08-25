@@ -234,6 +234,23 @@
       },
       "required": ["id", "email", "role"]
     },
+    "customHsnCodes": {
+      "title": "Custom HSN & SAC Tariff Directory",
+      "description": "User-defined custom Goods HSN codes and Service SAC codes with GST tax rates and unit codes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "code": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string" },
+        "gstRate": { "type": "number" },
+        "uqc": { "type": "string" },
+        "isCustom": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "code", "description", "gstRate"]
+    },
     "systemState": {
       "title": "System Configuration",
       "description": "Global sync metadata, active company pointer, and UI theme",

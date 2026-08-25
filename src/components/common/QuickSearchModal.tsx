@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { ModalWrapper } from './Portal';
 import { 
   Search, 
   X, 
@@ -87,9 +88,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     : cheques.slice(0, 2);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-14 md:pt-20 p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
+    <ModalWrapper isOpen={isOpen} onClose={onClose} zIndex={9999}>
       <div 
-        className="w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[88dvh] sm:max-h-[80dvh]"
+        className="w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[min(88vh,88dvh)] sm:max-h-[min(80vh,80dvh)] my-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
@@ -345,6 +346,6 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalWrapper>
   );
 };

@@ -35,11 +35,20 @@ body {
 .modal-overlay {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  max-height: 100dvh;
 }
 
 .modal-content-scroll {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  max-height: calc(100dvh - 10rem);
+}
+
+/* Ensure modal popups always stay within active display viewport */
+@supports (height: 100dvh) {
+  .modal-overlay {
+    height: 100dvh;
+  }
 }
 
 /* Mobile safe area padding utilities */

@@ -41,7 +41,10 @@ import {
   LayoutGrid,
   List,
   FileText,
-  AlignLeft
+  AlignLeft,
+  ArrowLeft,
+  ArrowRight,
+  Package
 } from 'lucide-react';
 import { 
   normalizeLowStockSettings, 
@@ -73,6 +76,7 @@ export const PosBillingView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [itemViewMode, setItemViewMode] = useState<'grid' | 'list'>('grid');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [mobileTab, setMobileTab] = useState<'products' | 'cart'>('products');
   
   // Customer selection & contacts state
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
@@ -483,13 +487,15 @@ export const PosBillingView: React.FC = () => {
     setSettlementType('FULL');
     setPartialAmount(0);
     setShowSettlementModal(false);
+    setMobileTab('products');
     setSelectedInvoiceIdForPrint(invoice.id);
   };
 
   const currentNextInfo = getNextSequentialInvoiceNumber();
+  const totalCartItemsCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20 lg:pb-4">
       {/* Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
@@ -518,10 +524,62 @@ export const PosBillingView: React.FC = () => {
         </div>
       </div>
 
+      {/* Switchable Segmented Button: Product vs Cart (Optimized for Mobile & Tablet Devices) */}
+      <div className="lg:hidden sticky top-2 z-20 bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-slate-700/80 transition-all">
+        <div className="grid grid-cols-2 gap-1.5 p-0.5 bg-slate-800/90 rounded-xl">
+          {/* Products Tab Button */}
+          <button
+            type="button"
+            onClick={() => setMobileTab('products')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              mobileTab === 'products'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>Products</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+              mobileTab === 'products' ? 'bg-indigo-700/90 text-white' : 'bg-slate-700 text-slate-300'
+            }`}>
+              {filteredProducts.length}
+            </span>
+          </button>
+
+          {/* Cart Tab Button */}
+          <button
+            type="button"
+            onClick={() => setMobileTab('cart')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer relative ${
+              mobileTab === 'cart'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Cart</span>
+            {totalCartItemsCount > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                mobileTab === 'cart' ? 'bg-emerald-700 text-white' : 'bg-emerald-500 text-white animate-pulse'
+              }`}>
+                {totalCartItemsCount}
+              </span>
+            )}
+            {totals.grandTotal > 0 && (
+              <span className={`text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded ${
+                mobileTab === 'cart' ? 'bg-emerald-800 text-emerald-100' : 'bg-slate-700 text-emerald-400'
+              }`}>
+                {formatCurrency(totals.grandTotal, business.currencySymbol)}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* 2-Column POS Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left: Product Grid & Quick Search (7 cols) */}
-        <div className="lg:col-span-7 space-y-3.5">
+        {/* Left: Product Grid & Quick Search (7 cols on Desktop, Switchable on Mobile/Tablet) */}
+        <div className={`lg:col-span-7 space-y-3.5 ${mobileTab === 'products' ? 'block' : 'hidden lg:block'}`}>
           {/* Search & Category Filter */}
           <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
             <div className="flex items-center gap-2">
@@ -833,8 +891,26 @@ export const PosBillingView: React.FC = () => {
           )}
         </div>
 
-        {/* Right: POS Cart & Checkout Drawer (5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Right: POS Cart & Checkout Drawer (5 cols on Desktop, Switchable on Mobile/Tablet) */}
+        <div className={`lg:col-span-5 space-y-4 ${mobileTab === 'cart' ? 'block' : 'hidden lg:block'}`}>
+          {/* Mobile & Tablet Back to Products Navigation */}
+          <div className="lg:hidden flex items-center justify-between pb-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileTab('products');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 shadow-2xs transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>← Back to Products Catalog</span>
+            </button>
+            <span className="text-[11px] font-semibold text-slate-500 font-mono">
+              {totalCartItemsCount} item{totalCartItemsCount > 1 ? 's' : ''} in cart
+            </span>
+          </div>
+
           <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -1346,6 +1422,40 @@ export const PosBillingView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Quick Floating Cart Bar for Mobile & Tablet (Active when on Products view with items in cart) */}
+      {mobileTab === 'products' && cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-30 animate-in slide-in-from-bottom duration-300">
+          <div className="bg-slate-900/95 backdrop-blur-md text-white p-2.5 sm:p-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <ShoppingCart className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 truncate">
+                  <span>{totalCartItemsCount} item{totalCartItemsCount > 1 ? 's' : ''} in cart</span>
+                  <span className="text-[10px] font-normal text-slate-400">({cart.length} item{cart.length > 1 ? 's' : ''})</span>
+                </div>
+                <div className="text-sm font-extrabold font-mono text-emerald-400">
+                  {formatCurrency(totals.grandTotal, business.currencySymbol)}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileTab('cart');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
+            >
+              <span>View Cart & Pay</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* CUSTOM SETTLEMENT MODAL POPUP */}
       {showSettlementModal && (

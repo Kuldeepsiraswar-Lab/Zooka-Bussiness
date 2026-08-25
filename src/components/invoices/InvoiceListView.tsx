@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Invoice, InvoiceStatus, InvoiceType, PaymentMethod } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { getInvoiceDraft, clearInvoiceDraft, hasMeaningfulDraftData, formatDraftTime } from '../../utils/invoiceDraftManager';
 import { ClientStatementModal } from '../parties/ClientStatementModal';
 import { ImportSaleInvoicesModal } from './ImportSaleInvoicesModal';
 import { 
@@ -24,7 +25,10 @@ import {
   Boxes,
   Edit3,
   Upload,
-  FileSpreadsheet
+  FileSpreadsheet,
+  History,
+  RotateCcw,
+  X
 } from 'lucide-react';
 
 interface InvoiceListViewProps {
@@ -41,8 +45,26 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
     recordInvoicePayment,
     deleteInvoice,
     showToast,
-    setActiveTab
+    setActiveTab,
+    currentCompanyId
   } = useApp();
+
+  const [activeDraft, setActiveDraft] = useState(() => getInvoiceDraft(currentCompanyId));
+
+  // Keep draft status in sync with localStorage
+  useEffect(() => {
+    const checkDraft = () => {
+      const d = getInvoiceDraft(currentCompanyId);
+      if (d && hasMeaningfulDraftData(d, business.defaultNotes, business.defaultTerms)) {
+        setActiveDraft(d);
+      } else {
+        setActiveDraft(null);
+      }
+    };
+    checkDraft();
+    window.addEventListener('focus', checkDraft);
+    return () => window.removeEventListener('focus', checkDraft);
+  }, [currentCompanyId, business.defaultNotes, business.defaultTerms]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -146,6 +168,55 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
           </button>
         </div>
       </div>
+
+      {/* Uncommitted Invoice Draft Notification Banner */}
+      {activeDraft && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-indigo-500/10 border border-amber-500/30 dark:border-amber-500/20 text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-150">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+              <History className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider">
+                  Unsaved Invoice Draft
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300">
+                  {formatDraftTime(activeDraft.savedAt)}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                Draft for <strong className="font-semibold text-slate-900 dark:text-white">{activeDraft.customerName || 'Unnamed Party'}</strong> with {activeDraft.items?.length || 0} items ({formatCurrency(activeDraft.grandTotal || 0, business.currencySymbol)}) was saved to localStorage.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button
+              type="button"
+              onClick={onOpenNewInvoice}
+              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Resume Draft</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                clearInvoiceDraft(currentCompanyId);
+                setActiveDraft(null);
+                showToast('info', 'Draft Removed', 'Unsaved draft was cleared.');
+              }}
+              className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              title="Discard draft"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+              <span>Discard</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filter & Search Bar */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">

@@ -21,6 +21,14 @@ import { formatCurrency, validateGstin, normalizeSignatureUrl } from '../../util
 import { cleanDefaultBusinessProfile } from '../../utils/cleanDefaults';
 import { CustomHsnModal } from '../common/CustomHsnModal';
 import { 
+  saveInvoiceDraft, 
+  getInvoiceDraft, 
+  clearInvoiceDraft, 
+  hasMeaningfulDraftData, 
+  formatDraftTime, 
+  InvoiceDraftPayload 
+} from '../../utils/invoiceDraftManager';
+import { 
   Plus, 
   Trash2, 
   Save, 
@@ -49,7 +57,12 @@ import {
   Percent,
   SlidersHorizontal,
   Calculator,
-  FileText
+  FileText,
+  Cloud,
+  HardDrive,
+  History,
+  X,
+  Clock
 } from 'lucide-react';
 import { 
   normalizeLowStockSettings, 
@@ -74,10 +87,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     updateInvoice, 
     getNextSequentialInvoiceNumber, 
     setSelectedInvoiceIdForPrint, 
-    showToast 
+    showToast,
+    currentCompanyId
   } = useApp();
   const isEditing = !!initialData?.id;
   const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState<boolean>(false);
+
+  // Auto-Save Draft & Persistence State
+  const [availableDraft, setAvailableDraft] = useState<InvoiceDraftPayload | null>(null);
+  const [lastAutoSavedAt, setLastAutoSavedAt] = useState<string | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState<boolean>(false);
 
   const [invoiceType, setInvoiceType] = useState<InvoiceType>(initialData?.invoiceType || 'TAX_INVOICE');
   const [invoiceNumber, setInvoiceNumber] = useState<string>(() => {
@@ -258,6 +278,277 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
   // Recalculate full totals
   const totals = recalculateInvoiceTotals(items, isInterState);
+
+  // Check for existing saved draft in localStorage on initial mount
+  useEffect(() => {
+    const existingDraft = getInvoiceDraft(currentCompanyId, initialData?.id);
+    if (existingDraft && hasMeaningfulDraftData(existingDraft, business.defaultNotes, business.defaultTerms)) {
+      setAvailableDraft(existingDraft);
+      setLastAutoSavedAt(existingDraft.savedAt);
+    }
+  }, [currentCompanyId, initialData?.id, business.defaultNotes, business.defaultTerms]);
+
+  // Maintain live snapshot ref of entire invoice state for synchronized auto-saving
+  const currentSnapshotRef = useRef<Omit<InvoiceDraftPayload, 'savedAt' | 'companyId'>>({
+    targetInvoiceId: initialData?.id,
+    invoiceType,
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    selectedCustomerId,
+    customerName,
+    customerGstin,
+    customerAddress,
+    customerCity,
+    customerState,
+    customerStateCode,
+    customerPhone,
+    customerEmail,
+    placeOfSupplyState,
+    placeOfSupplyStateCode,
+    isReverseCharge,
+    priceEntryMode,
+    hasDifferentShipping,
+    shippingName,
+    shippingAddress,
+    shippingState,
+    shippingStateCode,
+    items,
+    paymentStatus,
+    amountPaid,
+    paymentMethod,
+    notes,
+    terms,
+    grandTotal: totals.grandTotal
+  });
+
+  // Keep snapshot ref updated synchronously with latest state
+  useEffect(() => {
+    currentSnapshotRef.current = {
+      targetInvoiceId: initialData?.id,
+      invoiceType,
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      selectedCustomerId,
+      customerName,
+      customerGstin,
+      customerAddress,
+      customerCity,
+      customerState,
+      customerStateCode,
+      customerPhone,
+      customerEmail,
+      placeOfSupplyState,
+      placeOfSupplyStateCode,
+      isReverseCharge,
+      priceEntryMode,
+      hasDifferentShipping,
+      shippingName,
+      shippingAddress,
+      shippingState,
+      shippingStateCode,
+      items,
+      paymentStatus,
+      amountPaid,
+      paymentMethod,
+      notes,
+      terms,
+      grandTotal: totals.grandTotal
+    };
+  }, [
+    initialData?.id,
+    invoiceType,
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    selectedCustomerId,
+    customerName,
+    customerGstin,
+    customerAddress,
+    customerCity,
+    customerState,
+    customerStateCode,
+    customerPhone,
+    customerEmail,
+    placeOfSupplyState,
+    placeOfSupplyStateCode,
+    isReverseCharge,
+    priceEntryMode,
+    hasDifferentShipping,
+    shippingName,
+    shippingAddress,
+    shippingState,
+    shippingStateCode,
+    items,
+    paymentStatus,
+    amountPaid,
+    paymentMethod,
+    notes,
+    terms,
+    totals.grandTotal
+  ]);
+
+  // Periodic Auto-Save Effect (Debounced + Interval)
+  useEffect(() => {
+    const performAutoSave = () => {
+      const snap = currentSnapshotRef.current;
+      if (hasMeaningfulDraftData(snap, business.defaultNotes, business.defaultTerms)) {
+        setIsAutoSaving(true);
+        const { success, savedAt } = saveInvoiceDraft(currentCompanyId, snap);
+        if (success) {
+          setLastAutoSavedAt(savedAt);
+        }
+        setTimeout(() => setIsAutoSaving(false), 600);
+      }
+    };
+
+    // Debounce save 2.5 seconds after changes
+    const debounceTimer = setTimeout(performAutoSave, 2500);
+
+    // Periodic heartbeat interval every 5 seconds to ensure changes are synced
+    const intervalTimer = setInterval(performAutoSave, 5000);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      clearInterval(intervalTimer);
+    };
+  }, [
+    currentCompanyId,
+    business.defaultNotes,
+    business.defaultTerms,
+    invoiceType,
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    selectedCustomerId,
+    customerName,
+    customerGstin,
+    customerAddress,
+    customerCity,
+    customerState,
+    customerStateCode,
+    customerPhone,
+    customerEmail,
+    placeOfSupplyState,
+    placeOfSupplyStateCode,
+    isReverseCharge,
+    priceEntryMode,
+    hasDifferentShipping,
+    shippingName,
+    shippingAddress,
+    shippingState,
+    shippingStateCode,
+    items,
+    paymentStatus,
+    amountPaid,
+    paymentMethod,
+    notes,
+    terms,
+    totals.grandTotal
+  ]);
+
+  // Handle BeforeUnload: Instant synchronous save on accidental refresh or window close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const snap = currentSnapshotRef.current;
+      if (hasMeaningfulDraftData(snap, business.defaultNotes, business.defaultTerms)) {
+        saveInvoiceDraft(currentCompanyId, snap);
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes in your invoice. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [currentCompanyId, business.defaultNotes, business.defaultTerms]);
+
+  // Restore Draft to Editor State
+  const handleRestoreDraft = (draft: InvoiceDraftPayload) => {
+    try {
+      if (draft.invoiceType) setInvoiceType(draft.invoiceType);
+      if (draft.invoiceNumber) setInvoiceNumber(draft.invoiceNumber);
+      if (draft.invoiceDate) setInvoiceDate(draft.invoiceDate);
+      if (draft.dueDate) setDueDate(draft.dueDate);
+      if (draft.selectedCustomerId !== undefined) setSelectedCustomerId(draft.selectedCustomerId);
+      if (draft.customerName !== undefined) setCustomerName(draft.customerName);
+      if (draft.customerGstin !== undefined) setCustomerGstin(draft.customerGstin);
+      if (draft.customerAddress !== undefined) setCustomerAddress(draft.customerAddress);
+      if (draft.customerCity !== undefined) setCustomerCity(draft.customerCity);
+      if (draft.customerState !== undefined) setCustomerState(draft.customerState);
+      if (draft.customerStateCode !== undefined) setCustomerStateCode(draft.customerStateCode);
+      if (draft.customerPhone !== undefined) setCustomerPhone(draft.customerPhone);
+      if (draft.customerEmail !== undefined) setCustomerEmail(draft.customerEmail);
+      if (draft.placeOfSupplyState !== undefined) setPlaceOfSupplyState(draft.placeOfSupplyState);
+      if (draft.placeOfSupplyStateCode !== undefined) setPlaceOfSupplyStateCode(draft.placeOfSupplyStateCode);
+      if (draft.isReverseCharge !== undefined) setIsReverseCharge(draft.isReverseCharge);
+      if (draft.priceEntryMode !== undefined) setPriceEntryMode(draft.priceEntryMode);
+      if (draft.hasDifferentShipping !== undefined) setHasDifferentShipping(draft.hasDifferentShipping);
+      if (draft.shippingName !== undefined) setShippingName(draft.shippingName);
+      if (draft.shippingAddress !== undefined) setShippingAddress(draft.shippingAddress);
+      if (draft.shippingState !== undefined) setShippingState(draft.shippingState);
+      if (draft.shippingStateCode !== undefined) setShippingStateCode(draft.shippingStateCode);
+      if (draft.items && draft.items.length > 0) setItems(draft.items);
+      if (draft.paymentStatus !== undefined) setPaymentStatus(draft.paymentStatus);
+      if (draft.amountPaid !== undefined) setAmountPaid(draft.amountPaid);
+      if (draft.paymentMethod !== undefined) setPaymentMethod(draft.paymentMethod);
+      if (draft.notes !== undefined) setNotes(draft.notes);
+      if (draft.terms !== undefined) setTerms(draft.terms);
+
+      setLastAutoSavedAt(draft.savedAt);
+      setAvailableDraft(null);
+      showToast(
+        'success', 
+        'Draft Restored', 
+        `Loaded uncommitted draft (${draft.items.length} line items, ₹${(draft.grandTotal || 0).toLocaleString('en-IN')}) from local storage.`
+      );
+    } catch (err) {
+      console.warn('Failed to restore draft:', err);
+      showToast('error', 'Restore Failed', 'Unable to restore draft from localStorage.');
+    }
+  };
+
+  // Discard saved draft from localStorage
+  const handleDiscardDraft = () => {
+    clearInvoiceDraft(currentCompanyId, initialData?.id);
+    setAvailableDraft(null);
+    setLastAutoSavedAt(null);
+    showToast('info', 'Draft Discarded', 'Unsaved draft removed from local storage.');
+  };
+
+  // Manual Trigger to Save Draft Now
+  const handleManualSaveDraft = () => {
+    const snap = currentSnapshotRef.current;
+    if (!hasMeaningfulDraftData(snap, business.defaultNotes, business.defaultTerms)) {
+      showToast('info', 'Nothing to Save', 'Please enter customer details or add items before saving draft.');
+      return;
+    }
+    setIsAutoSaving(true);
+    const { success, savedAt } = saveInvoiceDraft(currentCompanyId, snap);
+    setIsAutoSaving(false);
+    if (success) {
+      setLastAutoSavedAt(savedAt);
+      showToast(
+        'success', 
+        'Draft Saved Locally', 
+        `Invoice draft saved to localStorage at ${new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`
+      );
+    }
+  };
+
+  // Attempt Safe Close / Navigation
+  const handleAttemptClose = () => {
+    const snap = currentSnapshotRef.current;
+    const hasUnsaved = hasMeaningfulDraftData(snap, business.defaultNotes, business.defaultTerms);
+    if (hasUnsaved) {
+      setShowExitConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
 
   // Item row operations
   const handleAddItem = () => {
@@ -624,6 +915,11 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       terms,
     };
 
+    // Purge draft from localStorage upon confirmed save
+    clearInvoiceDraft(currentCompanyId, initialData?.id);
+    setAvailableDraft(null);
+    setLastAutoSavedAt(null);
+
     if (isEditing && initialData?.id) {
       updateInvoice(initialData.id, invoicePayload);
       onClose();
@@ -642,28 +938,29 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
   return (
     <div className="space-y-6 pb-12">
       {/* Top action header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <button
-            onClick={onClose}
-            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            onClick={handleAttemptClose}
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            title="Go back / Exit invoice"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {isEditing ? `Edit Invoice ${invoiceNumber}` : 'Create GST Tax Invoice'}
               </h1>
               <span className={`px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border ${
                 isInterState 
-                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' 
+                  : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
               }`}>
                 {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)'}
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isEditing 
                 ? 'Modify particulars, serial numbers, tax rates, or recipient details for this invoice'
                 : 'Generate GST compliant invoices with accurate tax calculations and e-invoice readiness'}
@@ -671,11 +968,50 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Live Auto-Save Indicator Badge */}
+          <div 
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs shadow-xs select-none"
+            title={lastAutoSavedAt ? `Auto-saved to localStorage at ${new Date(lastAutoSavedAt).toLocaleTimeString()}` : 'Auto-save is tracking changes in background'}
+          >
+            {isAutoSaving ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400 text-[11px]">Saving draft...</span>
+              </>
+            ) : lastAutoSavedAt ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[11px] text-slate-600 dark:text-slate-300">
+                  Draft saved <strong className="font-semibold text-emerald-600 dark:text-emerald-400">{formatDraftTime(lastAutoSavedAt)}</strong>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Auto-save active</span>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={handleManualSaveDraft}
+              className="ml-1 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+              title="Save draft to localStorage now"
+            >
+              <HardDrive className="w-3 h-3" />
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={onClose}
-            className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            onClick={handleAttemptClose}
+            className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -683,9 +1019,9 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           <button
             type="button"
             onClick={() => handleSaveInvoice(false)}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
           >
-            <Save className="w-4 h-4 text-slate-600" />
+            <Save className="w-4 h-4 text-slate-600 dark:text-slate-300" />
             <span>{isEditing ? 'Update & Close' : 'Save & Close'}</span>
           </button>
 
@@ -699,6 +1035,60 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </button>
         </div>
       </div>
+
+      {/* Recovered Unsaved Draft Banner */}
+      {availableDraft && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-indigo-500/10 border border-amber-500/30 dark:border-amber-500/20 text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+              <History className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                  Unsaved Draft Found
+                </h4>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                  Saved {formatDraftTime(availableDraft.savedAt)}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                Recovered draft for <strong className="font-semibold text-slate-900 dark:text-white">{availableDraft.customerName || 'Unnamed Party'}</strong> with <strong className="font-semibold">{availableDraft.items?.length || 0} items</strong> (Total: <strong className="font-semibold text-emerald-600 dark:text-emerald-400">₹{(availableDraft.grandTotal || 0).toLocaleString('en-IN')}</strong>).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button
+              type="button"
+              onClick={() => handleRestoreDraft(availableDraft)}
+              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restore Draft</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              title="Discard saved draft and start fresh"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+              <span>Discard</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAvailableDraft(null)}
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
+              title="Dismiss banner (draft remains safely stored)"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Left Column (Invoice Details & Items) */}
@@ -2236,6 +2626,83 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           }
         }}
       />
+
+      {/* Exit with Unsaved Changes Confirmation Modal */}
+      {showExitConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Exit Invoice Editor?
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  You have unsaved invoice details. Your draft has been auto-saved to localStorage. What would you like to do?
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 text-xs space-y-1.5">
+              <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span className="text-slate-500 dark:text-slate-400">Customer:</span>
+                <span className="font-bold">{customerName || 'None'}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span className="text-slate-500 dark:text-slate-400">Line Items:</span>
+                <span className="font-bold">{items.length} item{items.length === 1 ? '' : 's'}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span className="text-slate-500 dark:text-slate-400">Total Value:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{totals.grandTotal.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const snap = currentSnapshotRef.current;
+                  saveInvoiceDraft(currentCompanyId, snap);
+                  setShowExitConfirmModal(false);
+                  onClose();
+                  showToast('info', 'Draft Saved', 'Draft retained in localStorage. You can restore it next time.');
+                }}
+                className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <HardDrive className="w-4 h-4" />
+                <span>Save Draft & Exit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  clearInvoiceDraft(currentCompanyId, initialData?.id);
+                  setAvailableDraft(null);
+                  setLastAutoSavedAt(null);
+                  setShowExitConfirmModal(false);
+                  onClose();
+                  showToast('info', 'Draft Discarded', 'Draft cleared from local storage.');
+                }}
+                className="w-full py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Discard Draft & Exit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowExitConfirmModal(false)}
+                className="w-full py-2 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              >
+                Continue Editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

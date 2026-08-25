@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CustomHsnCode, GstTaxRate } from '../../types';
 import { STANDARD_UNITS, COMMON_HSN_CODES } from '../../utils/constants';
+import { ModalWrapper } from './Portal';
 import { 
   X, 
   Plus, 
@@ -17,7 +18,8 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Cloud
 } from 'lucide-react';
 
 interface CustomHsnModalProps {
@@ -214,11 +216,9 @@ export const CustomHsnModal: React.FC<CustomHsnModalProps> = ({
     });
   }, [searchQuery]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-      <div className="bg-white w-full max-w-3xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] my-auto">
+    <ModalWrapper isOpen={isOpen} onClose={onClose} zIndex={9999}>
+      <div className="bg-white w-full max-w-3xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[min(92vh,92dvh)] my-auto">
         
         {/* Header */}
         <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0 border-b border-indigo-900/40">
@@ -729,9 +729,11 @@ export const CustomHsnModal: React.FC<CustomHsnModalProps> = ({
 
         {/* Modal Footer */}
         <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Custom HSN & SAC codes are saved automatically to your workspace</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <Cloud className="w-4 h-4 text-indigo-600" />
+            <span className="font-medium text-slate-700">Cloud Database Synced:</span>
+            <span>Custom HSN & SAC codes automatically persist to Cloud Firestore</span>
           </div>
           <button
             type="button"
@@ -743,6 +745,6 @@ export const CustomHsnModal: React.FC<CustomHsnModalProps> = ({
         </div>
 
       </div>
-    </div>
+    </ModalWrapper>
   );
 };

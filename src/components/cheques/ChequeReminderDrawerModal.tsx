@@ -16,11 +16,13 @@ import { ChequeRecord, BusinessProfile } from '../../types';
 import { generateChequeWhatsAppText } from '../../utils/chequeReminders';
 import { formatINR, formatDate } from '../../utils/formatters';
 
+export type ChequeReminderType = 'DUE_TODAY' | 'UPCOMING_PDC' | 'BOUNCED' | 'CLEARANCE_NOTICE';
+
 interface ChequeReminderDrawerModalProps {
   isOpen: boolean;
   cheque: ChequeRecord | null;
   business: BusinessProfile;
-  initialType?: 'DUE_TODAY' | 'UPCOMING_PDC' | 'BOUNCED' | 'CLEARANCE_NOTICE';
+  initialType?: ChequeReminderType;
   onClose: () => void;
   onReminderSent?: (chequeId: string) => void;
 }
@@ -32,8 +34,8 @@ export const ChequeReminderDrawerModal: React.FC<ChequeReminderDrawerModalProps>
   initialType = 'DUE_TODAY',
   onClose,
   onReminderSent
-}) => {
-  const [reminderType, setReminderType] = useState<'DUE_TODAY' | 'UPCOMING_PDC' | 'BOUNCED' | 'CLEARANCE_NOTICE'>(initialType);
+}: ChequeReminderDrawerModalProps) => {
+  const [reminderType, setReminderType] = useState<ChequeReminderType>(initialType as ChequeReminderType);
   const [messageText, setMessageText] = useState<string>('');
   const [recipientPhone, setRecipientPhone] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
@@ -41,7 +43,7 @@ export const ChequeReminderDrawerModal: React.FC<ChequeReminderDrawerModalProps>
   useEffect(() => {
     if (cheque) {
       // Choose smart default if initialType wasn't explicitly set
-      let effectiveType = initialType;
+      let effectiveType: ChequeReminderType = (initialType || 'DUE_TODAY') as ChequeReminderType;
       if (cheque.status === 'BOUNCED') {
         effectiveType = 'BOUNCED';
       } else if (cheque.status === 'CLEARED') {

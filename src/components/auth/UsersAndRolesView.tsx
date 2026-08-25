@@ -43,7 +43,8 @@ export const UsersAndRolesView: React.FC = () => {
     deleteUser, 
     auditLogs, 
     can,
-    showToast 
+    showToast,
+    setIsJwtModalOpen 
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'members' | 'matrix' | 'audit' | 'guidelines'>('members');
@@ -149,6 +150,18 @@ export const UsersAndRolesView: React.FC = () => {
                   : 'Disabled'}
               </strong>
             </div>
+
+            {/* Cryptographic JWT Token Pill */}
+            <button
+              type="button"
+              onClick={() => setIsJwtModalOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 hover:text-white transition-all cursor-pointer shadow-xs"
+              title="Inspect Cryptographic JWT Token & Claims"
+            >
+              <KeyRound className="w-3 h-3 text-cyan-400" />
+              <span>JWT Auth:</span>
+              <strong className="font-mono text-emerald-400">Verified HS256</strong>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">

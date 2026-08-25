@@ -25,7 +25,8 @@ import {
   HelpCircle,
   Shield,
   Smartphone,
-  Eye
+  Eye,
+  KeyRound
 } from 'lucide-react';
 
 export const SessionTimeoutSettingsTab: React.FC = () => {
@@ -35,7 +36,11 @@ export const SessionTimeoutSettingsTab: React.FC = () => {
     currentUser, 
     can, 
     showToast,
-    logSecurityEvent 
+    logSecurityEvent,
+    jwtToken,
+    jwtSessionInfo,
+    refreshActiveJwtToken,
+    setIsJwtModalOpen
   } = useApp();
 
   const isCurrentUserAdmin = currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN' || can('settings', 'manageUsersAndRoles');
@@ -483,6 +488,40 @@ export const SessionTimeoutSettingsTab: React.FC = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span>Window tab focus & view changes</span>
               </div>
+            </div>
+          </div>
+
+          {/* Card: JWT Cryptographic Session Token */}
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950/80 rounded-3xl border border-indigo-500/30 p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                <KeyRound className="w-4 h-4 text-cyan-400" />
+                JWT Cryptographic Session Token
+              </h4>
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                RFC 7519 • HS256
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Every authenticated login generates a signed JSON Web Token (JWT) with tenant boundaries, multi-role claims, and auto-refresh security.
+            </p>
+
+            <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex items-center justify-between text-xs">
+              <div className="min-w-0">
+                <div className="text-[10px] text-slate-400 uppercase font-semibold">Active Token</div>
+                <div className="font-bold text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Valid & Cryptographically Signed</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsJwtModalOpen(true)}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1 shrink-0"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Inspect Token</span>
+              </button>
             </div>
           </div>
 

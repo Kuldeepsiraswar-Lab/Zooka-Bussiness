@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AppUser } from '../../types';
 import { ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN } from '../../utils/rbacRules';
@@ -38,6 +38,25 @@ export const UserAuthModal: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const roleSortOrder: Record<string, number> = {
+    SUPER_ADMIN: 0,
+    ADMIN: 1,
+    ACCOUNTANT: 2,
+    SALESPERSON: 3,
+    INVENTORY_MANAGER: 4,
+    AUDITOR: 5,
+    CUSTOM: 6,
+  };
+
+  const sortedActiveUsers = useMemo(() => {
+    return [...users.filter(u => u.isActive)].sort((a, b) => {
+      const orderA = roleSortOrder[a.role] ?? 99;
+      const orderB = roleSortOrder[b.role] ?? 99;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [users]);
 
   // Sync selected user when auth modal opens with a specific target
   useEffect(() => {
@@ -169,7 +188,7 @@ export const UserAuthModal: React.FC = () => {
                 </span>
               </button>
 
-              {users.filter(u => u.isActive).map(u => {
+              {sortedActiveUsers.map(u => {
                 const isSelected = u.id === selectedUserId;
                 const uRoleMeta = ROLE_DEFINITIONS[u.role] || ROLE_DEFINITIONS.CUSTOM;
 

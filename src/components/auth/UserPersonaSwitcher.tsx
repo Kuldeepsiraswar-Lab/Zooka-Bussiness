@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
 import { RoleType } from '../../types';
@@ -30,7 +30,8 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
     openAuthModal, 
     lockSession, 
     logout,
-    setActiveTab 
+    setActiveTab,
+    setIsJwtModalOpen 
   } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,6 +45,25 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const roleSortOrder: Record<string, number> = {
+    SUPER_ADMIN: 0,
+    ADMIN: 1,
+    ACCOUNTANT: 2,
+    SALESPERSON: 3,
+    INVENTORY_MANAGER: 4,
+    AUDITOR: 5,
+    CUSTOM: 6,
+  };
+
+  const sortedUsers = useMemo(() => {
+    return [...users.filter(u => u.isActive)].sort((a, b) => {
+      const orderA = roleSortOrder[a.role] ?? 99;
+      const orderB = roleSortOrder[b.role] ?? 99;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [users]);
 
   const currentRoleMeta = ROLE_DEFINITIONS[currentUser.role] || ROLE_DEFINITIONS.CUSTOM;
 
@@ -116,9 +136,18 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
               <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${currentRoleMeta.badgeBg} ${currentRoleMeta.badgeText}`}>
                 {currentRoleMeta.name}
               </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                <Lock className="w-2.5 h-2.5" /> Protected
-              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsJwtModalOpen(true);
+                }}
+                className="text-[10px] text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-mono font-bold flex items-center gap-1 bg-cyan-50 dark:bg-cyan-950/60 hover:bg-cyan-100 dark:hover:bg-cyan-900/60 px-2 py-0.5 rounded-md border border-cyan-200 dark:border-cyan-800/80 transition-colors cursor-pointer"
+                title="View active JWT cryptographic token and claims"
+              >
+                <KeyRound className="w-2.5 h-2.5" />
+                <span>JWT Active</span>
+              </button>
             </div>
           </div>
 
@@ -130,7 +159,7 @@ export const UserPersonaSwitcher: React.FC<UserPersonaSwitcherProps> = ({ compac
             </div>
 
             <div className="space-y-1 mt-1">
-              {users.map(user => {
+              {sortedUsers.map(user => {
                 const isCurrent = user.id === currentUser.id;
                 const roleMeta = ROLE_DEFINITIONS[user.role] || ROLE_DEFINITIONS.CUSTOM;
 

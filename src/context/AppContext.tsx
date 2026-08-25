@@ -4,9 +4,17 @@ import {
   EInvoiceDetails, EWayBillDetails, PaymentMethod, InvoiceStatus, PaymentRecord, PaymentType,
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
-  SessionTimeoutConfig, LowStockSettings, CustomHsnCode,
+  SessionTimeoutConfig, LowStockSettings, CustomHsnCode, JwtSessionInfo,
   ChequeRecord, ChequeBook, ChequeTemplateConfig, ChequeClearancePayload, ChequeBouncePayload
 } from '../types';
+import { 
+  generateJwtToken, 
+  verifyJwtToken, 
+  saveAuthToken, 
+  getAuthToken, 
+  clearAuthToken, 
+  refreshJwtToken 
+} from '../utils/jwtAuth';
 import { 
   BANK_CHEQUE_PRESETS,
   DEFAULT_CTS2010_TEMPLATE,
@@ -248,6 +256,13 @@ interface AppContextType {
   loginAsSuperAdmin: () => void;
   logoutSuperAdmin: () => void;
 
+  // JWT Cryptographic Token State & Session Management
+  jwtToken: string | null;
+  jwtSessionInfo: JwtSessionInfo | null;
+  refreshActiveJwtToken: () => boolean;
+  isJwtModalOpen: boolean;
+  setIsJwtModalOpen: (open: boolean) => void;
+
   // Session Inactivity Timeout Policy
   sessionTimeoutConfig: SessionTimeoutConfig;
   updateSessionTimeoutSettings: (config: Partial<SessionTimeoutConfig>) => void;
@@ -445,7 +460,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [customRolePermissions, currentCompanyId]);
 
   // Authentication & Locking
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [jwtToken, setJwtToken] = useState<string | null>(() => getAuthToken());
+  const [isJwtModalOpen, setIsJwtModalOpen] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const token = getAuthToken();
+    if (token) {
+      const verified = verifyJwtToken(token);
+      return Boolean(verified && verified.isValid && !verified.isExpired);
+    }
+    return false;
+  });
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalTargetUser, setAuthModalTargetUser] = useState<AppUser | null>(null);
@@ -467,12 +491,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (currentUserId === DEFAULT_SUPER_ADMIN.id || currentUserId === 'usr-super-admin') {
       return superAdminUser;
     }
-    return users.find(u => u.id === currentUserId) || users[0] || cleanDefaultAdminUser;
+    const matchingUser = users.find(u => u.id === currentUserId);
+    if (matchingUser) return matchingUser;
+
+    // Strict Fallback: Prioritize Active Admin user instead of arbitrary users[0]
+    const fallbackAdmin = users.find(u => u.role === 'ADMIN' && u.isActive) || 
+                          users.find(u => u.role === 'ADMIN') || 
+                          users[0] || 
+                          cleanDefaultAdminUser;
+    return fallbackAdmin;
   }, [users, currentUserId, superAdminUser]);
 
   const effectivePermissions = useMemo(() => {
     return getUserEffectivePermissions(currentUser, customRolePermissions);
   }, [currentUser, customRolePermissions]);
+
+  // Derived JWT Session Info
+  const jwtSessionInfo = useMemo<JwtSessionInfo | null>(() => {
+    if (!jwtToken) return null;
+    const verified = verifyJwtToken(jwtToken);
+    if (!verified) return null;
+    const p = verified.payload;
+    return {
+      token: jwtToken,
+      sub: p?.sub || currentUser.id,
+      name: p?.name || currentUser.name,
+      email: p?.email || currentUser.email,
+      role: p?.role || currentUser.role,
+      department: p?.department || currentUser.department,
+      companyId: p?.companyId || currentCompanyId,
+      companyName: p?.companyName || currentCompany.tradeName || currentCompany.name,
+      companyGstin: p?.companyGstin || currentCompany.gstin || 'N/A',
+      issuedAt: p?.iat ? new Date(p.iat * 1000).toISOString() : new Date().toISOString(),
+      expiresAt: p?.exp ? new Date(p.exp * 1000).toISOString() : new Date().toISOString(),
+      expiresInSeconds: verified.expiresInSeconds,
+      isValid: verified.isValid,
+      isExpired: verified.isExpired,
+      jti: p?.jti || 'jti_active'
+    };
+  }, [jwtToken, currentUser, currentCompany, currentCompanyId]);
+
+  // Periodic JWT expiration monitor
+  useEffect(() => {
+    if (!isAuthenticated || !jwtToken) return;
+
+    const checkTokenExpiry = () => {
+      const verified = verifyJwtToken(jwtToken);
+      if (!verified || verified.isExpired || !verified.isValid) {
+        clearAuthToken();
+        setJwtToken(null);
+        setIsAuthenticated(false);
+        showToast('error', 'JWT Session Expired', 'Your cryptographic security token has expired. Please sign in again.');
+      }
+    };
+
+    const interval = setInterval(checkTokenExpiry, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, jwtToken]);
+
+  const refreshActiveJwtToken = (): boolean => {
+    try {
+      const timeoutMins = business.sessionTimeoutSettings?.timeoutMinutes || 480;
+      const { token } = generateJwtToken(currentUser, currentCompany, timeoutMins);
+      saveAuthToken(token);
+      setJwtToken(token);
+      logSecurityEvent('JWT_TOKEN_REFRESHED', 'Cryptographic Auth', `Refreshed JWT access token for ${currentUser.name} in ${currentCompany.tradeName || currentCompany.name}`);
+      return true;
+    } catch (err) {
+      console.warn('Failed to refresh JWT token:', err);
+      return false;
+    }
+  };
 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [selectedInvoiceIdForPrint, setSelectedInvoiceIdForPrint] = useState<string | null>(null);
@@ -584,9 +673,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setJournalEntries(partition.journalEntries);
             if (partition.users && partition.users.length > 0) {
               setUsers(partition.users);
-              // Only override user if NOT on /admin URL or not in Super Admin session
+              // Only adjust currentUserId if current selection is invalid or not found in new partition
               if (!isUrlAdminRoute() && currentUserId !== DEFAULT_SUPER_ADMIN.id) {
-                setCurrentUserId(partition.users[0].id);
+                setCurrentUserId(prevId => {
+                  const existsInPartition = partition.users.find(u => u.id === prevId && u.isActive);
+                  if (existsInPartition) return prevId;
+                  const defaultAdmin = partition.users.find(u => u.role === 'ADMIN' && u.isActive) || partition.users[0];
+                  return defaultAdmin.id;
+                });
               }
             }
             setAuditLogs(partition.auditLogs);
@@ -823,7 +917,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    const defaultUserId = rawUserId ? JSON.parse(rawUserId) : (loadedUsers[0]?.id || cleanDefaultAdminUser.id);
+    const defaultAdminUser = loadedUsers.find(u => u.role === 'ADMIN' && u.isActive) || loadedUsers[0] || cleanDefaultAdminUser;
+    const defaultUserId = rawUserId ? JSON.parse(rawUserId) : defaultAdminUser.id;
 
     return {
       business: normalizeBusinessProfile(loadedBusiness),
@@ -875,8 +970,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (autoLoginUserId) {
       setCurrentUserId(autoLoginUserId);
       setIsAuthenticated(true);
-    } else if (partition.users.length > 0) {
-      setCurrentUserId(partition.users[0].id);
+      const matchedUser = partition.users.find(u => u.id === autoLoginUserId) || partition.users[0] || cleanDefaultAdminUser;
+      const timeoutMins = partition.business.sessionTimeoutSettings?.timeoutMinutes || 480;
+      const { token } = generateJwtToken(matchedUser, targetComp, timeoutMins);
+      saveAuthToken(token);
+      setJwtToken(token);
+    } else {
+      // Find matching user in new company or default to primary active Admin
+      const targetUser = partition.users.find(u => u.id === currentUserId && u.isActive) ||
+                         partition.users.find(u => u.role === 'ADMIN' && u.isActive) ||
+                         partition.users[0] ||
+                         cleanDefaultAdminUser;
+      setCurrentUserId(targetUser.id);
+      if (isAuthenticated) {
+        const timeoutMins = partition.business.sessionTimeoutSettings?.timeoutMinutes || 480;
+        const { token } = generateJwtToken(targetUser, targetComp, timeoutMins);
+        saveAuthToken(token);
+        setJwtToken(token);
+      }
     }
 
     // Persist system active company state to cloud
@@ -1391,8 +1502,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsAuthModalOpen(false);
         setAuthModalTargetUser(null);
         setActiveTab('super_admin_dashboard');
+
+        // Generate and persist cryptographically signed JWT token
+        const timeoutMins = business.sessionTimeoutSettings?.timeoutMinutes || 480;
+        const { token } = generateJwtToken(superAdminUser, currentCompany, timeoutMins);
+        saveAuthToken(token);
+        setJwtToken(token);
+
         logSecurityEvent('USER_AUTHENTICATED', 'Super Admin Auth', 'Master Super Administrator logged in');
-        showToast('success', 'Super Admin Authenticated', 'Master platform governance unlocked.');
+        logSecurityEvent('JWT_TOKEN_ISSUED', 'Cryptographic Auth', `Issued cryptographic JWT access token for ${superAdminUser.name} (SUPER_ADMIN)`);
+        showToast('success', 'Super Admin Authenticated', 'Master platform governance unlocked with JWT session.');
         return { success: true };
       }
       return { success: false, error: 'Invalid Super Admin master password or PIN.' };
@@ -1419,9 +1538,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsAuthModalOpen(false);
     setAuthModalTargetUser(null);
 
+    // Generate and persist cryptographically signed JWT token
+    const timeoutMins = business.sessionTimeoutSettings?.timeoutMinutes || 480;
+    const { token } = generateJwtToken(target, currentCompany, timeoutMins);
+    saveAuthToken(token);
+    setJwtToken(token);
+
     // Update lastLogin timestamp
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, lastLogin: new Date().toISOString() } : u));
     logSecurityEvent('USER_AUTHENTICATED', 'Auth', `Switched active session to ${target.name} (${target.role})`);
+    logSecurityEvent('JWT_TOKEN_ISSUED', 'Cryptographic Auth', `Issued cryptographic JWT access token for ${target.name} (${target.role}) in ${currentCompany.tradeName || currentCompany.name}`);
     return { success: true };
   };
 
@@ -1469,7 +1595,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = () => {
     const isSuperAdminSession = currentUser.role === 'SUPER_ADMIN' || currentUserId === DEFAULT_SUPER_ADMIN.id || currentUserId === 'usr-super-admin';
 
-    // Terminate session authentication
+    // Terminate session authentication & revoke JWT token
+    clearAuthToken();
+    setJwtToken(null);
     setIsAuthenticated(false);
     setIsSessionLocked(false);
     setIsAuthModalOpen(false);
@@ -3605,6 +3733,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logSecurityEvent,
         verifySuperAdminKey,
         loginAsSuperAdmin,
+        jwtToken,
+        jwtSessionInfo,
+        refreshActiveJwtToken,
+        isJwtModalOpen,
+        setIsJwtModalOpen,
         sessionTimeoutConfig,
         updateSessionTimeoutSettings,
         theme,

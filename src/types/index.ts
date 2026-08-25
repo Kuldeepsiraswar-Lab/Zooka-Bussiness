@@ -985,3 +985,21 @@ export interface CustomHsnCode {
   isCustom?: boolean;
   createdAt?: string;
 }
+
+export interface JwtSessionInfo {
+  token: string;
+  sub: string;
+  name: string;
+  email: string;
+  role: RoleType;
+  department?: string;
+  companyId: string;
+  companyName: string;
+  companyGstin: string;
+  issuedAt: string;
+  expiresAt: string;
+  expiresInSeconds: number;
+  isValid: boolean;
+  isExpired: boolean;
+  jti: string;
+}

@@ -29,6 +29,7 @@ import { UserAuthModal } from './components/auth/UserAuthModal';
 import { LockScreenOverlay } from './components/auth/LockScreenOverlay';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { SessionInactivityManager } from './components/auth/SessionInactivityManager';
+import { JwtSessionModal } from './components/auth/JwtSessionModal';
 import { Invoice, Product } from './types';
 import { calculateItemGst } from './utils/gstCalculations';
 import { OfflineIndicatorBanner } from './components/pwa/OfflineIndicatorBanner';
@@ -64,7 +65,9 @@ const MainContent: React.FC = () => {
     can,
     currentUser,
     isAuthenticated,
-    toggleSidebarCollapse
+    toggleSidebarCollapse,
+    isJwtModalOpen,
+    setIsJwtModalOpen
   } = useApp();
 
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -311,6 +314,12 @@ const MainContent: React.FC = () => {
 
       {/* User Role Authentication / Login Modal */}
       <UserAuthModal />
+
+      {/* Cryptographic JWT Session Modal & Claims Inspector */}
+      <JwtSessionModal 
+        isOpen={isJwtModalOpen} 
+        onClose={() => setIsJwtModalOpen(false)} 
+      />
 
       {/* Screen Lock Overlay */}
       <LockScreenOverlay />

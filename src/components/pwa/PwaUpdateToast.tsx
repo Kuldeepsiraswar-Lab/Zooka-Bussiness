@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sparkles, RefreshCw, X } from 'lucide-react';
 import { usePWA } from '../../hooks/usePWA';
 
 export const PwaUpdateToast: React.FC = () => {
   const { isUpdateAvailable, applyUpdate } = usePWA();
-  const [isDismissed, setIsDismissed] = React.useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   if (!isUpdateAvailable || isDismissed) {
     return null;

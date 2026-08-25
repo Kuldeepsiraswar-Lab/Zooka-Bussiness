@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface BarcodeSvgProps {
   value: string;
@@ -16,7 +16,7 @@ export const BarcodeSvg: React.FC<BarcodeSvgProps> = ({
   const code = value || '8901234567890';
   
   // Generate distinct pseudo Code-128 / EAN bar patterns based on characters
-  const bars = React.useMemo(() => {
+  const bars = useMemo(() => {
     const pattern: { width: number; isBlack: boolean }[] = [];
     // Start guard
     pattern.push({ width: 2, isBlack: true });

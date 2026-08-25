@@ -52,7 +52,7 @@ export const MobileNav: React.FC = () => {
   const { isInstalled, isOnline } = usePWA();
 
   // Retrieve current bottom navigation configuration
-  const config = useApp().business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
+  const config = business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
 
   // Compute low stock count for badges
   const lowStockCount = useMemo(() => {

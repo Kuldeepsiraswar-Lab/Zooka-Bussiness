@@ -526,20 +526,20 @@ export const PosBillingView: React.FC = () => {
 
       {/* Switchable Segmented Button: Product vs Cart (Optimized for Mobile & Tablet Devices) */}
       <div className="lg:hidden sticky top-2 z-20 bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-slate-700/80 transition-all">
-        <div className="grid grid-cols-2 gap-1.5 p-0.5 bg-slate-800/90 rounded-xl">
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-800/90 rounded-xl">
           {/* Products Tab Button */}
           <button
             type="button"
             onClick={() => setMobileTab('products')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               mobileTab === 'products'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
             }`}
           >
-            <LayoutGrid className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4 shrink-0" />
             <span>Products</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
               mobileTab === 'products' ? 'bg-indigo-700/90 text-white' : 'bg-slate-700 text-slate-300'
             }`}>
               {filteredProducts.length}
@@ -550,23 +550,23 @@ export const PosBillingView: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileTab('cart')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer relative ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
               mobileTab === 'cart'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
             }`}
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4 shrink-0" />
             <span>Cart</span>
             {totalCartItemsCount > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 mobileTab === 'cart' ? 'bg-emerald-700 text-white' : 'bg-emerald-500 text-white animate-pulse'
               }`}>
                 {totalCartItemsCount}
               </span>
             )}
             {totals.grandTotal > 0 && (
-              <span className={`text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded ${
+              <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded ${
                 mobileTab === 'cart' ? 'bg-emerald-800 text-emerald-100' : 'bg-slate-700 text-emerald-400'
               }`}>
                 {formatCurrency(totals.grandTotal, business.currencySymbol)}
@@ -887,6 +887,40 @@ export const PosBillingView: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Floating Sticky Quick Cart Switcher on Mobile & Tablet */}
+          {totalCartItemsCount > 0 && (
+            <div className="lg:hidden sticky bottom-3 z-30 pt-2 animate-in slide-in-from-bottom-3 duration-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileTab('cart');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="w-full p-3.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white rounded-2xl shadow-xl border border-emerald-400/30 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold text-sm text-white">
+                    <ShoppingCart className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold flex items-center gap-1.5">
+                      <span>{totalCartItemsCount} Item{totalCartItemsCount > 1 ? 's' : ''} in Cart</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping" />
+                    </div>
+                    <div className="text-[11px] text-emerald-100 font-mono">
+                      Total: <span className="font-bold text-white text-xs">{formatCurrency(totals.grandTotal, business.currencySymbol)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-white text-emerald-800 px-3.5 py-2 rounded-xl font-extrabold text-xs shadow-sm">
+                  <span>View Cart & Pay</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </button>
             </div>
           )}
         </div>

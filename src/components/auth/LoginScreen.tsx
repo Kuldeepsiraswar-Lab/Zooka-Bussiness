@@ -1057,11 +1057,8 @@ export const LoginScreen: React.FC = () => {
       <footer className="relative z-10 w-full max-w-6xl mx-auto px-6 py-4 text-center text-xs text-slate-400 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p>© 2026 Zooka Bussiness Enterprise Multi-Business Accounting • All rights reserved</p>
         <p className="flex items-center gap-3">
-          <span>DESIGN AND DEVELOPED BY</span>
-          <span>•</span>
-          <span>KULDEEP SIRASWAR</span>
-          <span>•</span>
-          <span>E-Invoicing Ready</span>
+          <span>Developed by.Kuldeep Siraswar</span>
+          
         </p>
       </footer>
 

@@ -13,7 +13,9 @@ import {
   PanelLeftOpen,
   ShoppingCart,
   CreditCard,
-  Receipt
+  Receipt,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { isProductLowStock, normalizeLowStockSettings } from '../../utils/stockUtils';
 import { normalizeHeaderConfig } from '../../utils/headerDefaults';
@@ -35,6 +37,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
     products, 
     cheques,
     can,
+    theme,
+    resolvedTheme,
+    toggleTheme,
     isSidebarCollapsed,
     toggleSidebarCollapse
   } = useApp();
@@ -350,6 +355,22 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
             <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">{config.newInvoiceBtnText || 'New Invoice'}</span>
             <span className="sm:hidden">New</span>
+          </button>
+        )}
+
+        {/* Theme Toggle in Header */}
+        {config.showThemeToggle !== false && (
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-all cursor-pointer active:scale-95 shadow-xs"
+            title={`Toggle Theme (Current: ${theme === 'system' ? `System (${resolvedTheme.toUpperCase()})` : resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
+            aria-label="Toggle Theme"
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-300" />
+            )}
           </button>
         )}
 

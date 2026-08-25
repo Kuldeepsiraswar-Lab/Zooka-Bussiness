@@ -571,7 +571,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(() => {
     return loadState<'light' | 'dark' | 'system'>('theme', 'light');
   });
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    const saved = loadState<'light' | 'dark' | 'system'>('theme', 'light');
+    if (saved === 'dark') return 'dark';
+    if (saved === 'light') return 'light';
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  });
 
   // URL /admin Route Listener & History Sync
   useEffect(() => {
@@ -750,9 +758,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setResolvedTheme(isDark ? 'dark' : 'light');
       if (isDark) {
         document.documentElement.classList.add('dark');
+        if (document.body) document.body.classList.add('dark');
         document.documentElement.setAttribute('data-theme', 'dark');
       } else {
         document.documentElement.classList.remove('dark');
+        if (document.body) document.body.classList.remove('dark');
         document.documentElement.setAttribute('data-theme', 'light');
       }
     };

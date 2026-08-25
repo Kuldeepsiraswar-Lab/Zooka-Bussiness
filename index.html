@@ -35,6 +35,24 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/icon-512.svg" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Synchronous early theme initializer -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('zooka_enterprise_erp_theme');
+          var theme = saved ? JSON.parse(saved) : 'light';
+          var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

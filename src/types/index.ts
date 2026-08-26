@@ -690,7 +690,7 @@ export interface FooterConfig {
   shadow: 'none' | 'xs' | 'sm' | 'md' | 'lg';
 }
 
-export type BottomNavStyle = 'FLOATING_PILL' | 'CLASSIC_DOCKED' | 'MODERN_CURVED' | 'COMPACT_SLIM';
+export type BottomNavStyle = 'LIQUID_GLASS' | 'FLOATING_PILL' | 'CLASSIC_DOCKED' | 'MODERN_CURVED' | 'COMPACT_SLIM';
 
 export interface BottomNavTabItem {
   id: string; // matches ActiveTab

@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useApp, ActiveTab } from '../../context/AppContext';
-import { usePWA } from '../../hooks/usePWA';
-import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -22,9 +20,7 @@ import {
   Plus,
   Sparkles,
   ChevronRight,
-  Crown,
-  Download,
-  Smartphone
+  Crown
 } from 'lucide-react';
 import { 
   ALL_AVAILABLE_NAV_TABS, 
@@ -48,8 +44,6 @@ export const MobileNav: React.FC = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
-  const [showPwaModal, setShowPwaModal] = useState(false);
-  const { isInstalled, isOnline } = usePWA();
 
   // Retrieve current bottom navigation configuration
   const config = business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
@@ -299,33 +293,6 @@ export const MobileNav: React.FC = () => {
                 </div>
               </div>
 
-              {!isInstalled && (
-                <div className="mt-4 p-3 bg-gradient-to-r from-indigo-950/80 to-blue-950/80 rounded-xl border border-indigo-500/40 text-xs text-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-cyan-300">
-                      <Smartphone className="w-4 h-4" />
-                      <span>Install Mobile App</span>
-                    </div>
-                    <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/30 text-indigo-200 rounded font-bold uppercase">
-                      PWA
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-indigo-200">
-                    Add to home screen for full offline GST billing and barcode scanning.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setDrawerOpen(false);
-                      setShowPwaModal(true);
-                    }}
-                    className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Install to Phone</span>
-                  </button>
-                </div>
-              )}
-
               <div className="mt-4 p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs text-slate-400">
                 <div className="flex items-center gap-1.5 text-emerald-400 font-semibold mb-1">
                   <ShieldCheck className="w-4 h-4" /> GST Compliance Ready
@@ -337,15 +304,9 @@ export const MobileNav: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* PWA Mobile Installation Modal */}
-      <PwaInstallModal
-        isOpen={showPwaModal}
-        onClose={() => setShowPwaModal(false)}
-      />
-
       {/* Customizable Bottom Navigation Bar for Mobile/Tablet screens */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-all ${
-        config.style === 'FLOATING_PILL'
+        config.style === 'LIQUID_GLASS' || config.style === 'FLOATING_PILL'
           ? 'px-3 pb-3 pt-1 pointer-events-none'
           : config.style === 'MODERN_CURVED'
           ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-t-2xl border-t border-slate-200 dark:border-slate-800 px-2 py-1 shadow-lg'
@@ -354,10 +315,16 @@ export const MobileNav: React.FC = () => {
           : 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 shadow-lg'
       }`}>
         <div className={`flex items-center justify-around pointer-events-auto ${
-          config.style === 'FLOATING_PILL'
+          config.style === 'LIQUID_GLASS'
+            ? 'relative overflow-hidden bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/60 dark:border-white/15 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] ring-1 ring-slate-900/5 dark:ring-white/10 px-2 py-1.5'
+            : config.style === 'FLOATING_PILL'
             ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xl px-2 py-1.5'
             : ''
         }`}>
+          {config.style === 'LIQUID_GLASS' && (
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/80 dark:via-cyan-300/40 to-transparent pointer-events-none" />
+          )}
+
           {(() => {
             const items = [...mainTabs];
             const middleIdx = Math.floor(items.length / 2);
@@ -372,14 +339,20 @@ export const MobileNav: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
                     isActive 
-                      ? 'text-indigo-600 dark:text-indigo-400 font-bold' 
+                      ? config.style === 'LIQUID_GLASS'
+                        ? 'text-cyan-600 dark:text-cyan-300 font-black'
+                        : 'text-indigo-600 dark:text-indigo-400 font-bold' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="mobileNavActivePill"
-                      className="absolute inset-0 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl -z-10"
+                      className={
+                        config.style === 'LIQUID_GLASS'
+                          ? 'absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-sky-400/15 dark:from-cyan-400/25 dark:via-indigo-500/25 dark:to-sky-400/20 border border-cyan-400/40 dark:border-cyan-300/30 backdrop-blur-md rounded-2xl shadow-[0_2px_12px_rgba(56,189,248,0.25)] -z-10'
+                          : 'absolute inset-0 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl -z-10'
+                      }
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
@@ -404,7 +377,11 @@ export const MobileNav: React.FC = () => {
                     <button
                       key="center-fab-action"
                       onClick={() => setQuickActionOpen(prev => !prev)}
-                      className="relative -top-2 flex flex-col items-center justify-center p-2.5 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-600/40 border-2 border-white dark:border-slate-900 cursor-pointer active:scale-95 transition-all"
+                      className={`relative -top-2 flex flex-col items-center justify-center p-2.5 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-900 cursor-pointer active:scale-95 transition-all ${
+                        config.style === 'LIQUID_GLASS'
+                          ? 'bg-gradient-to-tr from-cyan-500 via-indigo-600 to-indigo-500 shadow-cyan-500/30 ring-2 ring-cyan-400/20'
+                          : 'bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-indigo-600/40'
+                      }`}
                       title="Quick Action"
                     >
                       <Plus className={`w-4 h-4 transition-transform duration-200 ${quickActionOpen ? 'rotate-45' : ''}`} />

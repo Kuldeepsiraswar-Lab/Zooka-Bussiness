@@ -152,6 +152,37 @@ export interface BottomNavPreset {
 
 export const BOTTOM_NAV_PRESETS: BottomNavPreset[] = [
   {
+    id: 'LIQUID_GLASS_PRO',
+    name: 'Liquid Glass Luxury',
+    tagline: 'Ultra-modern frosted glassmorphism with specular gloss, subtle reflections & glowing active pills',
+    badge: 'Liquid Glass',
+    color: 'cyan',
+    config: {
+      enabled: true,
+      style: 'LIQUID_GLASS',
+      showLabels: true,
+      showBadges: true,
+      showQuickActionCenter: false,
+      centerActionIcon: 'PLUS',
+      quickActionItems: ['invoice', 'pos', 'payment_in', 'product', 'expense'],
+      showMoreDrawerButton: true,
+      tabs: [
+        { id: 'dashboard', label: 'Home', isEnabled: true, order: 0 },
+        { id: 'invoices', label: 'Invoices', isEnabled: true, order: 1 },
+        { id: 'pos_billing', label: 'POS Sale', isEnabled: true, order: 2 },
+        { id: 'inventory', label: 'Stock', isEnabled: true, order: 3 },
+        { id: 'parties', label: 'Parties', isEnabled: true, order: 4 },
+        { id: 'payments', label: 'Payments', isEnabled: false, order: 5 },
+        { id: 'purchases', label: 'Purchases', isEnabled: false, order: 6 },
+        { id: 'accounting', label: 'Accounts', isEnabled: false, order: 7 },
+        { id: 'gst_returns', label: 'GST Tax', isEnabled: false, order: 8 },
+        { id: 'cheques', label: 'Cheques', isEnabled: false, order: 9 },
+        { id: 'users', label: 'Users', isEnabled: false, order: 10 },
+        { id: 'settings', label: 'Settings', isEnabled: false, order: 11 },
+      ],
+    },
+  },
+  {
     id: 'STANDARD_BALANCED',
     name: 'General Business & Billing',
     tagline: 'Balanced setup for small business: Home, Invoices, POS Counter, Stock & Parties',

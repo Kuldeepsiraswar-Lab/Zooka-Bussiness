@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useApp, ActiveTab } from '../../context/AppContext';
-import { usePWA } from '../../hooks/usePWA';
-import { PwaInstallModal } from '../pwa/PwaInstallModal';
 import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
 import { 
   LayoutDashboard, 
@@ -26,9 +24,7 @@ import {
   Maximize,
   Minimize,
   ChevronRight,
-  ChevronLeft,
-  Download,
-  Smartphone
+  ChevronLeft
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -38,6 +34,11 @@ interface SidebarItem {
   badge?: string;
   badgeColor?: string;
   description: string;
+}
+
+interface NavigationSection {
+  title?: string;
+  items: SidebarItem[];
 }
 
 export const Sidebar: React.FC = () => {
@@ -58,8 +59,6 @@ export const Sidebar: React.FC = () => {
     isSidebarCollapsed
   } = useApp();
 
-  const { isInstalled } = usePWA();
-  const [showPwaModal, setShowPwaModal] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     return typeof document !== 'undefined' && !!document.fullscreenElement;
   });
@@ -103,98 +102,124 @@ export const Sidebar: React.FC = () => {
 
   const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
 
-  const menuItems: SidebarItem[] = [
+  // Grouped Navigation Sections for Optimal Spatial Rhythm & Categorical Clarity
+  const navigationSections: NavigationSection[] = [
     {
-      id: 'super_admin_dashboard' as ActiveTab,
-      label: 'Super Admin Portal',
-      icon: Crown,
-      badge: '/admin',
-      badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/40',
-      description: 'Master Platform Governance & Multi-Company Admin (/admin)'
+      title: 'General',
+      items: [
+        ...(isSuperAdmin || currentUser.role === 'ADMIN' ? [{
+          id: 'super_admin_dashboard' as ActiveTab,
+          label: 'Super Admin Portal',
+          icon: Crown,
+          badge: 'Admin',
+          badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/40',
+          description: 'Master Platform Governance & Multi-Company Admin'
+        }] : []),
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard,
+          description: 'Overview, KPIs & real-time financial metrics'
+        }
+      ]
     },
     {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      description: 'Overview & KPIs'
+      title: 'Sales & Billing',
+      items: [
+        {
+          id: 'invoices',
+          label: 'Invoices & Billing',
+          icon: FileText,
+          description: 'Tax Invoices, Estimates, Credit & Debit Notes'
+        },
+        {
+          id: 'pos_billing',
+          label: 'POS Counter Billing',
+          icon: ShoppingCart,
+          badge: 'Fast POS',
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+          description: 'Instant barcode counter retail billing'
+        },
+        {
+          id: 'payments',
+          label: 'Payments & Receipts',
+          icon: Receipt,
+          badge: 'In / Out',
+          badgeColor: 'bg-teal-500/20 text-teal-300 border border-teal-500/30',
+          description: 'Customer receipts, vendor payments & contra'
+        },
+        {
+          id: 'cheques',
+          label: 'Cheque Printing',
+          icon: Landmark,
+          badge: 'CTS-2010',
+          badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
+          description: 'Cheque writing, bank layout config & register'
+        }
+      ]
     },
     {
-      id: 'invoices',
-      label: 'Invoices & Billing',
-      icon: FileText,
-      description: 'Tax Invoices & Estimates'
+      title: 'Operations & Stock',
+      items: [
+        {
+          id: 'inventory',
+          label: 'Inventory & Stock',
+          icon: Package,
+          badge: lowStockCount > 0 ? `${lowStockCount} Low` : undefined,
+          badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+          description: 'Product catalog, HSN codes, batches & stock levels'
+        },
+        {
+          id: 'purchases',
+          label: 'Purchases & Expenses',
+          icon: Truck,
+          description: 'Supplier purchase bills, inward ITC & expenses'
+        },
+        {
+          id: 'parties',
+          label: 'Customers & Vendors',
+          icon: Users,
+          description: 'Party ledgers, GSTIN records & balance tracking'
+        }
+      ]
     },
     {
-      id: 'payments',
-      label: 'Payments & Receipts',
-      icon: Receipt,
-      badge: 'Money In/Out',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-      description: 'Payment In, Out & Contra'
+      title: 'Finance & Compliance',
+      items: [
+        {
+          id: 'accounting',
+          label: 'Accounting & Reports',
+          icon: BookOpenCheck,
+          description: 'General Ledger, Trial Balance, P&L & Balance Sheet'
+        },
+        {
+          id: 'gst_returns',
+          label: 'GST & Tax Registers',
+          icon: Calculator,
+          badge: 'GSTR-1/3B',
+          badgeColor: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30',
+          description: 'Sales, Purchase, HSN registers & tax reconciliation'
+        }
+      ]
     },
     {
-      id: 'cheques',
-      label: 'Cheque Printing',
-      icon: Landmark,
-      badge: 'CTS-2010',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-      description: 'Print, cheque books & auto-ledger'
-    },
-    {
-      id: 'pos_billing',
-      label: 'POS Counter Billing',
-      icon: ShoppingCart,
-      badge: 'Fast',
-      badgeColor: 'bg-emerald-100 text-emerald-700',
-      description: 'Instant retail billing'
-    },
-    {
-      id: 'inventory',
-      label: 'Inventory & Stock',
-      icon: Package,
-      badge: lowStockCount > 0 ? `${lowStockCount} Low` : undefined,
-      badgeColor: 'bg-amber-100 text-amber-800',
-      description: 'Products, HSN & Batches'
-    },
-    {
-      id: 'parties',
-      label: 'Customers & Vendors',
-      icon: Users,
-      description: 'Ledgers & GSTIN CRM'
-    },
-    {
-      id: 'purchases',
-      label: 'Purchases & Expenses',
-      icon: Truck,
-      description: 'Vendor bills & ITC input'
-    },
-    {
-      id: 'accounting',
-      label: 'Accounting & Reports',
-      icon: BookOpenCheck,
-      description: 'P&L, Balance Sheet, JV'
-    },
-    {
-      id: 'gst_returns',
-      label: 'GST & Tax Registers',
-      icon: Calculator,
-      badge: 'Sale/Pur',
-      badgeColor: 'bg-cyan-100 text-cyan-800',
-      description: 'Sale, Purchase & GSTR'
-    },
-    {
-      id: 'users',
-      label: 'Users & Permissions',
-      icon: ShieldCheck,
-      badge: 'RBAC',
-      badgeColor: 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40',
-      description: 'Roles, matrix & audit log'
-    },
-    {
-      id: 'settings',
-      label: 'Settings & Company',
-      icon: Settings,
-      description: 'Profile, Bank & Templates'
+      title: 'Administration',
+      items: [
+        {
+          id: 'users',
+          label: 'Users & Permissions',
+          icon: ShieldCheck,
+          badge: 'RBAC',
+          badgeColor: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
+          description: 'Role-based access control, users & audit logs'
+        },
+        {
+          id: 'settings',
+          label: 'Company & Settings',
+          icon: Settings,
+          description: 'Business profile, bank accounts & invoice templates'
+        }
+      ]
     }
   ];
 
@@ -240,151 +265,144 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
 
-      {/* Navigation List */}
-      <nav className={`flex-1 ${isSidebarCollapsed ? 'px-2 py-3 space-y-2' : 'px-3 py-4 space-y-1'} overflow-y-auto overflow-x-hidden scrollbar-none`}>
-        {!isSidebarCollapsed && (
-          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span>Business Operations</span>
-            <span className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded border ${currentRoleMeta.badgeBg} ${currentRoleMeta.badgeText}`}>
-              {currentUser.role}
-            </span>
-          </div>
-        )}
-
-        {menuItems.map(item => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          const hasAccess = item.id === 'super_admin_dashboard' ? true : item.id === 'users' ? true : can(item.id as any, 'view');
-          const isLowStockBadge = item.id === 'inventory' && lowStockCount > 0;
+      {/* Navigation List with Uncluttered Categorical Groupings */}
+      <nav className={`flex-1 ${isSidebarCollapsed ? 'px-2 py-3 space-y-3' : 'px-3 py-3 space-y-4'} overflow-y-auto overflow-x-hidden scrollbar-none`}>
+        {navigationSections.map((section, secIdx) => {
+          if (!section.items || section.items.length === 0) return null;
 
           return (
-            <div key={item.id} className="relative group">
-              <button
-                onClick={() => {
-                  if (item.id === 'super_admin_dashboard') {
-                    if (currentUser.role !== 'SUPER_ADMIN') {
-                      loginAsSuperAdmin();
-                    } else {
-                      setActiveTab('super_admin_dashboard');
-                    }
-                  } else {
-                    setActiveTab(item.id);
-                  }
-                }}
-                className={`relative w-full flex items-center transition-all cursor-pointer ${
-                  isSidebarCollapsed 
-                    ? 'justify-center p-2.5 rounded-xl h-11' 
-                    : 'justify-between px-3 py-2.5 rounded-xl text-xs font-medium'
-                } ${
-                  isActive
-                    ? 'text-white'
-                    : hasAccess
-                    ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/30 opacity-70'
-                }`}
-                aria-label={item.label}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeSidebarIndicator"
-                    className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl shadow-md shadow-indigo-600/25 z-0"
-                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                  />
-                )}
-
-                <div className={`relative z-10 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
-                  <div className="relative">
-                    <Icon
-                      className={`w-4 h-4 transition-colors ${
-                        isActive ? 'text-white' : hasAccess ? 'text-slate-400 group-hover:text-cyan-400' : 'text-slate-600'
-                      }`}
-                    />
-                    {isSidebarCollapsed && isLowStockBadge && (
-                      <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-amber-500 text-slate-900 rounded-full font-bold text-[9px] flex items-center justify-center ring-2 ring-slate-900 animate-pulse">
-                        !
-                      </span>
-                    )}
-                    {isSidebarCollapsed && item.id === 'super_admin_dashboard' && (
-                      <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-purple-400 rounded-full ring-1 ring-slate-900" />
-                    )}
-                  </div>
-
-                  {!isSidebarCollapsed && (
-                    <span className="font-medium text-left truncate">{item.label}</span>
+            <div key={section.title || secIdx} className="space-y-1">
+              {/* Section Header or Divider */}
+              {!isSidebarCollapsed ? (
+                <div className="px-3 pt-1 pb-1 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {section.title}
+                  </span>
+                  {secIdx === 0 && (
+                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded border ${currentRoleMeta.badgeBg} ${currentRoleMeta.badgeText}`}>
+                      {currentUser.role}
+                    </span>
                   )}
                 </div>
+              ) : secIdx > 0 ? (
+                <div className="w-8 mx-auto border-t border-slate-800/80 my-2" />
+              ) : null}
 
-                {!isSidebarCollapsed && (
-                  <div className="relative z-10 flex items-center gap-1.5 shrink-0">
-                    {!hasAccess && (
-                      <span className="p-1 rounded bg-slate-800 text-slate-500 group-hover:text-amber-400" title="Restricted by role">
-                        <Lock className="w-3 h-3" />
-                      </span>
-                    )}
+              {/* Section Nav Items */}
+              <div className="space-y-0.5">
+                {section.items.map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  const hasAccess = item.id === 'super_admin_dashboard' ? true : item.id === 'users' ? true : can(item.id as any, 'view');
+                  const isLowStockBadge = item.id === 'inventory' && lowStockCount > 0;
 
-                    {item.badge && (
-                      <span
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
-                          isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-700 text-slate-200'
+                  return (
+                    <div key={item.id} className="relative group">
+                      <button
+                        onClick={() => {
+                          if (item.id === 'super_admin_dashboard') {
+                            if (currentUser.role !== 'SUPER_ADMIN') {
+                              loginAsSuperAdmin();
+                            } else {
+                              setActiveTab('super_admin_dashboard');
+                            }
+                          } else {
+                            setActiveTab(item.id);
+                          }
+                        }}
+                        className={`relative w-full flex items-center transition-all cursor-pointer ${
+                          isSidebarCollapsed 
+                            ? 'justify-center p-2.5 rounded-xl h-10' 
+                            : 'justify-between px-3 py-2 rounded-xl text-xs font-medium'
+                        } ${
+                          isActive
+                            ? 'text-white'
+                            : hasAccess
+                            ? 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                            : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/30 opacity-70'
                         }`}
+                        aria-label={item.label}
                       >
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </button>
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeSidebarIndicator"
+                            className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl shadow-md shadow-indigo-600/25 z-0"
+                            transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                          />
+                        )}
 
-              {/* Floating Tooltip in Collapsed Mode */}
-              {isSidebarCollapsed && (
-                <div className="fixed left-[76px] ml-2 px-3 py-2 bg-slate-900/95 backdrop-blur border border-slate-700/90 text-white rounded-xl shadow-2xl z-50 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap min-w-[140px] text-xs">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${item.badgeColor || 'bg-indigo-500/30 text-indigo-300'}`}>
-                        {item.badge}
-                      </span>
-                    )}
-                    {!hasAccess && (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold flex items-center gap-0.5">
-                        <Lock className="w-2.5 h-2.5" /> Locked
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400 font-normal mt-0.5">
-                    {!hasAccess ? `Requires role permission` : item.description}
-                  </p>
-                </div>
-              )}
+                        <div className={`relative z-10 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 min-w-0'}`}>
+                          <div className="relative shrink-0">
+                            <Icon
+                              className={`w-4 h-4 transition-colors ${
+                                isActive ? 'text-white' : hasAccess ? 'text-slate-400 group-hover:text-cyan-400' : 'text-slate-600'
+                              }`}
+                            />
+                            {isSidebarCollapsed && isLowStockBadge && (
+                              <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-amber-500 text-slate-900 rounded-full font-bold text-[9px] flex items-center justify-center ring-2 ring-slate-900 animate-pulse">
+                                !
+                              </span>
+                            )}
+                            {isSidebarCollapsed && item.id === 'super_admin_dashboard' && (
+                              <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-purple-400 rounded-full ring-1 ring-slate-900" />
+                            )}
+                          </div>
+
+                          {!isSidebarCollapsed && (
+                            <span className="font-medium text-left truncate tracking-tight">{item.label}</span>
+                          )}
+                        </div>
+
+                        {!isSidebarCollapsed && (
+                          <div className="relative z-10 flex items-center gap-1.5 shrink-0">
+                            {!hasAccess && (
+                              <span className="p-1 rounded bg-slate-800 text-slate-500 group-hover:text-amber-400" title="Restricted by role">
+                                <Lock className="w-3 h-3" />
+                              </span>
+                            )}
+
+                            {item.badge && (
+                              <span
+                                className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md ${
+                                  isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-700 text-slate-200'
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Floating Tooltip in Collapsed Mode */}
+                      {isSidebarCollapsed && (
+                        <div className="fixed left-[76px] ml-2 px-3 py-2 bg-slate-900/98 backdrop-blur border border-slate-700/90 text-white rounded-xl shadow-2xl z-50 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap min-w-[140px] text-xs">
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span>{item.label}</span>
+                            {item.badge && (
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${item.badgeColor || 'bg-indigo-500/30 text-indigo-300'}`}>
+                                {item.badge}
+                              </span>
+                            )}
+                            {!hasAccess && (
+                              <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold flex items-center gap-0.5">
+                                <Lock className="w-2.5 h-2.5" /> Locked
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-normal mt-0.5">
+                            {!hasAccess ? `Requires role permission` : item.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
       </nav>
-
-      {/* PWA Install Quick Card for Desktop */}
-      {!isInstalled && !isSidebarCollapsed && (
-        <div className="mx-3 mb-2 p-3 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-indigo-950/90 border border-indigo-500/30 text-xs text-white space-y-2 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-bold text-cyan-300">
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Desktop / PWA App</span>
-            </div>
-            <span className="text-[9px] px-1.5 py-0.2 bg-indigo-500/30 text-indigo-200 rounded font-bold uppercase">
-              Offline
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-300 leading-snug">
-            Run Zooka as a standalone desktop app with full offline mode.
-          </p>
-          <button
-            onClick={() => setShowPwaModal(true)}
-            className="w-full py-1.5 px-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-          >
-            <Download className="w-3 h-3" />
-            <span>Install Application</span>
-          </button>
-        </div>
-      )}
 
       {/* Current Active Persona & Bottom Utilities */}
       {!isSidebarCollapsed ? (
@@ -524,12 +542,6 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* PWA Install Modal */}
-      <PwaInstallModal
-        isOpen={showPwaModal}
-        onClose={() => setShowPwaModal(false)}
-      />
     </aside>
   );
 };

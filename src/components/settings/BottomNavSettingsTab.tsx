@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { 
   BottomNavConfig, 
@@ -456,7 +456,7 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
               {/* SIMULATED BOTTOM NAVIGATION BAR */}
               {config.enabled ? (
                 <div className={`w-full z-20 transition-all ${
-                  config.style === 'FLOATING_PILL'
+                  config.style === 'LIQUID_GLASS' || config.style === 'FLOATING_PILL'
                     ? 'p-2'
                     : config.style === 'MODERN_CURVED'
                     ? 'rounded-t-2xl border-t border-slate-700/80 bg-slate-900/95'
@@ -465,10 +465,16 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                     : 'border-t border-slate-800 bg-slate-900/95'
                 }`}>
                   <div className={`flex items-center justify-around ${
-                    config.style === 'FLOATING_PILL'
+                    config.style === 'LIQUID_GLASS'
+                      ? 'relative overflow-hidden bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] ring-1 ring-white/10'
+                      : config.style === 'FLOATING_PILL'
                       ? 'bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-700 px-2 py-1.5 shadow-lg'
                       : 'px-2 py-1'
                   }`}>
+                    {config.style === 'LIQUID_GLASS' && (
+                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent pointer-events-none" />
+                    )}
+
                     {/* Render active tabs with center button if enabled */}
                     {(() => {
                       const itemsToRender = [...enabledTabs];
@@ -487,14 +493,20 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                             onClick={() => setPreviewActiveTab(tab.id)}
                             className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
                               isActive
-                                ? 'text-indigo-400 font-bold'
+                                ? config.style === 'LIQUID_GLASS' 
+                                  ? 'text-cyan-300 font-bold' 
+                                  : 'text-indigo-400 font-bold'
                                 : 'text-slate-400 hover:text-slate-200'
                             }`}
                           >
                             {isActive && (
                               <motion.div
                                 layoutId="previewNavPill"
-                                className="absolute inset-0 bg-indigo-950/80 border border-indigo-700/50 rounded-xl -z-10"
+                                className={
+                                  config.style === 'LIQUID_GLASS'
+                                    ? 'absolute inset-0 bg-gradient-to-tr from-cyan-500/25 via-indigo-500/25 to-sky-400/20 border border-cyan-400/40 backdrop-blur-md rounded-xl shadow-[0_2px_12px_rgba(56,189,248,0.3)] -z-10'
+                                    : 'absolute inset-0 bg-indigo-950/80 border border-indigo-700/50 rounded-xl -z-10'
+                                }
                                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                               />
                             )}
@@ -518,7 +530,11 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                                 key="center-fab-btn"
                                 type="button"
                                 onClick={() => setPreviewQuickActionOpen(prev => !prev)}
-                                className="relative -top-2 flex flex-col items-center justify-center p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/50 border-2 border-slate-900 cursor-pointer active:scale-95 transition-all"
+                                className={`relative -top-2 flex flex-col items-center justify-center p-2 rounded-full text-white shadow-lg border-2 border-slate-900 cursor-pointer active:scale-95 transition-all ${
+                                  config.style === 'LIQUID_GLASS'
+                                    ? 'bg-gradient-to-tr from-cyan-500 via-indigo-500 to-indigo-600 shadow-cyan-500/40'
+                                    : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/50'
+                                }`}
                                 title="Quick Create Action"
                               >
                                 <Plus className={`w-4 h-4 transition-transform duration-200 ${previewQuickActionOpen ? 'rotate-45' : ''}`} />
@@ -569,14 +585,22 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
           
           {/* Visual Style & Behavior Toggles */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-indigo-600" />
-              <span>Navigation Bar Style & Layout</span>
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-indigo-600" />
+                <span>Navigation Bar Style & Layout</span>
+              </h3>
+              {config.style === 'LIQUID_GLASS' && (
+                <span className="text-[10px] px-2 py-0.5 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 rounded-full font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-cyan-500" /> Liquid Glass Active
+                </span>
+              )}
+            </div>
 
             {/* Style Selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
               {[
+                { id: 'LIQUID_GLASS', label: 'Liquid Glass', desc: 'Frosted Glass Morphism', isHighlight: true },
                 { id: 'FLOATING_PILL', label: 'Floating Pill', desc: 'Modern Capsule' },
                 { id: 'CLASSIC_DOCKED', label: 'Classic Docked', desc: 'Edge-to-Edge' },
                 { id: 'MODERN_CURVED', label: 'Curved Top', desc: 'Soft Rounded' },
@@ -588,14 +612,21 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                     key={st.id}
                     type="button"
                     onClick={() => updateConfigField('style', st.id as BottomNavStyle)}
-                    className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
                       isActive
-                        ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 shadow-xs'
-                        : 'border-slate-200 dark:border-slate-800 hover:border-indigo-200 text-slate-700 dark:text-slate-300'
+                        ? st.id === 'LIQUID_GLASS'
+                          ? 'border-cyan-500 bg-cyan-50/60 dark:bg-cyan-950/40 text-cyan-950 dark:text-cyan-200 shadow-xs ring-2 ring-cyan-500/20'
+                          : 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
                     }`}
                   >
+                    {st.isHighlight && (
+                      <span className="absolute -top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-xs">
+                        Glossy
+                      </span>
+                    )}
                     <div className="text-xs font-bold">{st.label}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{st.desc}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{st.desc}</div>
                   </button>
                 );
               })}

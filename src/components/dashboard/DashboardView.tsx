@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { 

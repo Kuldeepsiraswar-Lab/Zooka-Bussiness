@@ -566,22 +566,26 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
       )}
 
       {/* Import Sale Invoices Bulk Modal */}
-      <ImportSaleInvoicesModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-      />
+      {isImportModalOpen && (
+        <ImportSaleInvoicesModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+        />
+      )}
 
       {/* WhatsApp & Email Dispatch Modal */}
-      <ShareInvoiceModal
-        isOpen={!!shareModalInvoice}
-        onClose={() => setShareModalInvoice(null)}
-        invoice={shareModalInvoice}
-        business={business}
-        onUpdateDispatchSettings={(newSettings) => {
-          updateBusiness({ dispatchSettings: newSettings }, true);
-        }}
-        showToast={showToast}
-      />
+      {shareModalInvoice && (
+        <ShareInvoiceModal
+          isOpen={!!shareModalInvoice}
+          onClose={() => setShareModalInvoice(null)}
+          invoice={shareModalInvoice}
+          business={business}
+          onUpdateDispatchSettings={(newSettings) => {
+            updateBusiness({ dispatchSettings: newSettings }, true);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 };

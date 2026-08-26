@@ -2370,11 +2370,13 @@ export const AccountingView: React.FC = () => {
       {/* =========================================================================
           BANK STATEMENT AUTO ENTRY & RECONCILIATION MODAL
          ========================================================================= */}
-      <BankStatementImportModal
-        isOpen={showBankStatementImportModal}
-        onClose={() => setShowBankStatementImportModal(false)}
-        defaultBankAccountId={selectedAccountId}
-      />
+      {showBankStatementImportModal && (
+        <BankStatementImportModal
+          isOpen={showBankStatementImportModal}
+          onClose={() => setShowBankStatementImportModal(false)}
+          defaultBankAccountId={selectedAccountId}
+        />
+      )}
     </div>
   );
 };

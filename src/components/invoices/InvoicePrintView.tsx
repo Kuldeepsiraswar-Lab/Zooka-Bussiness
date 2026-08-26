@@ -433,17 +433,19 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
       </div>
 
       {/* WhatsApp & Email Dispatch Modal */}
-      <ShareInvoiceModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        invoice={invoice}
-        business={business}
-        invoiceRenderRef={invoiceRef}
-        onUpdateDispatchSettings={(newSettings) => {
-          updateBusiness({ dispatchSettings: newSettings }, true);
-        }}
-        showToast={showToast}
-      />
+      {isShareModalOpen && (
+        <ShareInvoiceModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          invoice={invoice}
+          business={business}
+          invoiceRenderRef={invoiceRef}
+          onUpdateDispatchSettings={(newSettings) => {
+            updateBusiness({ dispatchSettings: newSettings }, true);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 };

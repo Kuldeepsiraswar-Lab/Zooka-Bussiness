@@ -1589,10 +1589,12 @@ export const PaymentsView: React.FC = () => {
       )}
 
       {/* Bank Statement Auto Entry Modal */}
-      <BankStatementImportModal
-        isOpen={showBankStatementModal}
-        onClose={() => setShowBankStatementModal(false)}
-      />
+      {showBankStatementModal && (
+        <BankStatementImportModal
+          isOpen={showBankStatementModal}
+          onClose={() => setShowBankStatementModal(false)}
+        />
+      )}
     </div>
   );
 };

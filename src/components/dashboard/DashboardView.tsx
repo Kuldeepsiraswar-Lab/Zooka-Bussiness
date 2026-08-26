@@ -1150,16 +1150,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
       </div>
 
       {/* WhatsApp & Email Dispatch Modal */}
-      <ShareInvoiceModal
-        isOpen={!!shareModalInvoice}
-        onClose={() => setShareModalInvoice(null)}
-        invoice={shareModalInvoice}
-        business={business}
-        onUpdateDispatchSettings={(newSettings) => {
-          updateBusiness({ dispatchSettings: newSettings }, true);
-        }}
-        showToast={showToast}
-      />
+      {shareModalInvoice && (
+        <ShareInvoiceModal
+          isOpen={!!shareModalInvoice}
+          onClose={() => setShareModalInvoice(null)}
+          invoice={shareModalInvoice}
+          business={business}
+          onUpdateDispatchSettings={(newSettings) => {
+            updateBusiness({ dispatchSettings: newSettings }, true);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 };

@@ -1139,67 +1139,79 @@ export const ChequePrintingView: React.FC = () => {
       />
 
       {/* CHEQUE PRINT PREVIEW MODAL */}
-      <ChequePrintModal
-        isOpen={isPrintModalOpen}
-        cheque={activeChequeForPrint}
-        onClose={() => {
-          setIsPrintModalOpen(false);
-          setActiveChequeForPrint(null);
-        }}
-        onMarkPrinted={(id) => markChequeAsPrinted(id)}
-        onOpenCalibration={(chq) => handleOpenCalibration(chq)}
-      />
+      {isPrintModalOpen && (
+        <ChequePrintModal
+          isOpen={isPrintModalOpen}
+          cheque={activeChequeForPrint}
+          onClose={() => {
+            setIsPrintModalOpen(false);
+            setActiveChequeForPrint(null);
+          }}
+          onMarkPrinted={(id) => markChequeAsPrinted(id)}
+          onOpenCalibration={(chq) => handleOpenCalibration(chq)}
+        />
+      )}
 
       {/* CHEQUE BOOK MANAGER MODAL */}
-      <ChequeBookManagerModal
-        isOpen={isBookModalOpen}
-        onClose={() => setIsBookModalOpen(false)}
-      />
+      {isBookModalOpen && (
+        <ChequeBookManagerModal
+          isOpen={isBookModalOpen}
+          onClose={() => setIsBookModalOpen(false)}
+        />
+      )}
 
       {/* CHEQUE CLEARANCE MODAL */}
-      <ChequeClearanceModal
-        isOpen={!!clearanceModalCheque}
-        cheque={clearanceModalCheque}
-        currencySymbol={business.currencySymbol}
-        onClose={() => setClearanceModalCheque(null)}
-        onConfirmClearance={handleConfirmClearance}
-      />
+      {clearanceModalCheque && (
+        <ChequeClearanceModal
+          isOpen={!!clearanceModalCheque}
+          cheque={clearanceModalCheque}
+          currencySymbol={business.currencySymbol}
+          onClose={() => setClearanceModalCheque(null)}
+          onConfirmClearance={handleConfirmClearance}
+        />
+      )}
 
       {/* CHEQUE BOUNCE MODAL */}
-      <ChequeBounceModal
-        isOpen={!!bounceModalCheque}
-        cheque={bounceModalCheque}
-        business={business}
-        currencySymbol={business.currencySymbol}
-        onClose={() => setBounceModalCheque(null)}
-        onConfirmBounce={handleConfirmBounce}
-        onOpenReminderNotice={(chq, type) => {
-          setBounceModalCheque(null);
-          handleOpenReminder(chq, type);
-        }}
-      />
+      {bounceModalCheque && (
+        <ChequeBounceModal
+          isOpen={!!bounceModalCheque}
+          cheque={bounceModalCheque}
+          business={business}
+          currencySymbol={business.currencySymbol}
+          onClose={() => setBounceModalCheque(null)}
+          onConfirmBounce={handleConfirmBounce}
+          onOpenReminderNotice={(chq, type) => {
+            setBounceModalCheque(null);
+            handleOpenReminder(chq, type);
+          }}
+        />
+      )}
 
       {/* CHEQUE REMINDER DRAWER MODAL */}
-      <ChequeReminderDrawerModal
-        isOpen={!!reminderModalCheque}
-        cheque={reminderModalCheque}
-        business={business}
-        initialType={reminderNoticeType}
-        onClose={() => setReminderModalCheque(null)}
-        onReminderSent={(id) => {
-          updateCheque(id, { reminderSentAt: new Date().toISOString() });
-          showToast('success', 'Reminder Logged', 'Reminder notification recorded for cheque.');
-        }}
-      />
+      {reminderModalCheque && (
+        <ChequeReminderDrawerModal
+          isOpen={!!reminderModalCheque}
+          cheque={reminderModalCheque}
+          business={business}
+          initialType={reminderNoticeType}
+          onClose={() => setReminderModalCheque(null)}
+          onReminderSent={(id) => {
+            updateCheque(id, { reminderSentAt: new Date().toISOString() });
+            showToast('success', 'Reminder Logged', 'Reminder notification recorded for cheque.');
+          }}
+        />
+      )}
 
       {/* CHEQUE RETURN ADVICE MEMO MODAL */}
-      <ChequeReturnMemoModal
-        isOpen={!!memoModalCheque}
-        cheque={memoModalCheque}
-        business={business}
-        currencySymbol={business.currencySymbol}
-        onClose={() => setMemoModalCheque(null)}
-      />
+      {memoModalCheque && (
+        <ChequeReturnMemoModal
+          isOpen={!!memoModalCheque}
+          cheque={memoModalCheque}
+          business={business}
+          currencySymbol={business.currencySymbol}
+          onClose={() => setMemoModalCheque(null)}
+        />
+      )}
 
       {/* CHEQUE DELETION MODAL */}
       {chequeToDelete && (

@@ -39,6 +39,7 @@ import {
   normalizeFooterConfig,
   interpolateFooterText
 } from '../../utils/footerDefaults';
+import { getAccentBg, getAccentText } from '../../utils/themeColors';
 
 interface FooterSettingsTabProps {
   initialConfig?: FooterConfig;
@@ -184,33 +185,6 @@ export const FooterSettingsTab: React.FC<FooterSettingsTabProps> = ({
     }));
   };
 
-  const getAccentBg = (color?: string) => {
-    const effectiveColor = (color && color !== 'auto') ? color : 'indigo';
-    switch (effectiveColor) {
-      case 'emerald': return 'bg-emerald-600 text-white';
-      case 'blue': return 'bg-blue-600 text-white';
-      case 'amber': return 'bg-amber-600 text-white';
-      case 'purple': return 'bg-purple-600 text-white';
-      case 'rose': return 'bg-rose-600 text-white';
-      case 'cyan': return 'bg-cyan-600 text-white';
-      case 'slate': return 'bg-slate-700 text-white';
-      default: return 'bg-indigo-600 text-white';
-    }
-  };
-
-  const getAccentText = (color?: string) => {
-    const effectiveColor = (color && color !== 'auto') ? color : 'indigo';
-    switch (effectiveColor) {
-      case 'emerald': return 'text-emerald-600';
-      case 'blue': return 'text-blue-600';
-      case 'amber': return 'text-amber-600';
-      case 'purple': return 'text-purple-600';
-      case 'rose': return 'text-rose-600';
-      case 'cyan': return 'text-cyan-600';
-      case 'slate': return 'text-slate-700';
-      default: return 'text-indigo-600';
-    }
-  };
 
   const enabledBadges = config.badges ? config.badges.filter(b => b.isEnabled) : [];
   const enabledQuickLinks = config.quickLinks ? config.quickLinks.filter(l => l.isEnabled) : [];

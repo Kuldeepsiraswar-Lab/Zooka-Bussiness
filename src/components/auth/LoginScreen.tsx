@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { AppUser, RoleType, Company } from '../../types';
 import { ROLE_DEFINITIONS, DEFAULT_SUPER_ADMIN } from '../../utils/rbacRules';
 import { cleanDefaultUsers } from '../../utils/cleanDefaults';
+import { getThemeBg } from '../../utils/themeColors';
 import { 
   ShieldCheck, 
   Lock, 
@@ -310,17 +311,6 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  const getThemeBg = (color?: string) => {
-    switch (color) {
-      case 'emerald': return 'bg-emerald-600';
-      case 'blue': return 'bg-blue-600';
-      case 'amber': return 'bg-amber-600';
-      case 'purple': return 'bg-purple-600';
-      case 'rose': return 'bg-rose-600';
-      case 'cyan': return 'bg-cyan-600';
-      default: return 'bg-indigo-600';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-between relative overflow-hidden font-sans text-slate-100 selection:bg-indigo-500 selection:text-white">

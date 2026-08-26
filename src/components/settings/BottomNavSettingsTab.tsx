@@ -13,6 +13,7 @@ import {
   BOTTOM_NAV_PRESETS,
   TabMetaDefinition 
 } from '../../utils/bottomNavDefaults';
+import { getThemePalette, THEME_PALETTES } from '../../utils/themeColors';
 import { 
   Smartphone, 
   Check, 
@@ -49,12 +50,16 @@ interface BottomNavSettingsTabProps {
 }
 
 export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSaved }) => {
-  const { business, updateBusiness, showToast, setActiveTab: setGlobalActiveTab, products } = useApp();
+  const { business, currentCompany, updateBusiness, showToast, setActiveTab: setGlobalActiveTab, products } = useApp();
 
   // Local configuration state initialized from current business profile or fallback
   const [config, setConfig] = useState<BottomNavConfig>(() => {
     return business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
   });
+
+  // Effective color palette for the bottom navigation
+  const effectiveThemeColor = (config.color && config.color !== 'auto') ? config.color : (currentCompany?.themeColor || 'indigo');
+  const palette = getThemePalette(effectiveThemeColor);
 
   // Simulated active tab in preview
   const [previewActiveTab, setPreviewActiveTab] = useState<string>('dashboard');
@@ -472,7 +477,12 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                       : 'px-2 py-1'
                   }`}>
                     {config.style === 'LIQUID_GLASS' && (
-                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent pointer-events-none" />
+                      <div 
+                        className="absolute inset-x-0 top-0 h-[1px] pointer-events-none"
+                        style={{
+                          background: `linear-gradient(to right, transparent, ${palette.hex}99, transparent)`
+                        }}
+                      />
                     )}
 
                     {/* Render active tabs with center button if enabled */}
@@ -493,9 +503,7 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                             onClick={() => setPreviewActiveTab(tab.id)}
                             className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
                               isActive
-                                ? config.style === 'LIQUID_GLASS' 
-                                  ? 'text-cyan-300 font-bold' 
-                                  : 'text-indigo-400 font-bold'
+                                ? `${palette.textClass} font-bold`
                                 : 'text-slate-400 hover:text-slate-200'
                             }`}
                           >
@@ -504,8 +512,8 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                                 layoutId="previewNavPill"
                                 className={
                                   config.style === 'LIQUID_GLASS'
-                                    ? 'absolute inset-0 bg-gradient-to-tr from-cyan-500/25 via-indigo-500/25 to-sky-400/20 border border-cyan-400/40 backdrop-blur-md rounded-xl shadow-[0_2px_12px_rgba(56,189,248,0.3)] -z-10'
-                                    : 'absolute inset-0 bg-indigo-950/80 border border-indigo-700/50 rounded-xl -z-10'
+                                    ? `absolute inset-0 bg-gradient-to-tr ${palette.glassGradientClass} border ${palette.glassBorderClass} backdrop-blur-md rounded-xl shadow-sm -z-10`
+                                    : `absolute inset-0 ${palette.lightBgClass} rounded-xl -z-10`
                                 }
                                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                               />
@@ -530,11 +538,7 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                                 key="center-fab-btn"
                                 type="button"
                                 onClick={() => setPreviewQuickActionOpen(prev => !prev)}
-                                className={`relative -top-2 flex flex-col items-center justify-center p-2 rounded-full text-white shadow-lg border-2 border-slate-900 cursor-pointer active:scale-95 transition-all ${
-                                  config.style === 'LIQUID_GLASS'
-                                    ? 'bg-gradient-to-tr from-cyan-500 via-indigo-500 to-indigo-600 shadow-cyan-500/40'
-                                    : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/50'
-                                }`}
+                                className={`relative -top-2 flex flex-col items-center justify-center p-2 rounded-full text-white shadow-lg border-2 border-slate-900 cursor-pointer active:scale-95 transition-all ${palette.gradientClass} ring-2 ${palette.ringClass}`}
                                 title="Quick Create Action"
                               >
                                 <Plus className={`w-4 h-4 transition-transform duration-200 ${previewQuickActionOpen ? 'rotate-45' : ''}`} />
@@ -630,6 +634,65 @@ export const BottomNavSettingsTab: React.FC<BottomNavSettingsTabProps> = ({ onSa
                   </button>
                 );
               })}
+            </div>
+
+            {/* Theme & Accent Color Auto-Match */}
+            <div className="pt-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Bottom Navigation Theme Color</span>
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Active: <strong className="text-slate-800 dark:text-slate-200">{config.color && config.color !== 'auto' ? palette.name : `Auto (${palette.name})`}</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateConfigField('color', 'auto')}
+                  className={`p-2.5 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                    !config.color || config.color === 'auto'
+                      ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-1 ring-indigo-600/30'
+                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="w-3.5 h-3.5 rounded-full" 
+                      style={{ backgroundColor: palette.hex }}
+                    />
+                    <span>Auto (App Theme)</span>
+                  </div>
+                  {(!config.color || config.color === 'auto') && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                </button>
+
+                {Object.values(THEME_PALETTES).map(pal => {
+                  const isSelected = config.color === pal.id;
+                  return (
+                    <button
+                      key={pal.id}
+                      type="button"
+                      onClick={() => updateConfigField('color', pal.id)}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-medium transition-all cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-1 ring-indigo-600/30'
+                          : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span 
+                          className="w-3.5 h-3.5 rounded-full" 
+                          style={{ backgroundColor: pal.hex }}
+                        />
+                        <span className="truncate">{pal.name}</span>
+                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Display Switches */}

@@ -4,10 +4,49 @@
 
 :root {
   color-scheme: light;
+  --theme-primary: #4f46e5;
+  --theme-primary-hover: #4338ca;
+  --theme-primary-light: #eef2ff;
+  --theme-primary-text: #4f46e5;
+  --theme-ring: rgba(79, 70, 229, 0.35);
 }
 
 :root.dark, html.dark, [data-theme="dark"] {
   color-scheme: dark;
+  --theme-primary-light: rgba(79, 70, 229, 0.2);
+  --theme-primary-text: #818cf8;
+}
+
+/* Global Theme Auto-Match Utilities for Buttons & Controls */
+.theme-btn-primary {
+  background-color: var(--theme-primary);
+  color: #ffffff;
+  transition: all 0.15s ease-in-out;
+}
+.theme-btn-primary:hover {
+  background-color: var(--theme-primary-hover);
+}
+.theme-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.theme-btn-subtle {
+  background-color: var(--theme-primary-light);
+  color: var(--theme-primary-text);
+  transition: all 0.15s ease-in-out;
+}
+
+.theme-text {
+  color: var(--theme-primary-text);
+}
+
+.theme-border {
+  border-color: var(--theme-primary);
+}
+
+.theme-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--theme-ring);
 }
 
 /* Smooth transition for theme switches */

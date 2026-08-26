@@ -13,9 +13,11 @@ import {
   FileText, 
   Check, 
   FileSignature, 
-  Image as ImageIcon
+  Image as ImageIcon,
+  Send
 } from 'lucide-react';
 import { Invoice } from '../../types';
+import { ShareInvoiceModal } from './ShareInvoiceModal';
 
 interface InvoicePrintViewProps {
   invoiceId: string;
@@ -29,6 +31,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isGeneratingJpg, setIsGeneratingJpg] = useState(false);
   const [fitToOnePage, setFitToOnePage] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const activeTemplate = useMemo(() => {
     return getTemplateById(business.defaultTemplateId || 'OFFICIAL_GST', business.customTemplates);
@@ -381,6 +384,16 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
             )}
           </button>
 
+          {/* Dispatch WhatsApp/Email Button */}
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+            title="Send formatted invoice to customer via WhatsApp or Email"
+          >
+            <Send className="w-4 h-4" />
+            <span>Dispatch Invoice</span>
+          </button>
+
           {/* Print Button */}
           <button
             onClick={handlePrint}
@@ -418,6 +431,19 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
           />
         </div>
       </div>
+
+      {/* WhatsApp & Email Dispatch Modal */}
+      <ShareInvoiceModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        invoice={invoice}
+        business={business}
+        invoiceRenderRef={invoiceRef}
+        onUpdateDispatchSettings={(newSettings) => {
+          updateBusiness({ dispatchSettings: newSettings }, true);
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 };

@@ -22,6 +22,7 @@ import { normalizeHeaderConfig } from '../../utils/headerDefaults';
 import { getChequeReminderMetrics } from '../../utils/chequeReminders';
 import { formatINR } from '../../utils/formatters';
 import { HeaderDensity, HeaderStyle } from '../../types';
+import { getAccentBg, getAccentText } from '../../utils/themeColors';
 
 interface HeaderProps {
   onOpenNewInvoice: () => void;
@@ -100,34 +101,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
   const totalChequeAlerts = chequeMetrics.dueToday.length + chequeMetrics.recentlyBounced.length;
   const totalAlertsCount = lowStockItems.length + overdueInvoices.length + totalChequeAlerts;
 
-  // Custom accent background and text helpers
-  const getAccentBg = (color?: string) => {
-    const effectiveColor = (color && color !== 'auto') ? color : (currentCompany?.themeColor || 'indigo');
-    switch (effectiveColor) {
-      case 'emerald': return 'bg-emerald-600 text-white';
-      case 'blue': return 'bg-blue-600 text-white';
-      case 'amber': return 'bg-amber-600 text-white';
-      case 'purple': return 'bg-purple-600 text-white';
-      case 'rose': return 'bg-rose-600 text-white';
-      case 'cyan': return 'bg-cyan-600 text-white';
-      case 'slate': return 'bg-slate-700 text-white';
-      default: return 'bg-indigo-600 text-white';
-    }
-  };
-
-  const getAccentText = (color?: string) => {
-    const effectiveColor = (color && color !== 'auto') ? color : (currentCompany?.themeColor || 'indigo');
-    switch (effectiveColor) {
-      case 'emerald': return 'text-emerald-600 dark:text-emerald-400';
-      case 'blue': return 'text-blue-600 dark:text-blue-400';
-      case 'amber': return 'text-amber-600 dark:text-amber-400';
-      case 'purple': return 'text-purple-600 dark:text-purple-400';
-      case 'rose': return 'text-rose-600 dark:text-rose-400';
-      case 'cyan': return 'text-cyan-600 dark:text-cyan-400';
-      case 'slate': return 'text-slate-700 dark:text-slate-300';
-      default: return 'text-indigo-600 dark:text-indigo-400';
-    }
-  };
 
   // Density Height
   const getDensityClasses = (density: HeaderDensity) => {

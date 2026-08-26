@@ -504,6 +504,8 @@ export interface Company {
   footerConfig?: FooterConfig;
   lowStockSettings?: LowStockSettings;
   sessionTimeoutSettings?: SessionTimeoutConfig;
+  biometricSettings?: BiometricSecurityConfig;
+  dispatchSettings?: any;
   createdAt: string;
   updatedAt?: string;
 }
@@ -712,6 +714,7 @@ export interface BottomNavConfig {
   quickActionItems?: QuickActionType[];
   showMoreDrawerButton: boolean;
   tabs: BottomNavTabItem[];
+  color?: string; // 'auto' | 'indigo' | 'emerald' | 'blue' | 'amber' | 'purple' | 'rose' | 'cyan' | 'slate'
 }
 
 export interface BusinessProfile {
@@ -761,6 +764,35 @@ export interface BusinessProfile {
   footerConfig?: FooterConfig;
   lowStockSettings?: LowStockSettings;
   sessionTimeoutSettings?: SessionTimeoutConfig;
+  biometricSettings?: BiometricSecurityConfig;
+  dispatchSettings?: any;
+  themeColor?: string;
+}
+
+export interface BiometricCredentialInfo {
+  id: string;
+  rawId: string;
+  type: string;
+  createdAt: string;
+  deviceName?: string;
+  authenticatorAttachment?: 'platform' | 'cross-platform';
+}
+
+export interface BiometricSecurityConfig {
+  enabled: boolean;
+  registered: boolean;
+  credential?: BiometricCredentialInfo | null;
+  requireForAccounting: boolean;        // Lock General Ledger, Trial Balance, P&L, Balance Sheet
+  requireForJournalEntries: boolean;    // Prompt before posting/editing/deleting manual Journal Entries
+  requireForAccountHeads: boolean;      // Prompt before creating/editing/deleting Chart of Account Heads
+  requireForBankStatements: boolean;    // Prompt before bank statement auto-reconcile/ledger imports
+  requireForSensitiveExports: boolean;  // Prompt before exporting financial balance sheets or tax ledgers
+  requireForPaymentsOut: boolean;       // Prompt before high-value payment out vouchers
+  payoutThresholdAmount: number;        // Threshold above which payment out requires biometric verification (e.g. ₹10,000)
+  sessionUnlockDurationMinutes: number; // Duration (in mins) before re-prompting (0 = prompt every transaction, 15 = 15m session grace)
+  fallbackPin?: string;                 // 6-digit backup security PIN
+  fallbackPinHint?: string;             // Hint for PIN
+  exemptSuperAdmin?: boolean;           // Bypass if super admin
 }
 
 export type IdleSessionTimeoutAction = 'logout' | 'lock';

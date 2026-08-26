@@ -36,8 +36,10 @@ import {
   Crown,
   ShieldAlert,
   KeyRound,
-  Ban
+  Ban,
+  Send
 } from 'lucide-react';
+import { ShareInvoiceModal } from '../invoices/ShareInvoiceModal';
 import { 
   normalizeLowStockSettings, 
   getProductStockThreshold, 
@@ -73,10 +75,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
     parties, 
     expenses, 
     business, 
+    updateBusiness,
+    showToast,
     setActiveTab,
     setSelectedInvoiceIdForPrint,
     loginAsSuperAdmin
   } = useApp();
+
+  const [shareModalInvoice, setShareModalInvoice] = useState<any | null>(null);
 
   // Dynamic Today Date String
   const getTodayDateString = () => {
@@ -1120,6 +1126,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                           </button>
                         )}
                         <button
+                          onClick={() => setShareModalInvoice(inv)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer"
+                          title="Dispatch invoice via WhatsApp or Email"
+                        >
+                          <Send className="w-3 h-3 text-emerald-600" />
+                          <span>Dispatch</span>
+                        </button>
+                        <button
                           onClick={() => setSelectedInvoiceIdForPrint(inv.id)}
                           className="px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
                         >
@@ -1134,6 +1148,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
           </table>
         </div>
       </div>
+
+      {/* WhatsApp & Email Dispatch Modal */}
+      <ShareInvoiceModal
+        isOpen={!!shareModalInvoice}
+        onClose={() => setShareModalInvoice(null)}
+        invoice={shareModalInvoice}
+        business={business}
+        onUpdateDispatchSettings={(newSettings) => {
+          updateBusiness({ dispatchSettings: newSettings }, true);
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 };

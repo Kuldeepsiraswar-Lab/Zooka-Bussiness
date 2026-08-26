@@ -28,12 +28,14 @@ import {
   TabMetaDefinition 
 } from '../../utils/bottomNavDefaults';
 import { QuickActionType } from '../../types';
+import { getThemePalette } from '../../utils/themeColors';
 
 export const MobileNav: React.FC = () => {
   const { 
     activeTab, 
     setActiveTab, 
     business, 
+    currentCompany,
     resolvedTheme, 
     toggleTheme, 
     products, 
@@ -47,6 +49,10 @@ export const MobileNav: React.FC = () => {
 
   // Retrieve current bottom navigation configuration
   const config = business.bottomNavConfig || DEFAULT_BOTTOM_NAV_CONFIG;
+
+  // Auto-match active app theme color
+  const effectiveColor = (config.color && config.color !== 'auto') ? config.color : (currentCompany?.themeColor || 'indigo');
+  const palette = getThemePalette(effectiveColor);
 
   // Compute low stock count for badges
   const lowStockCount = useMemo(() => {
@@ -273,7 +279,7 @@ export const MobileNav: React.FC = () => {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                           isDrawerActive
-                            ? 'bg-indigo-600 text-white'
+                            ? `${palette.bgClass} text-white`
                             : 'text-slate-300 hover:bg-slate-800'
                         }`}
                       >
@@ -322,7 +328,12 @@ export const MobileNav: React.FC = () => {
             : ''
         }`}>
           {config.style === 'LIQUID_GLASS' && (
-            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/80 dark:via-cyan-300/40 to-transparent pointer-events-none" />
+            <div 
+              className="absolute inset-x-0 top-0 h-[1px] pointer-events-none"
+              style={{
+                background: `linear-gradient(to right, transparent, ${palette.hex}99, transparent)`
+              }}
+            />
           )}
 
           {(() => {
@@ -339,9 +350,7 @@ export const MobileNav: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
                     isActive 
-                      ? config.style === 'LIQUID_GLASS'
-                        ? 'text-cyan-600 dark:text-cyan-300 font-black'
-                        : 'text-indigo-600 dark:text-indigo-400 font-bold' 
+                      ? `${palette.textClass} font-bold` 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
@@ -350,8 +359,8 @@ export const MobileNav: React.FC = () => {
                       layoutId="mobileNavActivePill"
                       className={
                         config.style === 'LIQUID_GLASS'
-                          ? 'absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-sky-400/15 dark:from-cyan-400/25 dark:via-indigo-500/25 dark:to-sky-400/20 border border-cyan-400/40 dark:border-cyan-300/30 backdrop-blur-md rounded-2xl shadow-[0_2px_12px_rgba(56,189,248,0.25)] -z-10'
-                          : 'absolute inset-0 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl -z-10'
+                          ? `absolute inset-0 bg-gradient-to-tr ${palette.glassGradientClass} border ${palette.glassBorderClass} backdrop-blur-md rounded-2xl shadow-sm -z-10`
+                          : `absolute inset-0 ${palette.lightBgClass} rounded-xl -z-10`
                       }
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
@@ -377,11 +386,7 @@ export const MobileNav: React.FC = () => {
                     <button
                       key="center-fab-action"
                       onClick={() => setQuickActionOpen(prev => !prev)}
-                      className={`relative -top-2 flex flex-col items-center justify-center p-2.5 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-900 cursor-pointer active:scale-95 transition-all ${
-                        config.style === 'LIQUID_GLASS'
-                          ? 'bg-gradient-to-tr from-cyan-500 via-indigo-600 to-indigo-500 shadow-cyan-500/30 ring-2 ring-cyan-400/20'
-                          : 'bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-indigo-600/40'
-                      }`}
+                      className={`relative -top-2 flex flex-col items-center justify-center p-2.5 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-900 cursor-pointer active:scale-95 transition-all ${palette.gradientClass} ring-2 ${palette.ringClass}`}
                       title="Quick Action"
                     >
                       <Plus className={`w-4 h-4 transition-transform duration-200 ${quickActionOpen ? 'rotate-45' : ''}`} />

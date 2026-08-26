@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { getInvoiceDraft, clearInvoiceDraft, hasMeaningfulDraftData, formatDraftTime } from '../../utils/invoiceDraftManager';
 import { ClientStatementModal } from '../parties/ClientStatementModal';
 import { ImportSaleInvoicesModal } from './ImportSaleInvoicesModal';
+import { ShareInvoiceModal } from './ShareInvoiceModal';
 import { 
   Search, 
   Filter, 
@@ -28,6 +29,7 @@ import {
   FileSpreadsheet,
   History,
   RotateCcw,
+  Send,
   X
 } from 'lucide-react';
 
@@ -41,6 +43,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
     invoices, 
     parties,
     business, 
+    updateBusiness,
     setSelectedInvoiceIdForPrint, 
     recordInvoicePayment,
     deleteInvoice,
@@ -50,6 +53,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
   } = useApp();
 
   const [activeDraft, setActiveDraft] = useState(() => getInvoiceDraft(currentCompanyId));
+  const [shareModalInvoice, setShareModalInvoice] = useState<Invoice | null>(null);
 
   // Keep draft status in sync with localStorage
   useEffect(() => {
@@ -429,11 +433,12 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
                         )}
 
                         <button
-                          onClick={() => handleShareWhatsApp(inv)}
-                          title="Share on WhatsApp"
-                          className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          onClick={() => setShareModalInvoice(inv)}
+                          title="Dispatch Invoice via WhatsApp & Email"
+                          className="flex items-center gap-1 px-2 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer"
                         >
-                          <Share2 className="w-4 h-4" />
+                          <Send className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Dispatch</span>
                         </button>
 
                         <button
@@ -564,6 +569,18 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({ onOpenNewInvoi
       <ImportSaleInvoicesModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
+      />
+
+      {/* WhatsApp & Email Dispatch Modal */}
+      <ShareInvoiceModal
+        isOpen={!!shareModalInvoice}
+        onClose={() => setShareModalInvoice(null)}
+        invoice={shareModalInvoice}
+        business={business}
+        onUpdateDispatchSettings={(newSettings) => {
+          updateBusiness({ dispatchSettings: newSettings }, true);
+        }}
+        showToast={showToast}
       />
     </div>
   );

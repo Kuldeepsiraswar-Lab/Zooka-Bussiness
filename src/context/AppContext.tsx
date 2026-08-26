@@ -5,7 +5,8 @@ import {
   AppUser, RoleType, UserPermissions, SecurityAuditLog, Company,
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
   SessionTimeoutConfig, LowStockSettings, CustomHsnCode, JwtSessionInfo,
-  ChequeRecord, ChequeBook, ChequeTemplateConfig, ChequeClearancePayload, ChequeBouncePayload
+  ChequeRecord, ChequeBook, ChequeTemplateConfig, ChequeClearancePayload, ChequeBouncePayload,
+  BiometricSecurityConfig, BiometricCredentialInfo
 } from '../types';
 import { 
   generateJwtToken, 
@@ -34,6 +35,11 @@ import {
   normalizeSessionTimeoutConfig 
 } from '../utils/sessionTimeoutDefaults';
 import { 
+  DEFAULT_BIOMETRIC_CONFIG, 
+  normalizeBiometricConfig 
+} from '../utils/biometricDefaults';
+import { BiometricPromptModal } from '../components/security/BiometricPromptModal';
+import { 
   DEFAULT_LOW_STOCK_SETTINGS, 
   normalizeLowStockSettings 
 } from '../utils/stockUtils';
@@ -49,6 +55,7 @@ import {
   formatInvoiceSequence
 } from '../utils/invoiceNumberUtils';
 import { cloudDb, defaultStandardAccountHeads } from '../services/cloudDb';
+import { applyThemeCssVariables } from '../utils/themeColors';
 
 export type ActiveTab = 
   | 'dashboard'
@@ -266,6 +273,26 @@ interface AppContextType {
   // Session Inactivity Timeout Policy
   sessionTimeoutConfig: SessionTimeoutConfig;
   updateSessionTimeoutSettings: (config: Partial<SessionTimeoutConfig>) => void;
+
+  // WebAuthn Biometric & Passkey Protection
+  biometricConfig: BiometricSecurityConfig;
+  updateBiometricSettings: (config: Partial<BiometricSecurityConfig>) => void;
+  isBiometricAccountingUnlocked: boolean;
+  lockBiometricAccounting: () => void;
+  unlockBiometricAccounting: () => void;
+  promptBiometricVerification: (
+    options: {
+      actionTitle?: string;
+      actionDescription?: string;
+      feature?: 'accounting' | 'jv' | 'account_head' | 'bank_statement' | 'export' | 'payout';
+      amount?: number;
+    },
+    onVerified: () => void | Promise<void>
+  ) => void;
+  isBiometricModalOpen: boolean;
+  biometricModalActionTitle: string;
+  biometricModalActionDescription: string;
+  closeBiometricModal: () => void;
 
   // Theme Mode (Light / Dark / System)
   theme: 'light' | 'dark' | 'system';
@@ -743,7 +770,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearTimeout(timer);
   }, [business, currentCompany, currentCompanyId]);
 
-  // Theme application to root DOM element
+  // Theme application to root DOM element and dynamic theme variables
   useEffect(() => {
     const updateTheme = () => {
       let isDark = false;
@@ -765,6 +792,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (document.body) document.body.classList.remove('dark');
         document.documentElement.setAttribute('data-theme', 'light');
       }
+
+      // Automatically apply dynamic theme CSS custom properties for buttons & bottom controls
+      const activeColor = currentCompany?.themeColor || 'indigo';
+      applyThemeCssVariables(activeColor, isDark);
     };
 
     updateTheme();
@@ -775,7 +806,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       mediaQuery.addEventListener('change', listener);
       return () => mediaQuery.removeEventListener('change', listener);
     }
-  }, [theme]);
+  }, [theme, currentCompany?.themeColor]);
 
   const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
     setThemeState(newTheme);
@@ -1684,6 +1715,143 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Updated idle timeout: ${merged.enabled ? `${merged.timeoutMinutes} mins (${merged.action})` : 'Disabled'} by ${currentUser?.name}`
     );
     showToast('success', 'Security Policy Saved', 'Idle session timeout policy updated.');
+  };
+
+  // WebAuthn Biometric & Passkey Protection
+  const biometricConfig = useMemo<BiometricSecurityConfig>(() => {
+    return normalizeBiometricConfig(business.biometricSettings || DEFAULT_BIOMETRIC_CONFIG);
+  }, [business.biometricSettings]);
+
+  const [isBiometricAccountingUnlocked, setIsBiometricAccountingUnlocked] = useState<boolean>(false);
+  const [lastBiometricUnlockTime, setLastBiometricUnlockTime] = useState<number>(0);
+  const [isBiometricModalOpen, setIsBiometricModalOpen] = useState<boolean>(false);
+  const [biometricModalActionTitle, setBiometricModalActionTitle] = useState<string>('Biometric Verification');
+  const [biometricModalActionDescription, setBiometricModalActionDescription] = useState<string>('');
+  const biometricPendingCallbackRef = useRef<(() => void | Promise<void>) | null>(null);
+
+  const unlockBiometricAccounting = () => {
+    setIsBiometricAccountingUnlocked(true);
+    setLastBiometricUnlockTime(Date.now());
+    logSecurityEvent('BIOMETRIC_UNLOCKED', 'Accounting & Financials', `Biometric authentication session unlocked by ${currentUser?.name}`);
+  };
+
+  const lockBiometricAccounting = () => {
+    setIsBiometricAccountingUnlocked(false);
+    setLastBiometricUnlockTime(0);
+    logSecurityEvent('BIOMETRIC_LOCKED', 'Accounting & Financials', 'Financial accounting records biometric locked.');
+  };
+
+  const isBiometricSessionFresh = (): boolean => {
+    if (!isBiometricAccountingUnlocked || !lastBiometricUnlockTime) return false;
+    const graceMins = biometricConfig.sessionUnlockDurationMinutes || 15;
+    if (graceMins <= 0) return false; // 0 = always prompt on every action
+    const elapsedMs = Date.now() - lastBiometricUnlockTime;
+    return elapsedMs < graceMins * 60 * 1000;
+  };
+
+  const updateBiometricSettings = (settingsUpdates: Partial<BiometricSecurityConfig>) => {
+    const isAuthorizedAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' || can('settings', 'manageUsersAndRoles');
+    if (!isAuthorizedAdmin) {
+      showToast('error', 'Access Denied', 'Only Administrators can configure biometric security policies.');
+      logSecurityEvent('SECURITY_VIOLATION', 'Security Settings', `Unauthorized attempt to modify biometric policy by ${currentUser?.name}`);
+      return;
+    }
+
+    const merged = normalizeBiometricConfig({
+      ...(business.biometricSettings || DEFAULT_BIOMETRIC_CONFIG),
+      ...settingsUpdates
+    });
+
+    setBusiness(prev => {
+      const updatedProfile = {
+        ...prev,
+        biometricSettings: merged
+      };
+      cloudDb.saveBusinessProfile(currentCompanyId, updatedProfile).catch(console.warn);
+      return updatedProfile;
+    });
+
+    setCompanies(prev => prev.map(c => {
+      if (c.id === currentCompanyId) {
+        const updatedComp = {
+          ...c,
+          biometricSettings: merged,
+          updatedAt: new Date().toISOString()
+        };
+        cloudDb.saveCompany(updatedComp).catch(console.warn);
+        return updatedComp;
+      }
+      return c;
+    }));
+
+    logSecurityEvent(
+      'BIOMETRIC_POLICY_UPDATED',
+      'Security Settings',
+      `Updated biometric policy (Enabled: ${merged.enabled}, ReqAccounting: ${merged.requireForAccounting}) by ${currentUser?.name}`
+    );
+    showToast('success', 'Security Policy Saved', 'Biometric security policy updated.');
+  };
+
+  const promptBiometricVerification = (
+    options: {
+      actionTitle?: string;
+      actionDescription?: string;
+      feature?: 'accounting' | 'jv' | 'account_head' | 'bank_statement' | 'export' | 'payout';
+      amount?: number;
+    },
+    onVerified: () => void | Promise<void>
+  ) => {
+    // If biometrics is disabled globally, proceed directly
+    if (!biometricConfig.enabled) {
+      onVerified();
+      return;
+    }
+
+    // Super admin bypass if configured
+    if (biometricConfig.exemptSuperAdmin && currentUser?.role === 'SUPER_ADMIN') {
+      onVerified();
+      return;
+    }
+
+    // Check feature-specific policy rule
+    let requiresAuth = false;
+    if (options.feature === 'accounting' && biometricConfig.requireForAccounting) requiresAuth = true;
+    else if (options.feature === 'jv' && biometricConfig.requireForJournalEntries) requiresAuth = true;
+    else if (options.feature === 'account_head' && biometricConfig.requireForAccountHeads) requiresAuth = true;
+    else if (options.feature === 'bank_statement' && biometricConfig.requireForBankStatements) requiresAuth = true;
+    else if (options.feature === 'export' && biometricConfig.requireForSensitiveExports) requiresAuth = true;
+    else if (options.feature === 'payout' && biometricConfig.requireForPaymentsOut) {
+      const amt = options.amount || 0;
+      if (amt >= (biometricConfig.payoutThresholdAmount || 0)) {
+        requiresAuth = true;
+      }
+    } else if (!options.feature) {
+      requiresAuth = true;
+    }
+
+    if (!requiresAuth) {
+      onVerified();
+      return;
+    }
+
+    // Check if session grace is currently fresh
+    if (isBiometricSessionFresh()) {
+      onVerified();
+      return;
+    }
+
+    // Open Biometric Prompt Modal
+    setBiometricModalActionTitle(options.actionTitle || 'Biometric Verification Required');
+    setBiometricModalActionDescription(
+      options.actionDescription || 'Authentication required to protect confidential financial accounting records.'
+    );
+    biometricPendingCallbackRef.current = onVerified;
+    setIsBiometricModalOpen(true);
+  };
+
+  const closeBiometricModal = () => {
+    setIsBiometricModalOpen(false);
+    biometricPendingCallbackRef.current = null;
   };
 
   const verifySuperAdminKey = (key: string): boolean => {
@@ -3750,6 +3918,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsJwtModalOpen,
         sessionTimeoutConfig,
         updateSessionTimeoutSettings,
+        biometricConfig,
+        updateBiometricSettings,
+        isBiometricAccountingUnlocked,
+        lockBiometricAccounting,
+        unlockBiometricAccounting,
+        promptBiometricVerification,
+        isBiometricModalOpen,
+        biometricModalActionTitle,
+        biometricModalActionDescription,
+        closeBiometricModal,
         theme,
         resolvedTheme,
         setTheme,
@@ -3757,6 +3935,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }}
     >
       {children}
+      <BiometricPromptModal
+        isOpen={isBiometricModalOpen}
+        onClose={closeBiometricModal}
+        onSuccess={() => {
+          unlockBiometricAccounting();
+          if (biometricPendingCallbackRef.current) {
+            const cb = biometricPendingCallbackRef.current;
+            biometricPendingCallbackRef.current = null;
+            cb();
+          }
+        }}
+        actionTitle={biometricModalActionTitle}
+        actionDescription={biometricModalActionDescription}
+        config={biometricConfig}
+        currencySymbol={business.currencySymbol}
+      />
     </AppContext.Provider>
   );
 };

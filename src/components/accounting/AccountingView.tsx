@@ -34,11 +34,17 @@ import {
   Briefcase,
   Landmark,
   Upload,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  Fingerprint,
+  Lock,
+  Unlock,
+  ScanFace
 } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
 import { AccountHead, JournalEntry, Invoice, PurchaseBill, Expense } from '../../types';
 import { BankStatementImportModal } from './BankStatementImportModal';
+import { AccountingBiometricShield } from './AccountingBiometricShield';
 
 interface LedgerPosting {
   id: string;
@@ -103,6 +109,7 @@ const SUBCATEGORY_OPTIONS: { [cat: string]: string[] } = {
 
 export const AccountingView: React.FC = () => {
   const { 
+    currentCompany,
     business, 
     accountHeads: baseAccountHeads, 
     createAccountHead,
@@ -114,7 +121,12 @@ export const AccountingView: React.FC = () => {
     deleteJournalEntry,
     invoices, 
     purchaseBills, 
-    expenses 
+    expenses,
+    biometricConfig,
+    isBiometricAccountingUnlocked,
+    lockBiometricAccounting,
+    unlockBiometricAccounting,
+    promptBiometricVerification
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'general_ledger' | 'daybook' | 'trial_balance' | 'pnl' | 'balance_sheet'>('overview');
@@ -733,43 +745,55 @@ export const AccountingView: React.FC = () => {
     e.preventDefault();
     if (!accName.trim() || !accCode.trim()) return;
 
-    if (editingAccountId) {
-      updateAccountHead(editingAccountId, {
-        code: accCode.trim(),
-        name: accName.trim(),
-        category: accCategory,
-        subCategory: accSubCategory,
-        openingBalance: Number(accOpeningBalance) || 0,
-        openingBalanceType: accOpeningType,
-        description: accDescription.trim()
-      });
-    } else {
-      createAccountHead({
-        code: accCode.trim(),
-        name: accName.trim(),
-        category: accCategory,
-        subCategory: accSubCategory,
-        openingBalance: Number(accOpeningBalance) || 0,
-        openingBalanceType: accOpeningType,
-        description: accDescription.trim(),
-        balance: 0,
-        isSystem: false
-      });
-    }
+    promptBiometricVerification({
+      feature: 'account_head',
+      actionTitle: editingAccountId ? 'Authorize Ledger Master Update' : 'Authorize New Ledger Account Head',
+      actionDescription: `Account: [${accCode}] ${accName} (${accCategory})`
+    }, () => {
+      if (editingAccountId) {
+        updateAccountHead(editingAccountId, {
+          code: accCode.trim(),
+          name: accName.trim(),
+          category: accCategory,
+          subCategory: accSubCategory,
+          openingBalance: Number(accOpeningBalance) || 0,
+          openingBalanceType: accOpeningType,
+          description: accDescription.trim()
+        });
+      } else {
+        createAccountHead({
+          code: accCode.trim(),
+          name: accName.trim(),
+          category: accCategory,
+          subCategory: accSubCategory,
+          openingBalance: Number(accOpeningBalance) || 0,
+          openingBalanceType: accOpeningType,
+          description: accDescription.trim(),
+          balance: 0,
+          isSystem: false
+        });
+      }
 
-    setShowAccountModal(false);
-    setEditingAccountId(null);
+      setShowAccountModal(false);
+      setEditingAccountId(null);
+    });
   };
 
   const handleConfirmDeleteAccount = () => {
     if (accountToDelete) {
-      const success = deleteAccountHead(accountToDelete.id);
-      if (success) {
-        if (selectedAccountId === accountToDelete.id) {
-          setSelectedAccountId('acc-2');
+      promptBiometricVerification({
+        feature: 'account_head',
+        actionTitle: 'Authorize Ledger Account Head Deletion',
+        actionDescription: `Confirm removal of Account Head: [${accountToDelete.code}] ${accountToDelete.name}`
+      }, () => {
+        const success = deleteAccountHead(accountToDelete.id);
+        if (success) {
+          if (selectedAccountId === accountToDelete.id) {
+            setSelectedAccountId('acc-2');
+          }
         }
-      }
-      setAccountToDelete(null);
+        setAccountToDelete(null);
+      });
     }
   };
 
@@ -836,31 +860,43 @@ export const AccountingView: React.FC = () => {
     if (!isJvBalanced) return;
     if (!jvDescription.trim()) return;
 
-    if (editingJvId) {
-      updateJournalEntry(editingJvId, {
-        date: jvDate,
-        description: jvDescription,
-        reference: jvReference,
-        lines: jvLines
-      });
-    } else {
-      createJournalEntry({
-        entryNumber: `JV-${new Date().getFullYear()}-${String(journalEntries.length + 1).padStart(3, '0')}`,
-        date: jvDate,
-        description: jvDescription,
-        reference: jvReference,
-        lines: jvLines
-      });
-    }
+    promptBiometricVerification({
+      feature: 'jv',
+      actionTitle: editingJvId ? 'Authorize Journal Entry Update' : 'Authorize Journal Voucher Posting',
+      actionDescription: `Voucher: ${editingJvNumber || 'New JV'} • Amount: ₹${totalDebit.toLocaleString()}`
+    }, () => {
+      if (editingJvId) {
+        updateJournalEntry(editingJvId, {
+          date: jvDate,
+          description: jvDescription,
+          reference: jvReference,
+          lines: jvLines
+        });
+      } else {
+        createJournalEntry({
+          entryNumber: `JV-${new Date().getFullYear()}-${String(journalEntries.length + 1).padStart(3, '0')}`,
+          date: jvDate,
+          description: jvDescription,
+          reference: jvReference,
+          lines: jvLines
+        });
+      }
 
-    setShowJvModal(false);
-    setEditingJvId(null);
+      setShowJvModal(false);
+      setEditingJvId(null);
+    });
   };
 
   const handleConfirmDeleteJv = () => {
     if (entryToDelete) {
-      deleteJournalEntry(entryToDelete.id);
-      setEntryToDelete(null);
+      promptBiometricVerification({
+        feature: 'jv',
+        actionTitle: 'Authorize Journal Entry Deletion',
+        actionDescription: `Confirm deletion of Journal Voucher ${entryToDelete.entryNumber}`
+      }, () => {
+        deleteJournalEntry(entryToDelete.id);
+        setEntryToDelete(null);
+      });
     }
   };
 
@@ -871,23 +907,71 @@ export const AccountingView: React.FC = () => {
   const creditorsHead = dynamicAccountHeads.find(a => a.id === 'acc-8');
   const capitalHead = dynamicAccountHeads.find(a => a.id === 'acc-12' || a.code === '3000' || a.category === 'EQUITY');
 
+  // Check if financial accounting is biometric-locked
+  if (biometricConfig.enabled && biometricConfig.requireForAccounting && !isBiometricAccountingUnlocked) {
+    return (
+      <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+        <AccountingBiometricShield
+          onUnlockClick={() => {
+            promptBiometricVerification({
+              feature: 'accounting',
+              actionTitle: 'Unlock Financial Accounting Records',
+              actionDescription: `Passkey / Biometric authorization required to access general ledgers and financial statements for ${currentCompany?.name || 'Company'}.`
+            }, () => {
+              unlockBiometricAccounting();
+            });
+          }}
+          config={biometricConfig}
+          companyName={currentCompany?.name || 'Company'}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 text-indigo-600" />
-            Financial Accounting & General Ledger
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <BookOpen className="w-6 h-6 text-indigo-600" />
+              Financial Accounting & General Ledger
+            </h1>
+            {biometricConfig.enabled && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                <span>Biometric Shield Active</span>
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 mt-1">
             Real-time double-entry posting engine, Ledger Master (Add/Edit/Delete), General Ledger Statements, Daybook, P&L & Balance Sheet.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {biometricConfig.enabled && biometricConfig.requireForAccounting && isBiometricAccountingUnlocked && (
+            <button
+              onClick={lockBiometricAccounting}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Lock financial accounting session immediately"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-600" />
+              <span>Lock Ledgers</span>
+            </button>
+          )}
+
           <button
-            onClick={() => setShowBankStatementImportModal(true)}
+            onClick={() => {
+              promptBiometricVerification({
+                feature: 'bank_statement',
+                actionTitle: 'Authorize Bank Statement Auto-Import',
+                actionDescription: 'Verification required to auto-post accounting ledger entries from bank statements.'
+              }, () => {
+                setShowBankStatementImportModal(true);
+              });
+            }}
             className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
             title="Import Bank Statement CSV for auto-reconciliation and voucher posting"
           >

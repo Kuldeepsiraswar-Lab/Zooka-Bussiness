@@ -38,7 +38,9 @@ import {
   Clock,
   Shield,
   Zap,
-  ExternalLink
+  ExternalLink,
+  Fingerprint,
+  Send
 } from 'lucide-react';
 import { QrCodeSvg } from '../common/QrCodeSvg';
 import { isValidUpiId, buildUpiPaymentUri, cleanUpiId } from '../../utils/upi';
@@ -55,11 +57,15 @@ import { FooterSettingsTab } from './FooterSettingsTab';
 import { LowStockSettingsTab } from './LowStockSettingsTab';
 import { SessionTimeoutSettingsTab } from './SessionTimeoutSettingsTab';
 import { PwaSettingsTab } from './PwaSettingsTab';
+import { BiometricSettingsTab } from './BiometricSettingsTab';
+import { DispatchSettingsTab } from './DispatchSettingsTab';
 import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
+import { getThemePalette } from '../../utils/themeColors';
 
 export const SettingsView: React.FC = () => {
   const { 
     business, 
+    currentCompany,
     updateBusiness, 
     invoices,
     realignAndFixInvoiceSequences,
@@ -70,7 +76,9 @@ export const SettingsView: React.FC = () => {
     setActiveTab: setGlobalActiveTab
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'footer' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'item_lines' | 'low_stock' | 'security' | 'pwa' | 'backup'>('profile');
+  const palette = getThemePalette(currentCompany?.themeColor || 'indigo');
+
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'header' | 'footer' | 'bottom_nav' | 'signature' | 'banking' | 'invoicing' | 'templates' | 'dispatch' | 'item_lines' | 'low_stock' | 'security' | 'biometrics' | 'pwa' | 'backup'>('profile');
   const [formData, setFormData] = useState({ ...business });
   const [isFixingSequence, setIsFixingSequence] = useState(false);
   const [importFileContent, setImportFileContent] = useState('');
@@ -384,8 +392,8 @@ export const SettingsView: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Building2 className="w-6 h-6 text-indigo-600" />
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <Building2 className={`w-6 h-6 ${palette.textClass}`} />
             Company Profile & System Settings
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -395,7 +403,7 @@ export const SettingsView: React.FC = () => {
 
         <button
           onClick={() => handleSave()}
-          className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+          className={`flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white ${palette.bgClass} ${palette.hoverBgClass} rounded-xl shadow-md transition-all cursor-pointer active:scale-95`}
         >
           <Save className="w-4 h-4" />
           <span>Save Changes</span>
@@ -501,6 +509,17 @@ export const SettingsView: React.FC = () => {
           <span>Invoice Templates (10+ Designs & Custom)</span>
         </button>
         <button
+          onClick={() => setActiveTab('dispatch')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'dispatch'
+              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Send className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>WhatsApp & Email Dispatch</span>
+        </button>
+        <button
           onClick={() => setActiveTab('item_lines')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'item_lines'
@@ -532,6 +551,17 @@ export const SettingsView: React.FC = () => {
         >
           <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Session & Idle Timeout</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('biometrics')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'biometrics'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Fingerprint className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Biometrics & WebAuthn</span>
         </button>
         <button
           onClick={() => setActiveTab('pwa')}
@@ -1322,6 +1352,15 @@ export const SettingsView: React.FC = () => {
           <InvoiceTemplateManager />
         )}
 
+        {/* TAB: WhatsApp & Email Dispatch Settings */}
+        {activeTab === 'dispatch' && (
+          <DispatchSettingsTab
+            formData={formData}
+            setFormData={setFormData}
+            showToast={showToast}
+          />
+        )}
+
         {/* TAB 5: Product Line & Description Settings */}
         {activeTab === 'item_lines' && (
           <div className="space-y-6">
@@ -1694,6 +1733,11 @@ export const SettingsView: React.FC = () => {
           <SessionTimeoutSettingsTab />
         )}
 
+        {/* TAB: Biometric Authentication (FaceID / Fingerprint / WebAuthn) */}
+        {activeTab === 'biometrics' && (
+          <BiometricSettingsTab />
+        )}
+
         {/* TAB: Progressive Web App & Offline Settings */}
         {activeTab === 'pwa' && (
           <PwaSettingsTab />
@@ -1808,7 +1852,7 @@ export const SettingsView: React.FC = () => {
           </div>
         )}
 
-        {activeTab !== 'security' && activeTab !== 'low_stock' && activeTab !== 'pwa' && (
+        {activeTab !== 'security' && activeTab !== 'biometrics' && activeTab !== 'low_stock' && activeTab !== 'pwa' && (
           <div className="flex justify-end">
             <button
               type="submit"

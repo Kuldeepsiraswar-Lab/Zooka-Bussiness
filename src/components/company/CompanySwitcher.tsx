@@ -12,6 +12,7 @@ import {
   ArrowRightLeft
 } from 'lucide-react';
 import { CreateCompanyModal } from './CreateCompanyModal';
+import { getThemeBg } from '../../utils/themeColors';
 
 interface CompanySwitcherProps {
   compact?: boolean;
@@ -47,17 +48,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
     setIsOpen(false);
   };
 
-  const getThemeBg = (color?: string) => {
-    switch (color) {
-      case 'emerald': return 'bg-emerald-600';
-      case 'blue': return 'bg-blue-600';
-      case 'amber': return 'bg-amber-600';
-      case 'purple': return 'bg-purple-600';
-      case 'rose': return 'bg-rose-600';
-      case 'cyan': return 'bg-cyan-600';
-      default: return 'bg-indigo-600';
-    }
-  };
+
 
   return (
     <div className="relative" ref={dropdownRef}>

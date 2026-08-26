@@ -6,6 +6,8 @@ import { DEFAULT_FOOTER_CONFIG, normalizeFooterConfig } from './footerDefaults';
 import { DEFAULT_SUPER_ADMIN } from './rbacRules';
 import { DEFAULT_LOW_STOCK_SETTINGS, normalizeLowStockSettings } from './stockUtils';
 import { DEFAULT_SESSION_TIMEOUT_CONFIG, normalizeSessionTimeoutConfig } from './sessionTimeoutDefaults';
+import { DEFAULT_BIOMETRIC_CONFIG, normalizeBiometricConfig } from './biometricDefaults';
+import { DEFAULT_DISPATCH_SETTINGS, normalizeDispatchSettings } from './dispatchUtils';
 
 export const cleanDefaultCompany: Company = {
   id: 'comp-main',
@@ -29,6 +31,8 @@ export const cleanDefaultCompany: Company = {
   footerConfig: DEFAULT_FOOTER_CONFIG,
   lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
   sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
+  biometricSettings: DEFAULT_BIOMETRIC_CONFIG,
+  dispatchSettings: DEFAULT_DISPATCH_SETTINGS,
   createdAt: '2026-01-01T00:00:00Z',
 };
 
@@ -70,6 +74,8 @@ export const cleanDefaultBusinessProfile: BusinessProfile = {
   footerConfig: DEFAULT_FOOTER_CONFIG,
   lowStockSettings: DEFAULT_LOW_STOCK_SETTINGS,
   sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
+  biometricSettings: DEFAULT_BIOMETRIC_CONFIG,
+  dispatchSettings: DEFAULT_DISPATCH_SETTINGS,
   itemLineSettings: {
     enableDescription: true,
     enableSerialNumber: true,
@@ -186,7 +192,9 @@ export const normalizeBusinessProfile = (profile?: Partial<BusinessProfile> | nu
     headerConfig: normalizeHeaderConfig(profile.headerConfig || base.headerConfig),
     footerConfig: normalizeFooterConfig(profile.footerConfig || base.footerConfig),
     lowStockSettings: normalizeLowStockSettings(profile.lowStockSettings || base.lowStockSettings),
-    sessionTimeoutSettings: normalizeSessionTimeoutConfig(profile.sessionTimeoutSettings || base.sessionTimeoutSettings)
+    sessionTimeoutSettings: normalizeSessionTimeoutConfig(profile.sessionTimeoutSettings || base.sessionTimeoutSettings),
+    biometricSettings: normalizeBiometricConfig(profile.biometricSettings || base.biometricSettings),
+    dispatchSettings: normalizeDispatchSettings(profile.dispatchSettings || base.dispatchSettings)
   };
 };
 

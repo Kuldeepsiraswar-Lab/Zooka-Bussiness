@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { ROLE_DEFINITIONS } from '../../utils/rbacRules';
+import { getThemePalette } from '../../utils/themeColors';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -47,6 +48,7 @@ export const Sidebar: React.FC = () => {
     setActiveTab, 
     products, 
     business,
+    currentCompany,
     currentUser, 
     can, 
     lockSession, 
@@ -58,6 +60,8 @@ export const Sidebar: React.FC = () => {
     toggleTheme,
     isSidebarCollapsed
   } = useApp();
+
+  const palette = getThemePalette(currentCompany?.themeColor || 'indigo');
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     return typeof document !== 'undefined' && !!document.fullscreenElement;
@@ -326,7 +330,7 @@ export const Sidebar: React.FC = () => {
                         {isActive && (
                           <motion.div
                             layoutId="activeSidebarIndicator"
-                            className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl shadow-md shadow-indigo-600/25 z-0"
+                            className={`absolute inset-0 ${palette.gradientClass} rounded-xl shadow-md z-0`}
                             transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                           />
                         )}

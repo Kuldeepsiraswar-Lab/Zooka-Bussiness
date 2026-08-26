@@ -11,46 +11,6 @@ export interface DispatchTemplate {
   isDefault?: boolean;
 }
 
-export type WhatsAppProviderType = 'META_CLOUD_API' | 'CUSTOM_WEBHOOK' | 'TWILIO' | 'DEMO_SANDBOX';
-
-export interface MetaWhatsAppConfig {
-  phoneNumberId?: string;
-  accessToken?: string;
-  templateName?: string;
-  languageCode?: string;
-}
-
-export interface CustomWebhookConfig {
-  webhookUrl?: string;
-  authHeader?: string;
-  customHeadersJson?: string;
-  httpMethod?: 'POST' | 'PUT';
-  sendPdfAs?: 'URL' | 'BASE64' | 'BOTH';
-}
-
-export interface TwilioWhatsAppConfig {
-  accountSid?: string;
-  authToken?: string;
-  fromNumber?: string;
-}
-
-export interface DispatchLogRecord {
-  id: string;
-  timestamp: string;
-  invoiceNumber: string;
-  recipientPhone: string;
-  customerName: string;
-  provider: string;
-  status: 'DELIVERED' | 'SENT' | 'FAILED' | 'PENDING';
-  messageId: string;
-  pdfSizeBytes: number;
-  pdfSizeKb: string;
-  durationMs: number;
-  responsePayload?: any;
-  error?: string;
-  source: 'DIRECT_DISPATCH' | 'WEBHOOK_EVENT';
-}
-
 export interface DispatchSettings {
   defaultChannel: 'WHATSAPP' | 'EMAIL' | 'BOTH';
   whatsappCountryCode: string; // default '+91'
@@ -60,13 +20,6 @@ export interface DispatchSettings {
   includeItemSummary: boolean;
   templates: DispatchTemplate[];
   defaultTemplateId: string;
-
-  // Server-side Direct WhatsApp & Webhook Settings
-  whatsappProvider?: WhatsAppProviderType;
-  enableServerDirectPdf?: boolean; // if true, uses direct server-side PDF generation & WhatsApp API
-  metaConfig?: MetaWhatsAppConfig;
-  webhookConfig?: CustomWebhookConfig;
-  twilioConfig?: TwilioWhatsAppConfig;
 }
 
 export const DEFAULT_DISPATCH_TEMPLATES: DispatchTemplate[] = [
@@ -92,7 +45,7 @@ Your Tax Invoice *{{invoice_number}}* dated {{invoice_date}} for *{{grand_total}
 
 {{payment_details}}
 
-📄 *Note:* Please find your official GST Tax Invoice PDF attached directly above. Let us know if you have any questions.
+Please find the invoice summary attached. Let us know if you have any questions.
 
 Warm regards,
 *{{business_name}}*
@@ -143,7 +96,7 @@ Best regards,
     name: 'Quick WhatsApp Summary',
     category: 'INVOICE_SENT',
     subject: 'Invoice {{invoice_number}} - {{business_name}}',
-    body: `Hi {{customer_name}}, here is your invoice *{{invoice_number}}* ({{invoice_date}}) for *{{grand_total}}*. Due: *{{amount_due}}*. {{payment_link_short}} PDF Attached! - {{business_name}}`,
+    body: `Hi {{customer_name}}, here is your invoice *{{invoice_number}}* ({{invoice_date}}) for *{{grand_total}}*. Due: *{{amount_due}}*. {{payment_link_short}} Thank you! - {{business_name}}`,
   }
 ];
 
@@ -155,26 +108,7 @@ export const DEFAULT_DISPATCH_SETTINGS: DispatchSettings = {
   includeBankDetails: true,
   includeItemSummary: true,
   templates: DEFAULT_DISPATCH_TEMPLATES,
-  defaultTemplateId: 'TPL_INVOICE_STANDARD',
-  whatsappProvider: 'DEMO_SANDBOX',
-  enableServerDirectPdf: true,
-  metaConfig: {
-    phoneNumberId: '',
-    accessToken: '',
-    templateName: '',
-    languageCode: 'en'
-  },
-  webhookConfig: {
-    webhookUrl: '',
-    authHeader: '',
-    httpMethod: 'POST',
-    sendPdfAs: 'BOTH'
-  },
-  twilioConfig: {
-    accountSid: '',
-    authToken: '',
-    fromNumber: ''
-  }
+  defaultTemplateId: 'TPL_INVOICE_STANDARD'
 };
 
 export const normalizeDispatchSettings = (settings?: Partial<DispatchSettings>): DispatchSettings => {
@@ -189,27 +123,7 @@ export const normalizeDispatchSettings = (settings?: Partial<DispatchSettings>):
     templates: Array.isArray(settings.templates) && settings.templates.length > 0
       ? settings.templates
       : DEFAULT_DISPATCH_TEMPLATES,
-    defaultTemplateId: settings.defaultTemplateId || 'TPL_INVOICE_STANDARD',
-    whatsappProvider: settings.whatsappProvider || 'DEMO_SANDBOX',
-    enableServerDirectPdf: settings.enableServerDirectPdf !== false,
-    metaConfig: {
-      phoneNumberId: settings.metaConfig?.phoneNumberId || '',
-      accessToken: settings.metaConfig?.accessToken || '',
-      templateName: settings.metaConfig?.templateName || '',
-      languageCode: settings.metaConfig?.languageCode || 'en'
-    },
-    webhookConfig: {
-      webhookUrl: settings.webhookConfig?.webhookUrl || '',
-      authHeader: settings.webhookConfig?.authHeader || '',
-      customHeadersJson: settings.webhookConfig?.customHeadersJson || '',
-      httpMethod: settings.webhookConfig?.httpMethod || 'POST',
-      sendPdfAs: settings.webhookConfig?.sendPdfAs || 'BOTH'
-    },
-    twilioConfig: {
-      accountSid: settings.twilioConfig?.accountSid || '',
-      authToken: settings.twilioConfig?.authToken || '',
-      fromNumber: settings.twilioConfig?.fromNumber || ''
-    }
+    defaultTemplateId: settings.defaultTemplateId || 'TPL_INVOICE_STANDARD'
   };
 };
 
@@ -368,130 +282,3 @@ export const buildMailtoUrl = (email: string | undefined, subject: string, body:
   const query = params.length > 0 ? `?${params.join('&')}` : '';
   return `mailto:${cleanEmail}${query}`;
 };
-
-// ============================================================================
-// SERVER-SIDE DISPATCH & PDF CLIENT-SIDE API HELPERS
-// ============================================================================
-
-export interface DirectWhatsAppPayload {
-  recipientPhone: string;
-  customerName?: string;
-  invoice: Invoice;
-  business: BusinessProfile;
-  messageText: string;
-  provider?: WhatsAppProviderType;
-  metaConfig?: MetaWhatsAppConfig;
-  webhookConfig?: CustomWebhookConfig;
-  twilioConfig?: TwilioWhatsAppConfig;
-}
-
-/**
- * Sends real server-side generated PDF invoice via server WhatsApp Webhook / Meta Cloud API
- */
-export async function sendDirectWhatsAppInvoice(
-  payload: DirectWhatsAppPayload
-): Promise<{ success: boolean; log?: DispatchLogRecord; error?: string }> {
-  try {
-    const response = await fetch('/api/dispatch/whatsapp-direct', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recipientPhone: payload.recipientPhone,
-        customerName: payload.customerName || payload.invoice.customerName,
-        invoice: payload.invoice,
-        business: payload.business,
-        messageText: payload.messageText,
-        provider: payload.provider || payload.business.dispatchSettings?.whatsappProvider || 'DEMO_SANDBOX',
-        metaConfig: payload.metaConfig || payload.business.dispatchSettings?.metaConfig,
-        webhookConfig: payload.webhookConfig || payload.business.dispatchSettings?.webhookConfig,
-        twilioConfig: payload.twilioConfig || payload.business.dispatchSettings?.twilioConfig
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      return { success: false, error: data.error || `Server responded with ${response.status}` };
-    }
-
-    return data;
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Network error connecting to dispatch server' };
-  }
-}
-
-/**
- * Downloads crisp vector PDF generated directly on the server (no canvas required)
- */
-export async function downloadServerGeneratedPdf(
-  invoice: Invoice,
-  business: BusinessProfile
-): Promise<void> {
-  const response = await fetch('/api/dispatch/generate-invoice-pdf', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      invoice,
-      business
-    })
-  });
-
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to download server generated PDF');
-  }
-
-  const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Invoice_${(invoice.invoiceNumber || 'INV').replace(/[^a-zA-Z0-9-_]/g, '_')}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
-}
-
-/**
- * Tests WhatsApp Webhook or Meta Cloud API Connection
- */
-export async function testWhatsAppApiConnection(params: {
-  provider: WhatsAppProviderType;
-  webhookUrl?: string;
-  authHeader?: string;
-  metaConfig?: MetaWhatsAppConfig;
-}): Promise<{ success: boolean; message: string; status?: number; metaDetails?: any }> {
-  try {
-    const res = await fetch('/api/dispatch/test-connection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params)
-    });
-    return await res.json();
-  } catch (e: any) {
-    return { success: false, message: e.message || 'Failed to communicate with test endpoint' };
-  }
-}
-
-/**
- * Fetches recent dispatch logs and webhook delivery callback receipts
- */
-export async function fetchServerDispatchLogs(): Promise<{
-  dispatchLogs: DispatchLogRecord[];
-  webhookEvents: any[];
-}> {
-  try {
-    const res = await fetch('/api/dispatch/logs');
-    if (!res.ok) return { dispatchLogs: [], webhookEvents: [] };
-    const data = await res.json();
-    return {
-      dispatchLogs: data.dispatchLogs || [],
-      webhookEvents: data.webhookEvents || []
-    };
-  } catch (e) {
-    return { dispatchLogs: [], webhookEvents: [] };
-  }
-}

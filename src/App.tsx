@@ -67,9 +67,7 @@ const MainContent: React.FC = () => {
     isAuthenticated,
     toggleSidebarCollapse,
     isJwtModalOpen,
-    setIsJwtModalOpen,
-    isAuthModalOpen,
-    isSessionLocked
+    setIsJwtModalOpen
   } = useApp();
 
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -308,27 +306,23 @@ const MainContent: React.FC = () => {
       <MobileNav />
 
       {/* Universal Quick Search Modal */}
-      {isQuickSearchOpen && (
-        <QuickSearchModal
-          isOpen={isQuickSearchOpen}
-          onClose={() => setIsQuickSearchOpen(false)}
-          onSelectInvoice={(id) => setSelectedInvoiceIdForPrint(id)}
-        />
-      )}
+      <QuickSearchModal
+        isOpen={isQuickSearchOpen}
+        onClose={() => setIsQuickSearchOpen(false)}
+        onSelectInvoice={(id) => setSelectedInvoiceIdForPrint(id)}
+      />
 
       {/* User Role Authentication / Login Modal */}
-      {isAuthModalOpen && <UserAuthModal />}
+      <UserAuthModal />
 
       {/* Cryptographic JWT Session Modal & Claims Inspector */}
-      {isJwtModalOpen && (
-        <JwtSessionModal 
-          isOpen={isJwtModalOpen} 
-          onClose={() => setIsJwtModalOpen(false)} 
-        />
-      )}
+      <JwtSessionModal 
+        isOpen={isJwtModalOpen} 
+        onClose={() => setIsJwtModalOpen(false)} 
+      />
 
       {/* Screen Lock Overlay */}
-      {isSessionLocked && <LockScreenOverlay />}
+      <LockScreenOverlay />
 
       {/* Global Inactivity Idle Timeout Manager */}
       <SessionInactivityManager />

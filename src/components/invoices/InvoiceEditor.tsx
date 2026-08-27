@@ -2650,21 +2650,19 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       })()}
 
       {/* Custom HSN & SAC Management Modal */}
-      {isCustomHsnModalOpen && (
-        <CustomHsnModal
-          isOpen={isCustomHsnModalOpen}
-          onClose={() => setIsCustomHsnModalOpen(false)}
-          onSelectHsn={(item) => {
-            // If editing an item or last added item, populate it
-            if (items.length > 0) {
-              const targetIdx = editingItemIndex !== null ? editingItemIndex : items.length - 1;
-              handleItemChange(targetIdx, 'hsnCode', item.code);
-              handleItemChange(targetIdx, 'gstRate', item.gstRate);
-              if (item.uqc && item.uqc !== 'OTH') handleItemChange(targetIdx, 'unit', item.uqc);
-            }
-          }}
-        />
-      )}
+      <CustomHsnModal
+        isOpen={isCustomHsnModalOpen}
+        onClose={() => setIsCustomHsnModalOpen(false)}
+        onSelectHsn={(item) => {
+          // If editing an item or last added item, populate it
+          if (items.length > 0) {
+            const targetIdx = editingItemIndex !== null ? editingItemIndex : items.length - 1;
+            handleItemChange(targetIdx, 'hsnCode', item.code);
+            handleItemChange(targetIdx, 'gstRate', item.gstRate);
+            if (item.uqc && item.uqc !== 'OTH') handleItemChange(targetIdx, 'unit', item.uqc);
+          }
+        }}
+      />
 
       {/* Exit with Unsaved Changes Confirmation Modal */}
       {showExitConfirmModal && (

@@ -674,16 +674,14 @@ export const PartiesView: React.FC = () => {
       )}
 
       {/* Bulk CSV Contacts Upload Modal */}
-      {isBulkUploadOpen && (
-        <BulkPartyUploadModal
-          isOpen={isBulkUploadOpen}
-          onClose={() => setIsBulkUploadOpen(false)}
-          onImport={(partiesList, updateExisting) => {
-            bulkCreateParties(partiesList, updateExisting);
-          }}
-          currencySymbol={business.currencySymbol}
-        />
-      )}
+      <BulkPartyUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onImport={(partiesList, updateExisting) => {
+          bulkCreateParties(partiesList, updateExisting);
+        }}
+        currencySymbol={business.currencySymbol}
+      />
     </div>
   );
 };

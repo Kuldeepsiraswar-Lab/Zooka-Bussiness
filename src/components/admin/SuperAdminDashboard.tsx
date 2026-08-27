@@ -1595,22 +1595,18 @@ export const SuperAdminDashboard: React.FC = () => {
       )}
 
       {/* Create Company Modal */}
-      {isCreateModalOpen && (
-        <CreateCompanyModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-        />
-      )}
+      <CreateCompanyModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
 
       {/* Edit Super Admin Profile & Details Modal */}
-      {isEditSuperAdminModalOpen && (
-        <EditSuperAdminModal
-          isOpen={isEditSuperAdminModalOpen}
-          onClose={() => setIsEditSuperAdminModalOpen(false)}
-          superAdminAuth={superAdminAuth}
-          onSave={updateSuperAdminProfile}
-        />
-      )}
+      <EditSuperAdminModal
+        isOpen={isEditSuperAdminModalOpen}
+        onClose={() => setIsEditSuperAdminModalOpen(false)}
+        superAdminAuth={superAdminAuth}
+        onSave={updateSuperAdminProfile}
+      />
     </div>
   );
 };

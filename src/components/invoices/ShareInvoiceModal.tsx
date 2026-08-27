@@ -53,7 +53,9 @@ export const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({
   invoiceRenderRef,
   showToast
 }) => {
-  const dispatchSettings: DispatchSettings = normalizeDispatchSettings(business?.dispatchSettings);
+  if (!isOpen || !invoice) return null;
+
+  const dispatchSettings: DispatchSettings = normalizeDispatchSettings(business.dispatchSettings);
 
   const [activeChannel, setActiveChannel] = useState<'WHATSAPP' | 'EMAIL'>(
     dispatchSettings.defaultChannel === 'EMAIL' ? 'EMAIL' : 'WHATSAPP'
@@ -63,8 +65,8 @@ export const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({
     dispatchSettings.defaultTemplateId || dispatchSettings.templates[0]?.id || 'TPL_INVOICE_STANDARD'
   );
 
-  const [customPhone, setCustomPhone] = useState<string>(invoice?.customerPhone || '');
-  const [customEmail, setCustomEmail] = useState<string>(invoice?.customerEmail || '');
+  const [customPhone, setCustomPhone] = useState<string>(invoice.customerPhone || '');
+  const [customEmail, setCustomEmail] = useState<string>(invoice.customerEmail || '');
   const [customSubject, setCustomSubject] = useState<string>('');
   const [customMessage, setCustomMessage] = useState<string>('');
 
@@ -94,15 +96,13 @@ export const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({
     }
   }, [invoice]);
 
-  const upiIntentUri = invoice ? buildUpiPaymentUri({
-    upiId: business?.upiId || '',
-    payeeName: business?.tradeName || business?.name || '',
-    amount: (invoice.amountDue ?? 0) > 0 ? invoice.amountDue : invoice.grandTotal,
+  const upiIntentUri = buildUpiPaymentUri({
+    upiId: business.upiId,
+    payeeName: business.tradeName || business.name,
+    amount: invoice.amountDue > 0 ? invoice.amountDue : invoice.grandTotal,
     invoiceNumber: invoice.invoiceNumber,
     note: `Invoice ${invoice.invoiceNumber}`
-  }) : '';
-
-  if (!isOpen || !invoice) return null;
+  });
 
   const handleCopyMessage = async () => {
     try {

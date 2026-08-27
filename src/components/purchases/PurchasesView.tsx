@@ -1348,20 +1348,18 @@ export const PurchasesView: React.FC = () => {
       )}
 
       {/* Custom HSN & SAC Management Modal */}
-      {isCustomHsnModalOpen && (
-        <CustomHsnModal
-          isOpen={isCustomHsnModalOpen}
-          onClose={() => setIsCustomHsnModalOpen(false)}
-          onSelectHsn={(item) => {
-            if (pItems.length > 0) {
-              const targetIdx = pItems.length - 1;
-              handleItemFieldChange(targetIdx, 'hsnCode', item.code);
-              handleItemFieldChange(targetIdx, 'gstRate', item.gstRate);
-              if (item.uqc && item.uqc !== 'OTH') handleItemFieldChange(targetIdx, 'unit', item.uqc);
-            }
-          }}
-        />
-      )}
+      <CustomHsnModal
+        isOpen={isCustomHsnModalOpen}
+        onClose={() => setIsCustomHsnModalOpen(false)}
+        onSelectHsn={(item) => {
+          if (pItems.length > 0) {
+            const targetIdx = pItems.length - 1;
+            handleItemFieldChange(targetIdx, 'hsnCode', item.code);
+            handleItemFieldChange(targetIdx, 'gstRate', item.gstRate);
+            if (item.uqc && item.uqc !== 'OTH') handleItemFieldChange(targetIdx, 'unit', item.uqc);
+          }
+        }}
+      />
     </div>
   );
 };

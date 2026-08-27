@@ -174,15 +174,13 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
       )}
 
       {/* Create Company Modal */}
-      {isCreateModalOpen && (
-        <CreateCompanyModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={() => {
-            setIsOpen(false);
-          }}
-        />
-      )}
+      <CreateCompanyModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsOpen(false);
+        }}
+      />
     </div>
   );
 };

@@ -903,57 +903,46 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
       )}
 
       {/* Barcode Scanner Modal */}
-      {isScannerOpen && (
-        <BarcodeScannerModal
-          isOpen={isScannerOpen}
-          onClose={() => setIsScannerOpen(false)}
-          products={products}
-          currencySymbol={business.currencySymbol}
-          onAddToInvoice={handleAddToInvoice}
-          onOpenPosSale={handleOpenPosSale}
-          onAdjustStock={adjustStock}
-          onPrintLabel={handlePrintLabel}
-        />
-      )}
+      <BarcodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        products={products}
+        currencySymbol={business.currencySymbol}
+        onAddToInvoice={handleAddToInvoice}
+        onOpenPosSale={handleOpenPosSale}
+        onAdjustStock={adjustStock}
+        onPrintLabel={handlePrintLabel}
+      />
 
       {/* Barcode Label Print Modal */}
-      {isLabelPrintOpen && selectedProductForLabel && (
-        <BarcodeLabelPrintModal
-          isOpen={isLabelPrintOpen}
-          onClose={() => {
-            setIsLabelPrintOpen(false);
-            setSelectedProductForLabel(null);
-          }}
-          product={selectedProductForLabel}
-          business={business}
-        />
-      )}
+      <BarcodeLabelPrintModal
+        isOpen={isLabelPrintOpen}
+        onClose={() => setIsLabelPrintOpen(false)}
+        product={selectedProductForLabel}
+        business={business}
+      />
 
       {/* Bulk CSV Product Upload Modal */}
-      {isBulkUploadOpen && (
-        <BulkProductUploadModal
-          isOpen={isBulkUploadOpen}
-          onClose={() => setIsBulkUploadOpen(false)}
-          onImport={(items, updateExisting) => {
-            bulkCreateProducts(items, updateExisting);
-          }}
-          currencySymbol={business.currencySymbol}
-        />
-      )}
+      <BulkProductUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onImport={(items, updateExisting) => {
+          bulkCreateProducts(items, updateExisting);
+        }}
+        currencySymbol={business.currencySymbol}
+      />
 
       {/* Custom HSN & SAC Management Modal */}
-      {isCustomHsnModalOpen && (
-        <CustomHsnModal
-          isOpen={isCustomHsnModalOpen}
-          onClose={() => setIsCustomHsnModalOpen(false)}
-          onSelectHsn={(item) => {
-            setHsnCode(item.code);
-            setGstRate(item.gstRate);
-            if (item.uqc && item.uqc !== 'OTH') setUnit(item.uqc);
-            if (item.type === 'SAC') setIsService(true);
-          }}
-        />
-      )}
+      <CustomHsnModal
+        isOpen={isCustomHsnModalOpen}
+        onClose={() => setIsCustomHsnModalOpen(false)}
+        onSelectHsn={(item) => {
+          setHsnCode(item.code);
+          setGstRate(item.gstRate);
+          if (item.uqc && item.uqc !== 'OTH') setUnit(item.uqc);
+          if (item.type === 'SAC') setIsService(true);
+        }}
+      />
     </div>
   );
 };

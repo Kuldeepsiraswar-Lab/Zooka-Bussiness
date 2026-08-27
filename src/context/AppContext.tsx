@@ -3935,24 +3935,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }}
     >
       {children}
-      {isBiometricModalOpen && (
-        <BiometricPromptModal
-          isOpen={isBiometricModalOpen}
-          onClose={closeBiometricModal}
-          onSuccess={() => {
-            unlockBiometricAccounting();
-            if (biometricPendingCallbackRef.current) {
-              const cb = biometricPendingCallbackRef.current;
-              biometricPendingCallbackRef.current = null;
-              cb();
-            }
-          }}
-          actionTitle={biometricModalActionTitle}
-          actionDescription={biometricModalActionDescription}
-          config={biometricConfig}
-          currencySymbol={business.currencySymbol}
-        />
-      )}
+      <BiometricPromptModal
+        isOpen={isBiometricModalOpen}
+        onClose={closeBiometricModal}
+        onSuccess={() => {
+          unlockBiometricAccounting();
+          if (biometricPendingCallbackRef.current) {
+            const cb = biometricPendingCallbackRef.current;
+            biometricPendingCallbackRef.current = null;
+            cb();
+          }
+        }}
+        actionTitle={biometricModalActionTitle}
+        actionDescription={biometricModalActionDescription}
+        config={biometricConfig}
+        currencySymbol={business.currencySymbol}
+      />
     </AppContext.Provider>
   );
 };

@@ -524,13 +524,11 @@ export const UsersAndRolesView: React.FC = () => {
       )}
 
       {/* Create / Edit User Modal */}
-      {isCreateModalOpen && (
-        <CreateUserModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          userToEdit={userToEdit}
-        />
-      )}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        userToEdit={userToEdit}
+      />
 
       {/* In-App Delete User Confirmation Modal */}
       {userToDelete && (

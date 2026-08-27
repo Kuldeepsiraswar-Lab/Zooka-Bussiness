@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserPersonaSwitcher } from '../auth/UserPersonaSwitcher';
+import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 import { 
   Building2, 
   Search, 
@@ -275,12 +276,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           </button>
         )}
 
-        {/* Cloud Sync Status Badge */}
-        {config.showCloudSyncBadge && (
-          <div className="flex px-1.5 sm:px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold items-center gap-1 sm:gap-1.5 border bg-slate-100 dark:bg-slate-800/90 text-emerald-700 dark:text-emerald-400 border-slate-200 dark:border-slate-700">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="hidden sm:inline">Synced</span>
-          </div>
+        {/* Cloud Sync Status Badge & Live Refresh Trigger */}
+        {config.showCloudSyncBadge !== false && (
+          <CloudSyncStatusBadge compact />
         )}
 
         {/* Quick POS Mobile / Counter Billing Button */}

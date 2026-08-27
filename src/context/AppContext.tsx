@@ -6,8 +6,21 @@ import {
   BankStatementAutoEntry, BankStatementImportResult, SuperAdminAuthData,
   SessionTimeoutConfig, LowStockSettings, CustomHsnCode, JwtSessionInfo,
   ChequeRecord, ChequeBook, ChequeTemplateConfig, ChequeClearancePayload, ChequeBouncePayload,
-  BiometricSecurityConfig, BiometricCredentialInfo
+  BiometricSecurityConfig, BiometricCredentialInfo,
+  SystemSnapshotMetadata, SystemSnapshotPayload, SystemSnapshotTrigger, AutoSnapshotConfig
 } from '../types';
+import {
+  buildSnapshotMetadata,
+  saveSnapshotToVault,
+  getAllSnapshotsFromVault,
+  getSnapshotPayloadById,
+  deleteSnapshotFromVault,
+  clearSnapshotVault,
+  downloadSnapshotAsJsonFile,
+  validateSystemSnapshotFile,
+  getStoredAutoSnapshotConfig,
+  saveStoredAutoSnapshotConfig
+} from '../utils/snapshotManager';
 import { 
   generateJwtToken, 
   verifyJwtToken, 
@@ -221,11 +234,24 @@ interface AppContextType {
   exportDatabaseJSON: () => void;
   importDatabaseJSON: (jsonData: string) => boolean;
 
+  // Automatic Snapshots & System Restore
+  autoSnapshotConfig: AutoSnapshotConfig;
+  updateAutoSnapshotConfig: (config: Partial<AutoSnapshotConfig>) => void;
+  vaultSnapshots: SystemSnapshotMetadata[];
+  refreshVaultSnapshots: () => Promise<void>;
+  createSystemSnapshot: (triggerType?: SystemSnapshotTrigger, customLabel?: string, downloadFile?: boolean) => Promise<SystemSnapshotPayload>;
+  restoreSystemSnapshot: (snapshot: SystemSnapshotPayload, createRecoveryPoint?: boolean) => Promise<{ success: boolean; message: string }>;
+  deleteVaultSnapshot: (id: string) => Promise<void>;
+  clearAllVaultSnapshots: () => Promise<void>;
+  exportVaultSnapshotById: (id: string) => Promise<void>;
+  exportCurrentDatabaseSnapshot: (customLabel?: string) => Promise<void>;
+
   // Google Cloud Firestore Sync
   cloudSyncStatus: 'online' | 'offline' | 'error';
   isCloudSyncing: boolean;
   lastCloudSyncTime: Date | null;
-  triggerCloudSync: () => Promise<void>;
+  triggerCloudSync: (showToastNotification?: boolean) => Promise<void>;
+  refreshData: (showToastNotification?: boolean) => Promise<void>;
 
   // Selected state for quick editing/modals
   selectedInvoiceIdForPrint: string | null;
@@ -485,6 +511,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Error saving customRolePermissions:', e);
     }
   }, [customRolePermissions, currentCompanyId]);
+
+  // Automated Snapshot & System Vault State
+  const [autoSnapshotConfig, setAutoSnapshotConfig] = useState<AutoSnapshotConfig>(() => getStoredAutoSnapshotConfig());
+  const [vaultSnapshots, setVaultSnapshots] = useState<SystemSnapshotMetadata[]>([]);
+
+  const refreshVaultSnapshots = async () => {
+    try {
+      const list = await getAllSnapshotsFromVault();
+      setVaultSnapshots(list);
+    } catch (e) {
+      console.warn('Error refreshing snapshot vault:', e);
+    }
+  };
+
+  useEffect(() => {
+    refreshVaultSnapshots();
+  }, []);
+
+  const updateAutoSnapshotConfig = (updates: Partial<AutoSnapshotConfig>) => {
+    setAutoSnapshotConfig(prev => {
+      const next = { ...prev, ...updates };
+      saveStoredAutoSnapshotConfig(next);
+      return next;
+    });
+    showToast('success', 'Backup Settings Updated', 'Automatic snapshot configuration saved.');
+  };
 
   // Authentication & Locking
   const [jwtToken, setJwtToken] = useState<string | null>(() => getAuthToken());
@@ -748,6 +800,285 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => { isMounted = false; };
   }, []);
+
+  // Network connection state listener
+  useEffect(() => {
+    const handleOnline = () => {
+      setCloudSyncStatus('online');
+      refreshData(false).catch(console.warn);
+    };
+    const handleOffline = () => {
+      setCloudSyncStatus('offline');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Real-time Firestore onSnapshot Subscriptions for Active Company Data
+  useEffect(() => {
+    if (!isCloudInitializedRef.current || !currentCompanyId) return;
+
+    const unsubscribe = cloudDb.subscribeToCompanyData(currentCompanyId, {
+      onBusinessProfile: (remoteBus) => {
+        setBusiness(prev => {
+          if (JSON.stringify(prev) !== JSON.stringify(remoteBus)) {
+            return remoteBus;
+          }
+          return prev;
+        });
+      },
+      onInvoices: (remoteInvoices) => {
+        setInvoices(prev => {
+          if (prev.length !== remoteInvoices.length || JSON.stringify(prev) !== JSON.stringify(remoteInvoices)) {
+            return remoteInvoices;
+          }
+          return prev;
+        });
+      },
+      onProducts: (remoteProducts) => {
+        setProducts(prev => {
+          if (prev.length !== remoteProducts.length || JSON.stringify(prev) !== JSON.stringify(remoteProducts)) {
+            return remoteProducts;
+          }
+          return prev;
+        });
+      },
+      onParties: (remoteParties) => {
+        setParties(prev => {
+          if (prev.length !== remoteParties.length || JSON.stringify(prev) !== JSON.stringify(remoteParties)) {
+            return remoteParties;
+          }
+          return prev;
+        });
+      },
+      onPurchaseBills: (remoteBills) => {
+        setPurchaseBills(prev => {
+          if (prev.length !== remoteBills.length || JSON.stringify(prev) !== JSON.stringify(remoteBills)) {
+            return remoteBills;
+          }
+          return prev;
+        });
+      },
+      onPayments: (remotePayments) => {
+        setPayments(prev => {
+          if (prev.length !== remotePayments.length || JSON.stringify(prev) !== JSON.stringify(remotePayments)) {
+            return remotePayments;
+          }
+          return prev;
+        });
+      },
+      onExpenses: (remoteExpenses) => {
+        setExpenses(prev => {
+          if (prev.length !== remoteExpenses.length || JSON.stringify(prev) !== JSON.stringify(remoteExpenses)) {
+            return remoteExpenses;
+          }
+          return prev;
+        });
+      },
+      onAccountHeads: (remoteHeads) => {
+        if (remoteHeads && remoteHeads.length > 0) {
+          setAccountHeads(prev => {
+            if (prev.length !== remoteHeads.length || JSON.stringify(prev) !== JSON.stringify(remoteHeads)) {
+              return remoteHeads;
+            }
+            return prev;
+          });
+        }
+      },
+      onJournalEntries: (remoteJournals) => {
+        setJournalEntries(prev => {
+          if (prev.length !== remoteJournals.length || JSON.stringify(prev) !== JSON.stringify(remoteJournals)) {
+            return remoteJournals;
+          }
+          return prev;
+        });
+      },
+      onUsers: (remoteUsers) => {
+        if (remoteUsers && remoteUsers.length > 0) {
+          setUsers(prev => {
+            if (prev.length !== remoteUsers.length || JSON.stringify(prev) !== JSON.stringify(remoteUsers)) {
+              return remoteUsers;
+            }
+            return prev;
+          });
+        }
+      },
+      onAuditLogs: (remoteLogs) => {
+        setAuditLogs(prev => {
+          if (prev.length !== remoteLogs.length || JSON.stringify(prev) !== JSON.stringify(remoteLogs)) {
+            return remoteLogs;
+          }
+          return prev;
+        });
+      },
+      onCustomHsnCodes: (remoteHsn) => {
+        if (remoteHsn) {
+          setCustomHsnCodes(prev => {
+            if (prev.length !== remoteHsn.length || JSON.stringify(prev) !== JSON.stringify(remoteHsn)) {
+              return remoteHsn;
+            }
+            return prev;
+          });
+        }
+      },
+      onCheques: (remoteCheques) => {
+        if (remoteCheques) {
+          setCheques(prev => {
+            if (prev.length !== remoteCheques.length || JSON.stringify(prev) !== JSON.stringify(remoteCheques)) {
+              return remoteCheques;
+            }
+            return prev;
+          });
+        }
+      },
+      onChequeBooks: (remoteBooks) => {
+        if (remoteBooks) {
+          setChequeBooks(prev => {
+            if (prev.length !== remoteBooks.length || JSON.stringify(prev) !== JSON.stringify(remoteBooks)) {
+              return remoteBooks;
+            }
+            return prev;
+          });
+        }
+      },
+      onChequeTemplates: (remoteTemplates) => {
+        if (remoteTemplates && remoteTemplates.length > 0) {
+          setChequeTemplates(prev => {
+            if (prev.length !== remoteTemplates.length || JSON.stringify(prev) !== JSON.stringify(remoteTemplates)) {
+              return remoteTemplates;
+            }
+            return prev;
+          });
+        }
+      },
+      onError: (err) => {
+        console.warn('Realtime listener notice:', err);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [currentCompanyId]);
+
+  // Realtime listener for Companies list
+  useEffect(() => {
+    if (!isCloudInitializedRef.current) return;
+    const unsub = cloudDb.subscribeToCompanies((remoteCompanies) => {
+      if (remoteCompanies && remoteCompanies.length > 0) {
+        setCompanies(prev => {
+          if (prev.length !== remoteCompanies.length || JSON.stringify(prev) !== JSON.stringify(remoteCompanies)) {
+            return remoteCompanies;
+          }
+          return prev;
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Force Push Sync All Current Data to Firestore
+  const triggerCloudSync = async (showToastNotification: boolean = true) => {
+    try {
+      setIsCloudSyncing(true);
+      if (currentCompany) {
+        await cloudDb.saveCompany(currentCompany);
+      }
+      if (currentCompanyId) {
+        await cloudDb.saveBusinessProfile(currentCompanyId, business);
+        await cloudDb.syncEntireCollection('invoices', currentCompanyId, invoices);
+        await cloudDb.syncEntireCollection('products', currentCompanyId, products);
+        await cloudDb.syncEntireCollection('parties', currentCompanyId, parties);
+        await cloudDb.syncEntireCollection('purchaseBills', currentCompanyId, purchaseBills);
+        await cloudDb.syncEntireCollection('payments', currentCompanyId, payments);
+        await cloudDb.syncEntireCollection('expenses', currentCompanyId, expenses);
+        await cloudDb.syncEntireCollection('accountHeads', currentCompanyId, accountHeads);
+        await cloudDb.syncEntireCollection('journalEntries', currentCompanyId, journalEntries);
+        await cloudDb.syncEntireCollection('users', currentCompanyId, users);
+        await cloudDb.syncEntireCollection('auditLogs', currentCompanyId, auditLogs);
+        await cloudDb.syncEntireCollection('customHsnCodes', currentCompanyId, customHsnCodes);
+        await cloudDb.syncEntireCollection('cheques', currentCompanyId, cheques);
+        await cloudDb.syncEntireCollection('chequeBooks', currentCompanyId, chequeBooks);
+        await cloudDb.syncEntireCollection('chequeTemplates', currentCompanyId, chequeTemplates);
+        await cloudDb.saveSystemState({ activeCompanyId: currentCompanyId });
+      }
+
+      setCloudSyncStatus('online');
+      setLastCloudSyncTime(new Date());
+      if (showToastNotification) {
+        showToast('success', 'Cloud DB Synchronized', 'All records and configuration synced with Google Cloud Firestore.');
+      }
+    } catch (e: any) {
+      console.warn('Error during manual cloud sync:', e);
+      setCloudSyncStatus('error');
+      if (showToastNotification) {
+        showToast('error', 'Cloud Sync Error', 'Could not complete push sync to Firestore. Local cache preserved.');
+      }
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Pull / Refresh Latest Live Data from Firestore
+  const refreshData = async (showToastNotification: boolean = true) => {
+    try {
+      setIsCloudSyncing(true);
+      if (!currentCompanyId) return;
+
+      const [cloudCompanies, partition] = await Promise.all([
+        cloudDb.fetchAllCompanies(),
+        cloudDb.fetchCompanyDataPartition(currentCompanyId)
+      ]);
+
+      if (cloudCompanies && cloudCompanies.length > 0) {
+        setCompanies(cloudCompanies);
+      }
+
+      if (partition) {
+        setBusiness(normalizeBusinessProfile(partition.business));
+        setInvoices(partition.invoices);
+        setProducts(partition.products);
+        setParties(partition.parties);
+        setPurchaseBills(partition.purchaseBills);
+        setPayments(partition.payments);
+        setExpenses(partition.expenses);
+        setAccountHeads(partition.accountHeads.length > 0 ? partition.accountHeads : cleanDefaultAccountHeads);
+        setJournalEntries(partition.journalEntries);
+        if (partition.users && partition.users.length > 0) {
+          setUsers(partition.users);
+        }
+        setAuditLogs(partition.auditLogs);
+        if (partition.customHsnCodes) setCustomHsnCodes(partition.customHsnCodes);
+        if (partition.cheques) setCheques(partition.cheques);
+        if (partition.chequeBooks) setChequeBooks(partition.chequeBooks);
+        if (partition.chequeTemplates) setChequeTemplates(partition.chequeTemplates);
+      }
+
+      setCloudSyncStatus('online');
+      setLastCloudSyncTime(new Date());
+
+      if (showToastNotification) {
+        showToast(
+          'success', 
+          'Database Refreshed', 
+          `Synchronized live with Firestore (${invoices.length} invoices, ${products.length} products).`
+        );
+      }
+    } catch (err: any) {
+      console.warn('Error refreshing data from cloud:', err);
+      setCloudSyncStatus('error');
+      if (showToastNotification) {
+        showToast('error', 'Refresh Failed', 'Unable to fetch latest updates from Firestore.');
+      }
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
 
   // Continuous Auto-Save to Firestore Cloud DB on background state changes
   useEffect(() => {
@@ -1380,34 +1711,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAuditLogs(prev => [newLog, ...prev.slice(0, 199)]);
     cloudDb.syncEntityDoc('auditLogs', currentCompanyId, newLog).catch(console.warn);
-  };
-
-  const triggerCloudSync = async () => {
-    setIsCloudSyncing(true);
-    try {
-      if (currentCompany) {
-        await cloudDb.saveCompany(currentCompany);
-      }
-      await cloudDb.saveBusinessProfile(currentCompanyId, business);
-      await cloudDb.syncEntireCollection('invoices', currentCompanyId, invoices);
-      await cloudDb.syncEntireCollection('products', currentCompanyId, products);
-      await cloudDb.syncEntireCollection('parties', currentCompanyId, parties);
-      await cloudDb.syncEntireCollection('purchaseBills', currentCompanyId, purchaseBills);
-      await cloudDb.syncEntireCollection('payments', currentCompanyId, payments);
-      await cloudDb.syncEntireCollection('expenses', currentCompanyId, expenses);
-      await cloudDb.syncEntireCollection('accountHeads', currentCompanyId, accountHeads);
-      await cloudDb.syncEntireCollection('journalEntries', currentCompanyId, journalEntries);
-      await cloudDb.syncEntireCollection('users', currentCompanyId, users);
-      await cloudDb.saveSystemState({ activeCompanyId: currentCompanyId });
-      
-      setCloudSyncStatus('online');
-      setLastCloudSyncTime(new Date());
-    } catch (e) {
-      console.error('Manual cloud sync failed:', e);
-      setCloudSyncStatus('error');
-    } finally {
-      setIsCloudSyncing(false);
-    }
   };
 
   // Toast Helpers & Deduplication
@@ -3717,7 +4020,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
-  // Reset & Backup
+  // Reset & Legacy Handlers
   const resetAllData = () => {
     localStorage.clear();
     setCompanies([cleanDefaultCompany]);
@@ -3735,11 +4038,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUserId(cleanDefaultAdminUser.id);
     setAuditLogs([]);
     triggerCloudSync().catch(console.warn);
-    showToast('info', 'System Reset', 'Clean database initialized. All sample/prefilled records cleared.');
+    showToast('info', 'System Reset', 'Clean database initialized. All records cleared.');
   };
 
-  const exportDatabaseJSON = () => {
-    const fullBackup = {
+  // System Snapshot Engine & Vault Storage
+  const createSystemSnapshot = async (
+    triggerType: SystemSnapshotTrigger = 'MANUAL_EXPORT',
+    customLabel?: string,
+    downloadFile: boolean = false
+  ): Promise<SystemSnapshotPayload> => {
+    const rawPayload: Omit<SystemSnapshotPayload, 'metadata'> = {
       companies,
       business,
       invoices,
@@ -3754,48 +4062,244 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       cheques,
       chequeBooks,
       chequeTemplates,
+      customHsnCodes,
       exportedAt: new Date().toISOString(),
-      appName: 'VyaparFlow'
+      appName: 'VyaparFlow',
+      version: '2.5.0'
     };
 
-    const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `VyaparFlow_Backup_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('success', 'Backup Exported', 'Full database JSON downloaded.');
+    const metadata = buildSnapshotMetadata(rawPayload, triggerType, customLabel);
+    const fullSnapshot: SystemSnapshotPayload = {
+      ...rawPayload,
+      metadata
+    };
+
+    // Save into indexed/local vault
+    await saveSnapshotToVault(fullSnapshot);
+    await refreshVaultSnapshots();
+
+    if (downloadFile) {
+      downloadSnapshotAsJsonFile(
+        fullSnapshot, 
+        `VyaparFlow_${triggerType === 'SCHEDULED_AUTO' ? 'Auto_Snapshot' : 'System_Snapshot'}`
+      );
+    }
+
+    logSecurityEvent(
+      'SYSTEM_SNAPSHOT_CREATED', 
+      'System Backup', 
+      `Archived system snapshot: ${metadata.label} (${metadata.invoicesCount} invoices, ${metadata.productsCount} products)`
+    );
+
+    return fullSnapshot;
+  };
+
+  const exportCurrentDatabaseSnapshot = async (customLabel?: string): Promise<void> => {
+    await createSystemSnapshot(
+      'MANUAL_EXPORT', 
+      customLabel || `Manual Snapshot (${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })})`, 
+      true
+    );
+    showToast('success', 'System Snapshot Exported', 'Comprehensive system snapshot downloaded as JSON file.');
+  };
+
+  const exportVaultSnapshotById = async (id: string): Promise<void> => {
+    const snap = await getSnapshotPayloadById(id);
+    if (!snap) {
+      showToast('error', 'Snapshot Not Found', 'Could not locate the requested snapshot file in vault.');
+      return;
+    }
+    const cleanName = (snap.metadata?.label || 'Snapshot').replace(/[^a-zA-Z0-9_-]/g, '_');
+    downloadSnapshotAsJsonFile(snap, `VyaparFlow_${cleanName}`);
+    showToast('success', 'Snapshot Downloaded', 'Archived snapshot exported as JSON file.');
+  };
+
+  const deleteVaultSnapshot = async (id: string): Promise<void> => {
+    await deleteSnapshotFromVault(id);
+    await refreshVaultSnapshots();
+    showToast('info', 'Snapshot Removed', 'Archived snapshot deleted from local vault.');
+  };
+
+  const clearAllVaultSnapshots = async (): Promise<void> => {
+    await clearSnapshotVault();
+    await refreshVaultSnapshots();
+    showToast('info', 'Vault Cleared', 'All archived snapshot history removed.');
+  };
+
+  const restoreSystemSnapshot = async (
+    snapshot: SystemSnapshotPayload,
+    createRecoveryPoint: boolean = true
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      // 1. Create safety recovery point if requested before applying restore
+      if (createRecoveryPoint) {
+        try {
+          await createSystemSnapshot(
+            'PRE_RESTORE_RECOVERY', 
+            `Pre-Restore Recovery Point (${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`, 
+            false
+          );
+        } catch (recoveryErr) {
+          console.warn('Safety recovery point creation failed:', recoveryErr);
+        }
+      }
+
+      // 2. Restore all data partitions safely
+      if (snapshot.companies && Array.isArray(snapshot.companies) && snapshot.companies.length > 0) {
+        setCompanies(snapshot.companies);
+      }
+      if (snapshot.business) {
+        setBusiness(normalizeBusinessProfile(snapshot.business));
+      }
+      if (Array.isArray(snapshot.invoices)) {
+        setInvoices(snapshot.invoices);
+      }
+      if (Array.isArray(snapshot.products)) {
+        setProducts(snapshot.products);
+      }
+      if (Array.isArray(snapshot.parties)) {
+        setParties(snapshot.parties);
+      }
+      if (Array.isArray(snapshot.purchaseBills)) {
+        setPurchaseBills(snapshot.purchaseBills);
+      }
+      if (Array.isArray(snapshot.payments)) {
+        setPayments(snapshot.payments);
+      }
+      if (Array.isArray(snapshot.expenses)) {
+        setExpenses(snapshot.expenses);
+      }
+      if (Array.isArray(snapshot.accountHeads) && snapshot.accountHeads.length > 0) {
+        setAccountHeads(snapshot.accountHeads);
+      }
+      if (Array.isArray(snapshot.journalEntries)) {
+        setJournalEntries(snapshot.journalEntries);
+      }
+      if (Array.isArray(snapshot.users) && snapshot.users.length > 0) {
+        setUsers(snapshot.users);
+      }
+      if (Array.isArray(snapshot.cheques)) {
+        setCheques(snapshot.cheques);
+      }
+      if (Array.isArray(snapshot.chequeBooks)) {
+        setChequeBooks(snapshot.chequeBooks);
+      }
+      if (Array.isArray(snapshot.chequeTemplates)) {
+        setChequeTemplates(snapshot.chequeTemplates);
+      }
+      if (Array.isArray(snapshot.customHsnCodes)) {
+        setCustomHsnCodes(snapshot.customHsnCodes);
+      }
+
+      // 3. Trigger cloud sync
+      triggerCloudSync().catch(console.warn);
+
+      // 4. Log security event
+      logSecurityEvent(
+        'SYSTEM_RESTORE_EXECUTED', 
+        'System Restore', 
+        `Restored system state from snapshot: ${snapshot.metadata?.label || snapshot.appName || 'JSON Snapshot'}`
+      );
+
+      // 5. Refresh vault
+      await refreshVaultSnapshots();
+
+      showToast(
+        'success', 
+        'System Restored Successfully', 
+        `Restored ${snapshot.invoices?.length || 0} invoices, ${snapshot.products?.length || 0} products, and ${snapshot.parties?.length || 0} parties.`
+      );
+
+      return { success: true, message: 'System restored successfully' };
+    } catch (e: any) {
+      console.error('System restore error:', e);
+      showToast('error', 'Restore Failed', e?.message || 'Failed to restore system snapshot.');
+      return { success: false, message: e?.message || 'Restore failed' };
+    }
+  };
+
+  const exportDatabaseJSON = () => {
+    exportCurrentDatabaseSnapshot();
   };
 
   const importDatabaseJSON = (jsonData: string): boolean => {
     try {
       const parsed = JSON.parse(jsonData);
-      if (parsed.business) {
-        if (parsed.companies) setCompanies(parsed.companies);
-        setBusiness(normalizeBusinessProfile(parsed.business));
-        setInvoices(parsed.invoices || []);
-        setProducts(parsed.products || []);
-        setParties(parsed.parties || []);
-        setPurchaseBills(parsed.purchaseBills || []);
-        setPayments(parsed.payments || []);
-        setExpenses(parsed.expenses || []);
-        setAccountHeads(parsed.accountHeads || cleanDefaultAccountHeads);
-        setJournalEntries(parsed.journalEntries || []);
-        if (parsed.users) setUsers(parsed.users);
-        if (parsed.cheques) setCheques(parsed.cheques);
-        if (parsed.chequeBooks) setChequeBooks(parsed.chequeBooks);
-        if (parsed.chequeTemplates) setChequeTemplates(parsed.chequeTemplates);
-        triggerCloudSync().catch(console.warn);
-        showToast('success', 'Data Restored', 'Database backup imported successfully.');
+      const validation = validateSystemSnapshotFile(parsed);
+      if (validation.isValid && validation.payload) {
+        restoreSystemSnapshot(validation.payload, true);
         return true;
       }
-      throw new Error('Invalid schema');
-    } catch (e) {
-      showToast('error', 'Import Failed', 'Selected file is not a valid VyaparFlow backup JSON.');
+      throw new Error(validation.error || 'Invalid backup schema');
+    } catch (e: any) {
+      showToast('error', 'Import Failed', e?.message || 'Selected file is not a valid VyaparFlow backup JSON.');
       return false;
     }
   };
+
+  // Background Automatic Snapshot Engine
+  useEffect(() => {
+    if (!autoSnapshotConfig.enabled) return;
+
+    const checkAndRunAutoSnapshot = async () => {
+      try {
+        const config = getStoredAutoSnapshotConfig();
+        if (!config.enabled) return;
+
+        const intervalHours = config.intervalHours || 24;
+        const intervalMs = intervalHours * 60 * 60 * 1000;
+        const lastTime = config.lastSnapshotTimestamp ? new Date(config.lastSnapshotTimestamp).getTime() : 0;
+        const now = Date.now();
+
+        if (now - lastTime >= intervalMs) {
+          const snapshot = await createSystemSnapshot(
+            'SCHEDULED_AUTO', 
+            `Automated Snapshot (${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })})`, 
+            config.autoDownloadJson
+          );
+          
+          const nextScheduled = new Date(now + intervalMs).toISOString();
+          const updatedConfig: AutoSnapshotConfig = {
+            ...config,
+            lastSnapshotTimestamp: snapshot.metadata.timestamp,
+            nextScheduledSnapshotTimestamp: nextScheduled
+          };
+          saveStoredAutoSnapshotConfig(updatedConfig);
+          setAutoSnapshotConfig(updatedConfig);
+          await refreshVaultSnapshots();
+        }
+      } catch (err) {
+        console.warn('Auto snapshot scheduler error:', err);
+      }
+    };
+
+    const timeoutId = setTimeout(checkAndRunAutoSnapshot, 8000);
+    const intervalId = setInterval(checkAndRunAutoSnapshot, 60000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
+  }, [
+    autoSnapshotConfig.enabled, 
+    autoSnapshotConfig.intervalHours, 
+    autoSnapshotConfig.autoDownloadJson,
+    companies, 
+    business, 
+    invoices, 
+    products, 
+    parties, 
+    purchaseBills, 
+    payments, 
+    expenses, 
+    accountHeads, 
+    journalEntries, 
+    users, 
+    cheques, 
+    chequeBooks, 
+    chequeTemplates, 
+    customHsnCodes
+  ]);
 
   return (
     <AppContext.Provider
@@ -3895,10 +4399,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetAllData,
         exportDatabaseJSON,
         importDatabaseJSON,
+        autoSnapshotConfig,
+        updateAutoSnapshotConfig,
+        vaultSnapshots,
+        refreshVaultSnapshots,
+        createSystemSnapshot,
+        restoreSystemSnapshot,
+        deleteVaultSnapshot,
+        clearAllVaultSnapshots,
+        exportVaultSnapshotById,
+        exportCurrentDatabaseSnapshot,
         cloudSyncStatus,
         isCloudSyncing,
         lastCloudSyncTime,
         triggerCloudSync,
+        refreshData,
         selectedInvoiceIdForPrint,
         setSelectedInvoiceIdForPrint,
         selectedInvoiceForIRN,

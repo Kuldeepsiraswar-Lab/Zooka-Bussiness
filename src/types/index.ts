@@ -1045,3 +1045,64 @@ export interface JwtSessionInfo {
   isExpired: boolean;
   jti: string;
 }
+
+// System Snapshot & Automated Backup Types
+export type SystemSnapshotTrigger = 
+  | 'SCHEDULED_AUTO' 
+  | 'MANUAL_EXPORT' 
+  | 'PRE_RESTORE_RECOVERY' 
+  | 'PRE_IMPORT' 
+  | 'PERIODIC_VAULT';
+
+export interface SystemSnapshotMetadata {
+  id: string;
+  timestamp: string;
+  label: string;
+  triggerType: SystemSnapshotTrigger;
+  appName: string;
+  version: string;
+  companiesCount: number;
+  invoicesCount: number;
+  productsCount: number;
+  partiesCount: number;
+  paymentsCount: number;
+  expensesCount: number;
+  purchaseBillsCount: number;
+  journalEntriesCount: number;
+  chequesCount: number;
+  usersCount: number;
+  sizeBytes: number;
+  fileChecksum?: string;
+}
+
+export interface SystemSnapshotPayload {
+  metadata: SystemSnapshotMetadata;
+  companies: Company[];
+  business: BusinessProfile;
+  invoices: Invoice[];
+  products: Product[];
+  parties: Party[];
+  purchaseBills: PurchaseBill[];
+  payments: PaymentRecord[];
+  expenses: Expense[];
+  accountHeads: AccountHead[];
+  journalEntries: JournalEntry[];
+  users: AppUser[];
+  cheques?: ChequeRecord[];
+  chequeBooks?: ChequeBook[];
+  chequeTemplates?: ChequeTemplateConfig[];
+  customHsnCodes?: CustomHsnCode[];
+  exportedAt: string;
+  appName: string;
+  version?: string;
+}
+
+export interface AutoSnapshotConfig {
+  enabled: boolean;
+  intervalHours: 1 | 4 | 12 | 24;
+  autoDownloadJson: boolean;
+  maxVaultSnapshots: number;
+  createSafetyPointOnRestore: boolean;
+  lastSnapshotTimestamp?: string;
+  nextScheduledSnapshotTimestamp?: string;
+}

@@ -1,4 +1,18 @@
-import { db, collection, doc, getDocs, getDoc, setDoc, deleteDoc, writeBatch, query, where, onSnapshot } from './firebase';
+import { 
+  db, 
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  setDoc, 
+  deleteDoc, 
+  writeBatch, 
+  query, 
+  where, 
+  onSnapshot, 
+  handleFirestoreError, 
+  OperationType 
+} from './firebase';
 import { 
   Company, 
   BusinessProfile, 
@@ -87,6 +101,26 @@ export interface CloudCompanyData {
   chequeTemplates?: ChequeTemplateConfig[];
 }
 
+export interface RealtimeListenersConfig {
+  onCompany?: (company: Company) => void;
+  onBusinessProfile?: (business: BusinessProfile) => void;
+  onInvoices?: (invoices: Invoice[]) => void;
+  onProducts?: (products: Product[]) => void;
+  onParties?: (parties: Party[]) => void;
+  onPurchaseBills?: (bills: PurchaseBill[]) => void;
+  onPayments?: (payments: PaymentRecord[]) => void;
+  onExpenses?: (expenses: Expense[]) => void;
+  onAccountHeads?: (heads: AccountHead[]) => void;
+  onJournalEntries?: (entries: JournalEntry[]) => void;
+  onUsers?: (users: AppUser[]) => void;
+  onAuditLogs?: (logs: SecurityAuditLog[]) => void;
+  onCustomHsnCodes?: (codes: CustomHsnCode[]) => void;
+  onCheques?: (cheques: ChequeRecord[]) => void;
+  onChequeBooks?: (books: ChequeBook[]) => void;
+  onChequeTemplates?: (templates: ChequeTemplateConfig[]) => void;
+  onError?: (err: any) => void;
+}
+
 class CloudDbService {
   private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
@@ -112,6 +146,7 @@ class CloudDbService {
         return snap.data() as { activeCompanyId?: string };
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.GET, 'systemState/global');
       console.warn('CloudDb: Failed reading system state from Firestore:', e);
     }
     return null;
@@ -122,8 +157,25 @@ class CloudDbService {
       const docRef = doc(db, 'systemState', 'global');
       await setDoc(docRef, { ...state, lastSyncedAt: new Date().toISOString() }, { merge: true });
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, 'systemState/global');
       console.warn('CloudDb: Failed writing system state to Firestore:', e);
     }
+  }
+
+  subscribeToSystemState(onUpdate: (state: { activeCompanyId?: string }) => void, onError?: (err: any) => void): () => void {
+    const docRef = doc(db, 'systemState', 'global');
+    return onSnapshot(
+      docRef,
+      (snap) => {
+        if (snap.exists()) {
+          onUpdate(snap.data() as { activeCompanyId?: string });
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, 'systemState/global');
+        if (onError) onError(error);
+      }
+    );
   }
 
   async fetchSuperAdminAuth(): Promise<Partial<SuperAdminAuthData> | null> {
@@ -134,6 +186,7 @@ class CloudDbService {
         return snap.data() as Partial<SuperAdminAuthData>;
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.GET, 'systemState/superAdminAuth');
       console.warn('CloudDb: Failed reading Super Admin auth from Firestore:', e);
     }
     return null;
@@ -145,8 +198,25 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...authData, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, 'systemState/superAdminAuth');
       console.error('CloudDb: Failed saving Super Admin auth to Firestore:', e);
     }
+  }
+
+  subscribeToSuperAdminAuth(onUpdate: (data: Partial<SuperAdminAuthData>) => void, onError?: (err: any) => void): () => void {
+    const docRef = doc(db, 'systemState', 'superAdminAuth');
+    return onSnapshot(
+      docRef,
+      (snap) => {
+        if (snap.exists()) {
+          onUpdate(snap.data() as Partial<SuperAdminAuthData>);
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, 'systemState/superAdminAuth');
+        if (onError) onError(error);
+      }
+    );
   }
 
   // -------------------------------------------------------------
@@ -162,9 +232,30 @@ class CloudDbService {
       });
       return list;
     } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'companies');
       console.warn('CloudDb: Failed fetching companies from Firestore:', e);
       return [];
     }
+  }
+
+  subscribeToCompanies(onUpdate: (companies: Company[]) => void, onError?: (err: any) => void): () => void {
+    const collRef = collection(db, 'companies');
+    return onSnapshot(
+      collRef,
+      (snap) => {
+        const list: Company[] = [];
+        snap.forEach(docSnap => {
+          list.push(docSnap.data() as Company);
+        });
+        if (list.length > 0) {
+          onUpdate(list);
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'companies');
+        if (onError) onError(error);
+      }
+    );
   }
 
   async saveCompany(company: Company): Promise<void> {
@@ -173,6 +264,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...company, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `companies/${company.id}`);
       console.warn('CloudDb: Note saving company to Firestore:', e);
     }
   }
@@ -206,6 +298,7 @@ class CloudDbService {
         await this.clearCollection(collName, companyId);
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `companies/${companyId}`);
       console.warn('CloudDb: Note deleting company:', e);
     }
   }
@@ -221,6 +314,7 @@ class CloudDbService {
         return normalizeBusinessProfile(snap.data() as BusinessProfile);
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.GET, `businessProfiles/${companyId}`);
       console.warn(`CloudDb: Error fetching business profile for ${companyId}:`, e);
     }
     return null;
@@ -232,6 +326,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...profile, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `businessProfiles/${companyId}`);
       console.warn('CloudDb: Note saving business profile:', e);
     }
   }
@@ -306,6 +401,7 @@ class CloudDbService {
           snap.forEach(d => res.push(d.data() as T));
           return res;
         } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, collName);
           console.warn(`Error querying ${collName} for company ${companyId}:`, err);
           return [];
         }
@@ -368,6 +464,82 @@ class CloudDbService {
   }
 
   // -------------------------------------------------------------
+  // Real-time Firestore Subscriptions for active Company Data
+  // -------------------------------------------------------------
+  subscribeToCompanyData(companyId: string, listeners: RealtimeListenersConfig): () => void {
+    if (!companyId) return () => {};
+
+    const unsubscribers: (() => void)[] = [];
+
+    // 1. Business Profile Listener
+    if (listeners.onBusinessProfile) {
+      const busDocRef = doc(db, 'businessProfiles', companyId);
+      const unsub = onSnapshot(
+        busDocRef,
+        (snap) => {
+          if (snap.exists() && listeners.onBusinessProfile) {
+            listeners.onBusinessProfile(normalizeBusinessProfile(snap.data() as BusinessProfile));
+          }
+        },
+        (error) => {
+          handleFirestoreError(error, OperationType.GET, `businessProfiles/${companyId}`);
+          if (listeners.onError) listeners.onError(error);
+        }
+      );
+      unsubscribers.push(unsub);
+    }
+
+    // Helper for collection query snapshot listeners
+    const subscribeCollection = <T>(
+      collName: string, 
+      callback?: (items: T[]) => void
+    ) => {
+      if (!callback) return;
+      try {
+        const q = query(collection(db, collName), where('companyId', '==', companyId));
+        const unsub = onSnapshot(
+          q,
+          (snap) => {
+            const items: T[] = [];
+            snap.forEach(d => items.push(d.data() as T));
+            callback(items);
+          },
+          (error) => {
+            handleFirestoreError(error, OperationType.LIST, collName);
+            if (listeners.onError) listeners.onError(error);
+          }
+        );
+        unsubscribers.push(unsub);
+      } catch (err) {
+        console.warn(`Could not attach realtime listener for ${collName}:`, err);
+      }
+    };
+
+    subscribeCollection<Invoice>('invoices', listeners.onInvoices);
+    subscribeCollection<Product>('products', listeners.onProducts);
+    subscribeCollection<Party>('parties', listeners.onParties);
+    subscribeCollection<PurchaseBill>('purchaseBills', listeners.onPurchaseBills);
+    subscribeCollection<PaymentRecord>('payments', listeners.onPayments);
+    subscribeCollection<Expense>('expenses', listeners.onExpenses);
+    subscribeCollection<AccountHead>('accountHeads', listeners.onAccountHeads);
+    subscribeCollection<JournalEntry>('journalEntries', listeners.onJournalEntries);
+    subscribeCollection<AppUser>('users', listeners.onUsers);
+    subscribeCollection<SecurityAuditLog>('auditLogs', listeners.onAuditLogs);
+    subscribeCollection<CustomHsnCode>('customHsnCodes', listeners.onCustomHsnCodes);
+    subscribeCollection<ChequeRecord>('cheques', listeners.onCheques);
+    subscribeCollection<ChequeBook>('chequeBooks', listeners.onChequeBooks);
+    subscribeCollection<ChequeTemplateConfig>('chequeTemplates', listeners.onChequeTemplates);
+
+    return () => {
+      unsubscribers.forEach(fn => {
+        try {
+          fn();
+        } catch {}
+      });
+    };
+  }
+
+  // -------------------------------------------------------------
   // Real-time Cloud Syncer for an active Entity
   // -------------------------------------------------------------
   async syncEntityDoc<T extends { id: string }>(collectionName: string, companyId: string, item: T): Promise<void> {
@@ -377,6 +549,7 @@ class CloudDbService {
       const cleanData = sanitizeForFirestore({ ...item, companyId, updatedAt: new Date().toISOString() });
       await setDoc(docRef, cleanData, { merge: true });
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `${collectionName}/${companyId}_${item.id}`);
       console.warn(`CloudDb: Note syncing ${collectionName}/${item.id}:`, e);
     }
   }
@@ -387,6 +560,7 @@ class CloudDbService {
       const docRef = doc(db, collectionName, `${companyId}_${itemId}`);
       await deleteDoc(docRef);
     } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `${collectionName}/${companyId}_${itemId}`);
       console.warn(`CloudDb: Note deleting ${collectionName}/${itemId}:`, e);
     }
   }
@@ -406,6 +580,7 @@ class CloudDbService {
         await batch.commit();
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, collectionName);
       console.warn(`CloudDb: Note clearing collection ${collectionName} for company ${companyId}:`, e);
     }
   }
@@ -425,6 +600,7 @@ class CloudDbService {
         await batch.commit();
       }
     } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, collectionName);
       console.warn(`CloudDb: Note syncing entire collection ${collectionName}:`, e);
     }
   }

@@ -511,7 +511,6 @@ export interface Company {
   sessionTimeoutSettings?: SessionTimeoutConfig;
   biometricSettings?: BiometricSecurityConfig;
   dispatchSettings?: any;
-  automatedBackupSettings?: import('./backup').AutomatedBackupSettings;
   createdAt: string;
   updatedAt?: string;
 }
@@ -777,11 +776,8 @@ export interface BusinessProfile {
   sessionTimeoutSettings?: SessionTimeoutConfig;
   biometricSettings?: BiometricSecurityConfig;
   dispatchSettings?: any;
-  automatedBackupSettings?: import('./backup').AutomatedBackupSettings;
   themeColor?: string;
 }
-
-export * from './backup';
 
 export interface BiometricCredentialInfo {
   id: string;

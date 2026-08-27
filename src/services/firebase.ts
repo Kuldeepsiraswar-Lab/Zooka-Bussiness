@@ -28,16 +28,15 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firestore Database with local persistence
 let firestoreInstance;
-const customDbId = (firebaseConfig as any).firestoreDatabaseId || undefined;
 try {
   firestoreInstance = initializeFirestore(app, {
     ignoreUndefinedProperties: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     })
-  }, customDbId);
+  }, firebaseConfig.firestoreDatabaseId);
 } catch {
-  firestoreInstance = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
+  firestoreInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 }
 
 export const db = firestoreInstance;

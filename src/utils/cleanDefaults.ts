@@ -8,7 +8,6 @@ import { DEFAULT_LOW_STOCK_SETTINGS, normalizeLowStockSettings } from './stockUt
 import { DEFAULT_SESSION_TIMEOUT_CONFIG, normalizeSessionTimeoutConfig } from './sessionTimeoutDefaults';
 import { DEFAULT_BIOMETRIC_CONFIG, normalizeBiometricConfig } from './biometricDefaults';
 import { DEFAULT_DISPATCH_SETTINGS, normalizeDispatchSettings } from './dispatchUtils';
-import { DEFAULT_AUTOMATED_BACKUP_SETTINGS, normalizeAutomatedBackupSettings } from './backupDefaults';
 
 export const cleanDefaultCompany: Company = {
   id: 'comp-main',
@@ -39,7 +38,6 @@ export const cleanDefaultCompany: Company = {
   sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
   biometricSettings: DEFAULT_BIOMETRIC_CONFIG,
   dispatchSettings: DEFAULT_DISPATCH_SETTINGS,
-  automatedBackupSettings: DEFAULT_AUTOMATED_BACKUP_SETTINGS,
   createdAt: '2026-01-01T00:00:00Z',
 };
 
@@ -83,7 +81,6 @@ export const cleanDefaultBusinessProfile: BusinessProfile = {
   sessionTimeoutSettings: DEFAULT_SESSION_TIMEOUT_CONFIG,
   biometricSettings: DEFAULT_BIOMETRIC_CONFIG,
   dispatchSettings: DEFAULT_DISPATCH_SETTINGS,
-  automatedBackupSettings: DEFAULT_AUTOMATED_BACKUP_SETTINGS,
   itemLineSettings: {
     enableDescription: true,
     enableSerialNumber: true,
@@ -202,8 +199,7 @@ export const normalizeBusinessProfile = (profile?: Partial<BusinessProfile> | nu
     lowStockSettings: normalizeLowStockSettings(profile.lowStockSettings || base.lowStockSettings),
     sessionTimeoutSettings: normalizeSessionTimeoutConfig(profile.sessionTimeoutSettings || base.sessionTimeoutSettings),
     biometricSettings: normalizeBiometricConfig(profile.biometricSettings || base.biometricSettings),
-    dispatchSettings: normalizeDispatchSettings(profile.dispatchSettings || base.dispatchSettings),
-    automatedBackupSettings: normalizeAutomatedBackupSettings(profile.automatedBackupSettings || base.automatedBackupSettings)
+    dispatchSettings: normalizeDispatchSettings(profile.dispatchSettings || base.dispatchSettings)
   };
 };
 

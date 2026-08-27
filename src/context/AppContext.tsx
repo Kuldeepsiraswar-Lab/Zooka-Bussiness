@@ -320,10 +320,10 @@ interface AppContextType {
   biometricModalActionDescription: string;
   closeBiometricModal: () => void;
 
-  // Theme Mode (Light / Dark / System)
-  theme: 'light' | 'dark' | 'system';
+  // App Theme Mode (Light / Dark)
+  theme: 'light' | 'dark';
   resolvedTheme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
 }
 
@@ -646,18 +646,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedInvoiceIdForPrint, setSelectedInvoiceIdForPrint] = useState<string | null>(null);
   const [selectedInvoiceForIRN, setSelectedInvoiceForIRN] = useState<Invoice | null>(null);
 
-  // Global Theme Mode (Light / Dark / System)
-  const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(() => {
-    return loadState<'light' | 'dark' | 'system'>('theme', 'light');
+  // Global App Theme Mode (Light / Dark)
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
+    const saved = loadState<string>('theme', 'light');
+    if (saved === 'dark') return 'dark';
+    return 'light';
   });
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
-    const saved = loadState<'light' | 'dark' | 'system'>('theme', 'light');
-    if (saved === 'dark') return 'dark';
-    if (saved === 'light') return 'light';
-    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
+    const saved = loadState<string>('theme', 'light');
+    return saved === 'dark' ? 'dark' : 'light';
   });
 
   // URL /admin Route Listener & History Sync
@@ -1103,49 +1100,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Theme application to root DOM element and dynamic theme variables
   useEffect(() => {
-    const updateTheme = () => {
-      let isDark = false;
-      if (theme === 'dark') {
-        isDark = true;
-      } else if (theme === 'light') {
-        isDark = false;
-      } else {
-        isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      }
+    const isDark = theme === 'dark';
+    setResolvedTheme(isDark ? 'dark' : 'light');
 
-      setResolvedTheme(isDark ? 'dark' : 'light');
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        if (document.body) document.body.classList.add('dark');
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        if (document.body) document.body.classList.remove('dark');
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-
-      // Automatically apply dynamic theme CSS custom properties for buttons & bottom controls
-      const activeColor = currentCompany?.themeColor || 'indigo';
-      applyThemeCssVariables(activeColor, isDark);
-    };
-
-    updateTheme();
-
-    if (theme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const listener = () => updateTheme();
-      mediaQuery.addEventListener('change', listener);
-      return () => mediaQuery.removeEventListener('change', listener);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      if (document.body) document.body.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      if (document.body) document.body.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
+
+    // Automatically apply dynamic theme CSS custom properties for buttons & bottom controls
+    const activeColor = currentCompany?.themeColor || 'indigo';
+    applyThemeCssVariables(activeColor, isDark);
   }, [theme, currentCompany?.themeColor]);
 
-  const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
+  const setTheme = (newTheme: 'light' | 'dark') => {
     setThemeState(newTheme);
     localStorage.setItem(STORAGE_PREFIX + 'theme', JSON.stringify(newTheme));
   };
 
   const toggleTheme = () => {
-    const nextTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
   };
 

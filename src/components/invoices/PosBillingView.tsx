@@ -499,25 +499,25 @@ export const PosBillingView: React.FC = () => {
       {/* Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span>POS Counter Quick Billing</span>
-            <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] uppercase font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full">
               Live Terminal
             </span>
           </h1>
-          <p className="text-xs text-slate-500">Fast barcode lookup, tap-to-add POS cart and thermal receipt printer</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Fast barcode lookup, tap-to-add POS cart and thermal receipt printer</p>
         </div>
 
         {/* Unified Continuous Series Indicator */}
         <div className="flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center gap-2 shadow-2xs">
-            <span className="text-[10px] font-semibold text-indigo-700 uppercase">
+          <div className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80 flex items-center gap-2 shadow-2xs">
+            <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 uppercase">
               Next Invoice No:
             </span>
-            <span className="font-mono font-bold text-xs text-indigo-950 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+            <span className="font-mono font-bold text-xs text-indigo-950 dark:text-white bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-700/80">
               {currentNextInfo.invoiceNumber}
             </span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-100/80 border border-emerald-200">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
               Unified Serial Rule
             </span>
           </div>
@@ -581,7 +581,7 @@ export const PosBillingView: React.FC = () => {
         {/* Left: Product Grid & Quick Search (7 cols on Desktop, Switchable on Mobile/Tablet) */}
         <div className={`lg:col-span-7 space-y-3.5 ${mobileTab === 'products' ? 'block' : 'hidden lg:block'}`}>
           {/* Search & Category Filter */}
-          <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+          <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -590,17 +590,17 @@ export const PosBillingView: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Scan barcode or type product name, SKU..."
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   autoFocus
                 />
               </div>
               <button
                 type="button"
                 onClick={() => setShowCustomItemModal(true)}
-                className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                className="px-3 py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
                 title="Add ad-hoc custom item / service with custom rate & GST"
               >
-                <PlusCircle className="w-3.5 h-3.5 text-indigo-600" />
+                <PlusCircle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>+ Custom Sale Item</span>
               </button>
             </div>
@@ -614,8 +614,8 @@ export const PosBillingView: React.FC = () => {
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-3 py-1 text-[11px] font-semibold rounded-lg whitespace-nowrap transition-all cursor-pointer ${
                       selectedCategory === cat
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-indigo-600 dark:bg-indigo-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     {cat}
@@ -625,17 +625,17 @@ export const PosBillingView: React.FC = () => {
 
               {/* View Switcher & Count */}
               <div className="flex items-center gap-2 shrink-0">
-                <span className="hidden sm:inline text-[11px] font-medium text-slate-400">
+                <span className="hidden sm:inline text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   {filteredProducts.length} items
                 </span>
-                <div className="flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-lg">
+                <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
                   <button
                     type="button"
                     onClick={() => setItemViewMode('grid')}
                     className={`p-1.5 rounded-md transition-all cursor-pointer ${
                       itemViewMode === 'grid'
-                        ? 'bg-white text-indigo-600 shadow-2xs font-bold'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-2xs font-bold'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                     }`}
                     title="Grid View (Cards)"
                   >
@@ -646,8 +646,8 @@ export const PosBillingView: React.FC = () => {
                     onClick={() => setItemViewMode('list')}
                     className={`p-1.5 rounded-md transition-all cursor-pointer ${
                       itemViewMode === 'list'
-                        ? 'bg-white text-indigo-600 shadow-2xs font-bold'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-2xs font-bold'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                     }`}
                     title="List View (Table / Rows)"
                   >
@@ -676,54 +676,54 @@ export const PosBillingView: React.FC = () => {
                     onClick={() => handleAddToCart(prod)}
                     className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all group relative cursor-pointer ${
                       isDisabled
-                        ? 'bg-slate-100/60 border-slate-200 opacity-60 cursor-not-allowed'
+                        ? 'bg-slate-100/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed'
                         : isOutOfStock
-                        ? 'bg-rose-50/40 border-rose-200 hover:border-rose-400'
+                        ? 'bg-rose-50/40 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60 hover:border-rose-400 dark:hover:border-rose-700'
                         : isLow
-                        ? 'bg-amber-50/30 border-amber-200 hover:border-amber-400 hover:shadow-md'
-                        : 'bg-white border-slate-200 hover:border-indigo-400 hover:shadow-md active:scale-95'
+                        ? 'bg-amber-50/30 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60 hover:border-amber-400 dark:hover:border-amber-700 hover:shadow-md'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md active:scale-95'
                     }`}
                   >
                     <div>
                       <div className="flex justify-between items-start mb-1">
-                        <span className="text-[10px] font-mono text-slate-600 font-semibold truncate max-w-[80px]">
+                        <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-semibold truncate max-w-[80px]">
                           {prod.sku}
                         </span>
                         <div className="flex items-center gap-1">
                           {isOutOfStock && (
-                            <span className="text-[9px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800/80 px-1.5 py-0.5 rounded">
                               Out of Stock
                             </span>
                           )}
                           {isLow && !isOutOfStock && (
-                            <span className="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                            <span className="text-[9px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/80 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                               <AlertTriangle className="w-2.5 h-2.5" /> Low
                             </span>
                           )}
-                          <span className="text-[10px] font-bold text-indigo-800 bg-indigo-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-indigo-800 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800/80 px-1.5 py-0.5 rounded">
                             GST {prod.gstRate}%
                           </span>
                         </div>
                       </div>
-                      <h3 className="font-semibold text-xs text-slate-900 group-hover:text-indigo-600 line-clamp-2 leading-snug">
+                      <h3 className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-2 leading-snug">
                         {prod.name}
                       </h3>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                       <div>
-                        <div className="font-bold text-xs text-slate-900 font-mono">
+                        <div className="font-bold text-xs text-slate-900 dark:text-white font-mono">
                           {formatCurrency(prod.sellingPrice, business.currencySymbol)}
                         </div>
                         <div className={`text-[10px] font-medium ${
-                          isOutOfStock ? 'text-rose-600 font-bold' : isLow ? 'text-amber-700 font-bold' : 'text-slate-600'
+                          isOutOfStock ? 'text-rose-600 dark:text-rose-400 font-bold' : isLow ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-slate-600 dark:text-slate-400'
                         }`}>
                           {prod.isService ? 'Service' : `${prod.currentStock} in stock`}
                         </div>
                       </div>
 
                       <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
-                        inCart ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 group-hover:bg-indigo-50 text-slate-700'
+                        inCart ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 text-slate-700 dark:text-slate-300'
                       }`}>
                         {inCart ? (
                           <span className="text-xs">{inCart.quantity}</span>
@@ -737,18 +737,18 @@ export const PosBillingView: React.FC = () => {
               })}
 
               {filteredProducts.length === 0 && (
-                <div className="col-span-full py-12 text-center text-xs text-slate-400">
+                <div className="col-span-full py-12 text-center text-xs text-slate-400 dark:text-slate-500">
                   No products found matching "{searchQuery}"
                 </div>
               )}
             </div>
           ) : (
             /* Product Table / List View */
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden max-h-[600px] flex flex-col">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden max-h-[600px] flex flex-col">
               <div className="overflow-x-auto flex-1 no-scrollbar">
                 <table className="w-full text-left text-xs border-collapse min-w-[500px]">
-                  <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
-                    <tr className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-10">
+                    <tr className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                       <th className="py-2.5 px-3">Product Name & Category</th>
                       <th className="py-2.5 px-2 text-center">SKU / HSN</th>
                       <th className="py-2.5 px-2 text-center">Stock</th>
@@ -756,7 +756,7 @@ export const PosBillingView: React.FC = () => {
                       <th className="py-2.5 px-3 text-center w-28">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {filteredProducts.map(prod => {
                       const inCart = cart.find(i => i.productId === prod.id);
                       const isOutOfStock = isProductOutOfStock(prod);
@@ -766,21 +766,21 @@ export const PosBillingView: React.FC = () => {
                       return (
                         <tr
                           key={prod.id}
-                          className={`group hover:bg-slate-50/80 transition-colors ${
-                            inCart ? 'bg-indigo-50/20' : ''
+                          className={`group hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors ${
+                            inCart ? 'bg-indigo-50/20 dark:bg-indigo-950/30' : ''
                           }`}
                         >
                           {/* Product Details */}
                           <td className="py-2.5 px-3">
-                            <div className="font-semibold text-xs text-slate-900 group-hover:text-indigo-600">
+                            <div className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                               {prod.name}
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                                 {prod.category}
                               </span>
                               {prod.unit && (
-                                <span className="text-[10px] text-slate-400">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500">
                                   / {prod.unit}
                                 </span>
                               )}
@@ -789,29 +789,29 @@ export const PosBillingView: React.FC = () => {
 
                           {/* SKU & HSN */}
                           <td className="py-2.5 px-2 text-center font-mono">
-                            <div className="text-[11px] font-semibold text-slate-700">{prod.sku}</div>
+                            <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">{prod.sku}</div>
                             {prod.hsnCode && (
-                              <div className="text-[9px] text-slate-400">HSN: {prod.hsnCode}</div>
+                              <div className="text-[9px] text-slate-400 dark:text-slate-500">HSN: {prod.hsnCode}</div>
                             )}
                           </td>
 
                           {/* Stock Status */}
                           <td className="py-2.5 px-2 text-center">
                             {prod.isService ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
                                 Service
                               </span>
                             ) : isOutOfStock ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                                 Out of Stock
                               </span>
                             ) : isLow ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center justify-center gap-1">
                                 <AlertTriangle className="w-2.5 h-2.5" />
                                 {prod.currentStock} left
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                 {prod.currentStock} in stock
                               </span>
                             )}
@@ -819,10 +819,10 @@ export const PosBillingView: React.FC = () => {
 
                           {/* Price & GST */}
                           <td className="py-2.5 px-2 text-right">
-                            <div className="font-mono font-bold text-xs text-slate-900">
+                            <div className="font-mono font-bold text-xs text-slate-900 dark:text-white">
                               {formatCurrency(prod.sellingPrice, business.currencySymbol)}
                             </div>
-                            <div className="text-[10px] font-semibold text-indigo-700">
+                            <div className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">
                               GST {prod.gstRate}%
                             </div>
                           </td>
@@ -830,19 +830,19 @@ export const PosBillingView: React.FC = () => {
                           {/* Action Button / In-Cart Stepper */}
                           <td className="py-2.5 px-3 text-center">
                             {inCart ? (
-                              <div className="inline-flex items-center bg-indigo-50 border border-indigo-200 rounded-xl p-0.5 shadow-2xs">
+                              <div className="inline-flex items-center bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-xl p-0.5 shadow-2xs">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleUpdateQty(inCart.id, -1);
                                   }}
-                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-white text-indigo-700 font-bold transition-all cursor-pointer"
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold transition-all cursor-pointer"
                                   title="Decrease quantity"
                                 >
                                   <Minus className="w-3 h-3" />
                                 </button>
-                                <span className="w-7 text-center font-mono font-extrabold text-xs text-indigo-900">
+                                <span className="w-7 text-center font-mono font-extrabold text-xs text-indigo-900 dark:text-indigo-200">
                                   {inCart.quantity}
                                 </span>
                                 <button
@@ -851,7 +851,7 @@ export const PosBillingView: React.FC = () => {
                                     e.stopPropagation();
                                     handleAddToCart(prod);
                                   }}
-                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-white text-indigo-700 font-bold transition-all cursor-pointer"
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold transition-all cursor-pointer"
                                   title="Increase quantity"
                                 >
                                   <Plus className="w-3 h-3" />
@@ -864,8 +864,8 @@ export const PosBillingView: React.FC = () => {
                                 onClick={() => handleAddToCart(prod)}
                                 className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 mx-auto ${
                                   isDisabled
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                                    : 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600 shadow-2xs'
+                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+                                    : 'bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 dark:hover:bg-indigo-600 text-indigo-700 dark:text-indigo-300 hover:text-white dark:hover:text-white border border-indigo-200 dark:border-indigo-800 hover:border-indigo-600 shadow-2xs'
                                 }`}
                               >
                                 <Plus className="w-3.5 h-3.5" />
@@ -879,7 +879,7 @@ export const PosBillingView: React.FC = () => {
 
                     {filteredProducts.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-12 text-center text-xs text-slate-400">
+                        <td colSpan={5} className="py-12 text-center text-xs text-slate-400 dark:text-slate-500">
                           No products found matching "{searchQuery}"
                         </td>
                       </tr>
@@ -935,39 +935,39 @@ export const PosBillingView: React.FC = () => {
                 setMobileTab('products');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 shadow-2xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 shadow-2xs transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>← Back to Products Catalog</span>
             </button>
-            <span className="text-[11px] font-semibold text-slate-500 font-mono">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-mono">
               {totalCartItemsCount} item{totalCartItemsCount > 1 ? 's' : ''} in cart
             </span>
           </div>
 
-          <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 text-indigo-600" />
-                <h2 className="font-bold text-sm text-slate-900">Current Sale Cart</h2>
+                <ShoppingCart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <h2 className="font-bold text-sm text-slate-900 dark:text-white">Current Sale Cart</h2>
               </div>
-              <span className="text-xs font-bold text-slate-500 font-mono">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono">
                 {cart.reduce((s, i) => s + i.quantity, 0)} Items
               </span>
             </div>
 
             {/* Customer & Contacts Selection Bar */}
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 relative" ref={dropdownRef}>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 relative" ref={dropdownRef}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>Customer / Contacts</span>
                 </div>
                 {selectedPartyId ? (
                   <button
                     type="button"
                     onClick={handleClearPartySelection}
-                    className="flex items-center gap-1 text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 hover:underline font-semibold cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                     <span>Change</span>
@@ -976,7 +976,7 @@ export const PosBillingView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPartyDropdown(!showPartyDropdown)}
-                    className="flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold cursor-pointer"
                   >
                     <UserCheck className="w-3 h-3" />
                     <span>Select Contact ({parties.length})</span>
@@ -987,8 +987,8 @@ export const PosBillingView: React.FC = () => {
 
               {/* Contact Picker Dropdown */}
               {showPartyDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 p-2 max-h-56 overflow-y-auto space-y-1">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 p-2 max-h-56 overflow-y-auto space-y-1">
+                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
                     Select Existing Customer / Contact
                   </div>
                   {matchingParties.map(p => (
@@ -996,21 +996,21 @@ export const PosBillingView: React.FC = () => {
                       key={p.id}
                       type="button"
                       onClick={() => handleSelectParty(p)}
-                      className="w-full text-left p-2 rounded-lg hover:bg-indigo-50/80 transition-colors flex items-center justify-between text-xs cursor-pointer group"
+                      className="w-full text-left p-2 rounded-lg hover:bg-indigo-50/80 dark:hover:bg-slate-800 transition-colors flex items-center justify-between text-xs cursor-pointer group"
                     >
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">
+                        <div className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{p.name}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                           {p.phone || 'No phone'} {p.companyName ? `• ${p.companyName}` : ''}
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 rounded-full">
                         Select
                       </span>
                     </button>
                   ))}
                   {matchingParties.length === 0 && (
-                    <div className="p-3 text-center text-xs text-slate-400">
+                    <div className="p-3 text-center text-xs text-slate-400 dark:text-slate-500">
                       No matching contact found
                     </div>
                   )}
@@ -1019,17 +1019,17 @@ export const PosBillingView: React.FC = () => {
 
               {/* Selected Contact Banner */}
               {selectedPartyId ? (
-                <div className="p-2 rounded-lg bg-indigo-50/80 border border-indigo-200/80 flex items-center justify-between text-xs">
+                <div className="p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">
                       {customerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-bold text-indigo-950">{customerName}</div>
-                      <div className="text-[10px] text-indigo-700 font-mono">{customerPhone || 'Linked from Contacts'}</div>
+                      <div className="font-bold text-indigo-950 dark:text-indigo-200">{customerName}</div>
+                      <div className="text-[10px] text-indigo-700 dark:text-indigo-400 font-mono">{customerPhone || 'Linked from Contacts'}</div>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 text-[9px] font-extrabold bg-indigo-100 text-indigo-800 rounded-full">
+                  <span className="px-2 py-0.5 text-[9px] font-extrabold bg-indigo-100 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700 rounded-full">
                     LINKED CONTACT
                   </span>
                 </div>
@@ -1045,7 +1045,7 @@ export const PosBillingView: React.FC = () => {
                         setSelectedPartyId(null);
                       }}
                       placeholder="Customer Name"
-                      className="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+                      className="px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
                     />
                     <input
                       type="text"
@@ -1055,7 +1055,7 @@ export const PosBillingView: React.FC = () => {
                         setSelectedPartyId(null);
                       }}
                       placeholder="Phone (e.g. 9876543210)"
-                      className="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                      className="px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
                     />
                   </div>
 
@@ -1064,17 +1064,17 @@ export const PosBillingView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowExtraDetails(!showExtraDetails)}
-                      className="text-[10px] font-semibold text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer"
+                      className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                     >
                       {showExtraDetails ? '- Hide details' : '+ Add Email / GSTIN / Address'}
                     </button>
 
-                    <label className="flex items-center gap-1.5 text-[10px] text-slate-600 font-medium cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-[10px] text-slate-600 dark:text-slate-400 font-medium cursor-pointer">
                       <input
                         type="checkbox"
                         checked={saveToContacts}
                         onChange={(e) => setSaveToContacts(e.target.checked)}
-                        className="w-3 h-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        className="w-3 h-3 text-indigo-600 rounded border-slate-300 dark:border-slate-600 focus:ring-indigo-500"
                       />
                       <span>Save to Contacts</span>
                     </label>
@@ -1087,21 +1087,21 @@ export const PosBillingView: React.FC = () => {
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="Email Address"
-                        className="px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none"
+                        className="px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                       />
                       <input
                         type="text"
                         value={customerGstin}
                         onChange={(e) => setCustomerGstin(e.target.value)}
                         placeholder="Customer GSTIN"
-                        className="px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none uppercase font-mono"
+                        className="px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none uppercase font-mono"
                       />
                       <input
                         type="text"
                         value={customerAddress}
                         onChange={(e) => setCustomerAddress(e.target.value)}
                         placeholder="Address / Locality"
-                        className="col-span-2 px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none"
+                        className="col-span-2 px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                       />
                     </div>
                   )}
@@ -1116,36 +1116,36 @@ export const PosBillingView: React.FC = () => {
                 return (
                   <div
                     key={item.id}
-                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 text-xs space-y-1.5 transition-all hover:border-indigo-200 hover:shadow-xs"
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 text-xs space-y-1.5 transition-all hover:border-indigo-300 dark:hover:border-indigo-500/60 hover:shadow-xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-slate-900 line-clamp-1">{item.name}</span>
+                          <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.name}</span>
                           {item.isCustomItem && (
-                            <span className="text-[9px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded">
+                            <span className="text-[9px] font-bold bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-300 px-1.5 py-0.2 rounded">
                               Custom Item
                             </span>
                           )}
                           {isPriceEdited && (
-                            <span className="text-[9px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                            <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                               <Tag className="w-2.5 h-2.5" /> Custom Rate
                             </span>
                           )}
                           {item.discountPercent > 0 && (
-                            <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">
+                            <span className="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded">
                               {item.discountPercent}% Off
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
                           <span>HSN: {item.hsnCode || 'N/A'}</span>
                           <span>•</span>
                           <span>GST {item.gstRate}%</span>
                           {isPriceEdited && item.originalPrice !== undefined && (
                             <>
                               <span>•</span>
-                              <span className="line-through text-slate-400">
+                              <span className="line-through text-slate-400 dark:text-slate-500">
                                 MRP {formatCurrency(item.originalPrice, business.currencySymbol)}
                               </span>
                             </>
@@ -1154,8 +1154,8 @@ export const PosBillingView: React.FC = () => {
 
                         {/* 5-Line Multi-line Item Description Preview in Cart */}
                         {item.description && (
-                          <div className="mt-1.5 p-1.5 rounded-lg bg-white border border-slate-200/90 text-[10.5px] text-slate-700 font-sans whitespace-pre-line leading-relaxed flex items-start gap-1.5">
-                            <FileText className="w-3 h-3 text-indigo-600 shrink-0 mt-0.5" />
+                          <div className="mt-1.5 p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 text-[10.5px] text-slate-700 dark:text-slate-300 font-sans whitespace-pre-line leading-relaxed flex items-start gap-1.5">
+                            <FileText className="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
                             <span className="flex-1 line-clamp-5">{item.description}</span>
                           </div>
                         )}
@@ -1163,25 +1163,25 @@ export const PosBillingView: React.FC = () => {
 
                       {/* Line Item Total Amount */}
                       <div className="text-right shrink-0">
-                        <div className="font-bold font-mono text-slate-900 text-sm">
+                        <div className="font-bold font-mono text-slate-900 dark:text-white text-sm">
                           {formatCurrency(item.totalAmount, business.currencySymbol)}
                         </div>
-                        <div className="text-[9px] text-slate-400 font-mono">
+                        <div className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">
                           Taxable: {formatCurrency(item.taxableAmount, business.currencySymbol)}
                         </div>
                       </div>
                     </div>
 
                     {/* Bottom Controls Bar: Custom Sale Amount button + 5-Line Desc button + Qty direct input + Trash */}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 gap-1.5">
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/80 gap-1.5">
                       <div className="flex items-center gap-1 flex-wrap">
                         <button
                           type="button"
                           onClick={() => handleOpenEditItem(item)}
-                          className="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 hover:text-indigo-900 font-bold text-[10px] rounded-lg border border-slate-200 hover:border-indigo-300 flex items-center gap-1 transition-colors cursor-pointer"
+                          className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white font-bold text-[10px] rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 flex items-center gap-1 transition-colors cursor-pointer"
                           title="Edit Custom Sale Price / Total Amount / Discount"
                         >
-                          <Edit3 className="w-3 h-3 text-indigo-600" />
+                          <Edit3 className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                           <span>₹{item.rate}</span>
                         </button>
 
@@ -1190,12 +1190,12 @@ export const PosBillingView: React.FC = () => {
                           onClick={() => handleOpenEditItem(item)}
                           className={`px-2 py-1 font-bold text-[10px] rounded-lg border flex items-center gap-1 transition-colors cursor-pointer ${
                             item.description
-                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60'
+                              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
                           }`}
                           title="Edit 5-Line Item Description / Serial Number / Remarks"
                         >
-                          <AlignLeft className="w-3 h-3 text-indigo-600" />
+                          <AlignLeft className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                           <span>{item.description ? '5-Line Desc' : '+ Desc'}</span>
                         </button>
 
@@ -1203,7 +1203,7 @@ export const PosBillingView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleResetItemPrice(item.id)}
-                            className="p-1 text-slate-400 hover:text-indigo-600 rounded hover:bg-white transition-colors cursor-pointer"
+                            className="p-1 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             title="Reset to original product price"
                           >
                             <RotateCcw className="w-3 h-3" />
@@ -1216,7 +1216,7 @@ export const PosBillingView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleUpdateQty(item.id, -1)}
-                          className="w-5 h-5 rounded-md bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-600 cursor-pointer"
+                          className="w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
                         >
                           <Minus className="w-2.5 h-2.5" />
                         </button>
@@ -1226,19 +1226,19 @@ export const PosBillingView: React.FC = () => {
                           step="any"
                           value={item.quantity}
                           onChange={(e) => handleDirectQtyChange(item.id, parseFloat(e.target.value))}
-                          className="w-10 text-center font-bold font-mono bg-white border border-slate-200 rounded-md py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-10 text-center font-bold font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-md py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <button
                           type="button"
                           onClick={() => handleUpdateQty(item.id, 1)}
-                          className="w-5 h-5 rounded-md bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-600 cursor-pointer"
+                          className="w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
                         >
                           <Plus className="w-2.5 h-2.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleRemoveFromCart(item.id)}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition-colors ml-0.5 cursor-pointer"
+                          className="p-1 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors ml-0.5 cursor-pointer"
                           title="Remove item"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1250,26 +1250,26 @@ export const PosBillingView: React.FC = () => {
               })}
 
               {cart.length === 0 && (
-                <div className="py-8 text-center text-xs text-slate-400">
+                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
                   Cart is empty. Tap products or click <strong>+ Custom Sale Item</strong> to add.
                 </div>
               )}
             </div>
 
             {/* Payment & Tender Calculator */}
-            <div className="pt-2 border-t border-slate-100 space-y-2.5">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
                   <span>Taxable:</span>
-                  <span className="font-mono">{formatCurrency(totals.subTotalTaxable, business.currencySymbol)}</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">{formatCurrency(totals.subTotalTaxable, business.currencySymbol)}</span>
                 </div>
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
                   <span>GST (CGST+SGST):</span>
-                  <span className="font-mono">{formatCurrency(totals.totalTax, business.currencySymbol)}</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">{formatCurrency(totals.totalTax, business.currencySymbol)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-1 border-t border-slate-200">
+                <div className="flex justify-between text-sm font-extrabold text-slate-900 dark:text-white pt-1 border-t border-slate-200 dark:border-slate-800">
                   <span>Total Payable:</span>
-                  <span className="font-mono text-base text-indigo-600">
+                  <span className="font-mono text-base text-indigo-600 dark:text-indigo-400">
                     {formatCurrency(totals.grandTotal, business.currencySymbol)}
                   </span>
                 </div>
@@ -1278,13 +1278,13 @@ export const PosBillingView: React.FC = () => {
               {/* Settlement Mode Selector & Button */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-semibold text-slate-600">
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                     Settlement Type
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowSettlementModal(true)}
-                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 cursor-pointer flex items-center gap-1"
+                    className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 cursor-pointer flex items-center gap-1"
                   >
                     <span>⚡ Settlement Calculator</span>
                   </button>
@@ -1300,7 +1300,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       settlementType === 'FULL'
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     Full (100%)
@@ -1316,7 +1316,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       settlementType === 'PARTIAL'
                         ? 'bg-amber-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     Custom Partial
@@ -1330,7 +1330,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-1.5 px-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       settlementType === 'CREDIT'
                         ? 'bg-rose-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     Credit (0%)
@@ -1339,11 +1339,11 @@ export const PosBillingView: React.FC = () => {
 
                 {/* Partial Settlement Inline Box */}
                 {settlementType === 'PARTIAL' && (
-                  <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-300/80 text-xs space-y-1.5 animate-in fade-in">
+                  <div className="p-2 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/80 text-xs space-y-1.5 animate-in fade-in">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-amber-900 text-[11px]">Partial Amount:</span>
+                      <span className="font-semibold text-amber-900 dark:text-amber-200 text-[11px]">Partial Amount:</span>
                       <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">{business.currencySymbol}</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold text-xs">{business.currencySymbol}</span>
                         <input
                           type="number"
                           min="0"
@@ -1354,7 +1354,7 @@ export const PosBillingView: React.FC = () => {
                             setPartialAmount(Math.min(totals.grandTotal, Math.max(0, val)));
                           }}
                           placeholder="0.00"
-                          className="w-24 pl-5 pr-2 py-1 text-right font-mono font-bold bg-white border border-amber-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          className="w-24 pl-5 pr-2 py-1 text-right font-mono font-bold bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                     </div>
@@ -1367,7 +1367,7 @@ export const PosBillingView: React.FC = () => {
                             key={ratio}
                             type="button"
                             onClick={() => setPartialAmount(amt)}
-                            className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                            className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 cursor-pointer"
                           >
                             {ratio * 100}%
                           </button>
@@ -1375,9 +1375,9 @@ export const PosBillingView: React.FC = () => {
                       })}
                     </div>
 
-                    <div className="flex justify-between font-bold text-amber-900 text-[11px] pt-1 border-t border-amber-200">
+                    <div className="flex justify-between font-bold text-amber-900 dark:text-amber-200 text-[11px] pt-1 border-t border-amber-200 dark:border-amber-800/80">
                       <span>Pending Due:</span>
-                      <span className="font-mono text-rose-700">
+                      <span className="font-mono text-rose-700 dark:text-rose-400">
                         {formatCurrency(Math.max(0, totals.grandTotal - partialAmount), business.currencySymbol)}
                       </span>
                     </div>
@@ -1387,7 +1387,7 @@ export const PosBillingView: React.FC = () => {
 
               {/* Payment methods selector */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
                   Settlement Payment Method
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -1398,8 +1398,8 @@ export const PosBillingView: React.FC = () => {
                       onClick={() => setPaymentMethod(method)}
                       className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         paymentMethod === method
-                          ? 'bg-slate-900 text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? 'bg-indigo-600 dark:bg-indigo-600 text-white shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                       }`}
                     >
                       {method === 'CASH' ? '💵 Cash' : method === 'UPI' ? '⚡ UPI QR' : '💳 Card'}
@@ -1410,19 +1410,19 @@ export const PosBillingView: React.FC = () => {
 
               {/* Cash tender calculator if CASH selected */}
               {paymentMethod === 'CASH' && settlementType !== 'CREDIT' && (
-                <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200 text-xs space-y-1.5">
+                <div className="p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-amber-900">Cash Tendered:</span>
+                    <span className="font-semibold text-amber-900 dark:text-amber-200">Cash Tendered:</span>
                     <input
                       type="number"
                       value={cashTendered || ''}
                       onChange={(e) => setCashTendered(parseFloat(e.target.value) || 0)}
                       placeholder={String(settlementType === 'PARTIAL' ? partialAmount : totals.grandTotal)}
-                      className="w-24 px-2 py-1 text-right font-mono font-bold bg-white border border-amber-300 rounded-lg focus:outline-none"
+                      className="w-24 px-2 py-1 text-right font-mono font-bold bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded-lg text-slate-900 dark:text-white focus:outline-none"
                     />
                   </div>
                   {cashTendered > (settlementType === 'PARTIAL' ? partialAmount : totals.grandTotal) && (
-                    <div className="flex justify-between font-bold text-emerald-800 text-xs pt-1 border-t border-amber-200">
+                    <div className="flex justify-between font-bold text-emerald-800 dark:text-emerald-300 text-xs pt-1 border-t border-amber-200 dark:border-amber-800/80">
                       <span>Change Return:</span>
                       <span className="font-mono">
                         {formatCurrency(
@@ -1494,8 +1494,8 @@ export const PosBillingView: React.FC = () => {
       {/* CUSTOM SETTLEMENT MODAL POPUP */}
       {showSettlementModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white w-full max-w-[96vw] sm:max-w-md rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
-            <div className="p-3.5 sm:p-4 bg-indigo-600 text-white flex items-center justify-between shrink-0">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[96vw] sm:max-w-md rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-indigo-600 dark:bg-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold shrink-0">
                   ⚡
@@ -1514,21 +1514,21 @@ export const PosBillingView: React.FC = () => {
             </div>
 
             <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 font-medium">Customer:</span>
-                  <div className="font-bold text-slate-900">{customerName || 'Retail Customer'}</div>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Customer:</span>
+                  <div className="font-bold text-slate-900 dark:text-white">{customerName || 'Retail Customer'}</div>
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-500 font-medium">Total Bill:</span>
-                  <div className="font-mono font-black text-indigo-600 text-base">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Bill:</span>
+                  <div className="font-mono font-black text-indigo-600 dark:text-indigo-400 text-base">
                     {formatCurrency(totals.grandTotal, business.currencySymbol)}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">Select Settlement Mode:</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Select Settlement Mode:</label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
@@ -1539,7 +1539,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
                       settlementType === 'FULL'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     100% Full Pay
@@ -1555,7 +1555,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
                       settlementType === 'PARTIAL'
                         ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     Custom Partial
@@ -1569,7 +1569,7 @@ export const PosBillingView: React.FC = () => {
                     className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
                       settlementType === 'CREDIT'
                         ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     0% Credit Sale
@@ -1578,11 +1578,11 @@ export const PosBillingView: React.FC = () => {
               </div>
 
               {settlementType === 'PARTIAL' && (
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+                <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 space-y-3">
                   <div>
-                    <label className="block font-bold text-amber-900 mb-1">Enter Custom Amount to Pay Now:</label>
+                    <label className="block font-bold text-amber-900 dark:text-amber-200 mb-1">Enter Custom Amount to Pay Now:</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold">{business.currencySymbol}</span>
                       <input
                         type="number"
                         min="0"
@@ -1592,7 +1592,7 @@ export const PosBillingView: React.FC = () => {
                           const val = parseFloat(e.target.value) || 0;
                           setPartialAmount(Math.min(totals.grandTotal, Math.max(0, val)));
                         }}
-                        className="w-full pl-7 pr-3 py-2 text-base font-mono font-bold bg-white border border-amber-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full pl-7 pr-3 py-2 text-base font-mono font-bold bg-white dark:bg-slate-900 border border-amber-400 dark:border-amber-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                         placeholder="0.00"
                       />
                     </div>
@@ -1606,7 +1606,7 @@ export const PosBillingView: React.FC = () => {
                           key={ratio}
                           type="button"
                           onClick={() => setPartialAmount(amt)}
-                          className="flex-1 py-1.5 rounded-lg font-bold bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs cursor-pointer"
+                          className="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 text-xs cursor-pointer"
                         >
                           {ratio * 100}% ({business.currencySymbol}{amt})
                         </button>
@@ -1614,9 +1614,9 @@ export const PosBillingView: React.FC = () => {
                     })}
                   </div>
 
-                  <div className="p-2.5 bg-white rounded-lg border border-amber-200 flex items-center justify-between font-bold">
-                    <span className="text-slate-600">Pending Balance Added to Credit Ledger:</span>
-                    <span className="font-mono text-rose-600 text-sm">
+                  <div className="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-amber-200 dark:border-amber-800/80 flex items-center justify-between font-bold">
+                    <span className="text-slate-600 dark:text-slate-300">Pending Balance Added to Credit Ledger:</span>
+                    <span className="font-mono text-rose-600 dark:text-rose-400 text-sm">
                       {formatCurrency(Math.max(0, totals.grandTotal - partialAmount), business.currencySymbol)}
                     </span>
                   </div>
@@ -1624,11 +1624,11 @@ export const PosBillingView: React.FC = () => {
               )}
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Payment Method for Settle Amount:</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Payment Method for Settle Amount:</label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="CASH">💵 Cash</option>
                   <option value="UPI">⚡ UPI / QR Code</option>
@@ -1638,11 +1638,11 @@ export const PosBillingView: React.FC = () => {
                 </select>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowSettlementModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel / Return
                 </button>
@@ -1666,8 +1666,8 @@ export const PosBillingView: React.FC = () => {
       {/* EDIT CUSTOM SALE AMOUNT & PRICING MODAL */}
       {editingCartItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
-            <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-slate-900 dark:bg-slate-950 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shrink-0">
                   <Tag className="w-4 h-4" />
@@ -1687,17 +1687,17 @@ export const PosBillingView: React.FC = () => {
 
             <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
               {/* Product Info Bar */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-slate-900 text-sm">{editingCartItem.name}</div>
-                  <div className="text-[11px] text-slate-500 font-mono">
+                  <div className="font-bold text-slate-900 dark:text-white text-sm">{editingCartItem.name}</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                     HSN: {editingCartItem.hsnCode || 'N/A'} • Unit: {editingCartItem.unit}
                   </div>
                 </div>
                 {editingCartItem.originalPrice !== undefined && (
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-500 font-semibold block">Catalog MRP:</span>
-                    <span className="font-mono font-bold text-slate-800 text-xs">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Catalog MRP:</span>
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200 text-xs">
                       {formatCurrency(editingCartItem.originalPrice, business.currencySymbol)}
                     </span>
                   </div>
@@ -1706,7 +1706,7 @@ export const PosBillingView: React.FC = () => {
 
               {/* Price Entry Mode Toggle */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">How would you like to enter price?</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">How would you like to enter price?</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -1715,15 +1715,15 @@ export const PosBillingView: React.FC = () => {
                     }}
                     className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
                       editPriceMode === 'EXCLUSIVE'
-                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500 shadow-2xs'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border-indigo-500 shadow-2xs'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <div>
                       <div className="font-bold">Base Unit Rate</div>
                       <div className="text-[10px] opacity-75">Exclusive of Tax</div>
                     </div>
-                    {editPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                    {editPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
                   </button>
 
                   <button
@@ -1736,15 +1736,15 @@ export const PosBillingView: React.FC = () => {
                     }}
                     className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
                       editPriceMode === 'INCLUSIVE'
-                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500 shadow-2xs'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border-indigo-500 shadow-2xs'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <div>
                       <div className="font-bold">Total Sale Amount</div>
                       <div className="text-[10px] opacity-75">Inclusive of All Taxes</div>
                     </div>
-                    {editPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                    {editPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
                   </button>
                 </div>
               </div>
@@ -1753,32 +1753,32 @@ export const PosBillingView: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 {editPriceMode === 'EXCLUSIVE' ? (
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Custom Unit Rate (₹):</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Custom Unit Rate (₹):</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold">{business.currencySymbol}</span>
                       <input
                         type="number"
                         min="0"
                         step="any"
                         value={editUnitRate || ''}
                         onChange={(e) => setEditUnitRate(parseFloat(e.target.value) || 0)}
-                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         placeholder="0.00"
                       />
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Custom Final Line Total (₹):</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Custom Final Line Total (₹):</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold">{business.currencySymbol}</span>
                       <input
                         type="number"
                         min="0"
                         step="any"
                         value={editTotalAmount || ''}
                         onChange={(e) => setEditTotalAmount(parseFloat(e.target.value) || 0)}
-                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-700"
+                        className="w-full pl-7 pr-3 py-2 text-sm font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-700 dark:text-indigo-400"
                         placeholder="0.00"
                       />
                     </div>
@@ -1786,14 +1786,14 @@ export const PosBillingView: React.FC = () => {
                 )}
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Quantity ({editingCartItem.unit}):</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Quantity ({editingCartItem.unit}):</label>
                   <input
                     type="number"
                     min="0.01"
                     step="any"
                     value={editQuantity || ''}
                     onChange={(e) => setEditQuantity(parseFloat(e.target.value) || 1)}
-                    className="w-full px-3 py-2 text-sm font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 text-sm font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -1801,7 +1801,7 @@ export const PosBillingView: React.FC = () => {
               {/* Discount & GST Rate selection */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Item Discount (%):</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Item Discount (%):</label>
                   <div className="flex items-center gap-1.5">
                     <input
                       type="number"
@@ -1809,7 +1809,7 @@ export const PosBillingView: React.FC = () => {
                       max="100"
                       value={editDiscountPercent || ''}
                       onChange={(e) => setEditDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-                      className="w-full px-3 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="0"
                     />
                     <div className="flex gap-1">
@@ -1818,7 +1818,7 @@ export const PosBillingView: React.FC = () => {
                           key={disc}
                           type="button"
                           onClick={() => setEditDiscountPercent(disc)}
-                          className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-[10px] text-slate-700 cursor-pointer"
+                          className="px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-[10px] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           {disc}%
                         </button>
@@ -1828,11 +1828,11 @@ export const PosBillingView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">GST Tax Rate:</label>
                   <select
                     value={editGstRate}
                     onChange={(e) => setEditGstRate(Number(e.target.value) as GstTaxRate)}
-                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                   >
                     <option value={0}>0% (Tax Exempt)</option>
                     <option value={5}>5% GST</option>
@@ -1846,10 +1846,10 @@ export const PosBillingView: React.FC = () => {
               {/* 5-Line Item Description / Serial No. / Warranty Notes */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block font-bold text-slate-700">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300">
                     Item Description (5 Lines):
                   </label>
-                  <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                     {editDescription ? editDescription.split('\n').length : 0}/5 Lines
                   </span>
                 </div>
@@ -1858,12 +1858,12 @@ export const PosBillingView: React.FC = () => {
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder={"Line 1: Item specifications / Model details\nLine 2: S/N: \nLine 3: Warranty: (e.g. 1 Year Standard Warranty)\nLine 4: Batch / IMEI / Color / Size\nLine 5: Special remarks or service instructions"}
-                  className="w-full px-3 py-2 text-xs font-sans bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-y min-h-[95px]"
+                  className="w-full px-3 py-2 text-xs font-sans bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-y min-h-[95px]"
                 />
 
                 {/* Quick Helper Tag Chips */}
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                  <span className="text-[10px] text-slate-400 font-semibold">Quick insert:</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">Quick insert:</span>
                   {[
                     { label: '+ S/N:', text: 'S/N: ' },
                     { label: '+ IMEI:', text: 'IMEI: ' },
@@ -1880,7 +1880,7 @@ export const PosBillingView: React.FC = () => {
                           return trimmed ? `${trimmed}\n${chip.text}` : chip.text;
                         });
                       }}
-                      className="px-2 py-0.5 text-[10px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 rounded-md border border-slate-200 transition-colors font-medium cursor-pointer"
+                      className="px-2 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 rounded-md border border-slate-200 dark:border-slate-700 transition-colors font-medium cursor-pointer"
                     >
                       {chip.label}
                     </button>
@@ -1907,29 +1907,29 @@ export const PosBillingView: React.FC = () => {
                 const itemTaxTotal = preview.cgstAmount + preview.sgstAmount + preview.igstAmount + (preview.cessAmount || 0);
 
                 return (
-                  <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1 text-xs">
-                    <div className="font-bold text-indigo-950 flex items-center justify-between pb-1 border-b border-indigo-200/60">
+                  <div className="p-3 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 rounded-xl space-y-1 text-xs">
+                    <div className="font-bold text-indigo-950 dark:text-indigo-200 flex items-center justify-between pb-1 border-b border-indigo-200/60 dark:border-indigo-800/80">
                       <span>Calculated Line Item Breakdown</span>
-                      <span className="font-mono text-indigo-700">Base Unit Rate: {formatCurrency(previewRate, business.currencySymbol)}</span>
+                      <span className="font-mono text-indigo-700 dark:text-indigo-400">Base Unit Rate: {formatCurrency(previewRate, business.currencySymbol)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-600 pt-0.5">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300 pt-0.5">
                       <span>Taxable Value ({qty} {editingCartItem.unit}):</span>
                       <span className="font-mono font-semibold">{formatCurrency(preview.taxableAmount, business.currencySymbol)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
                       <span>GST ({gst}% Intra-state CGST+SGST):</span>
                       <span className="font-mono font-semibold">{formatCurrency(itemTaxTotal, business.currencySymbol)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-900 font-extrabold pt-1 border-t border-indigo-200 text-sm">
+                    <div className="flex justify-between text-slate-900 dark:text-white font-extrabold pt-1 border-t border-indigo-200 dark:border-indigo-800/80 text-sm">
                       <span>Final Net Line Total:</span>
-                      <span className="font-mono text-indigo-700">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
+                      <span className="font-mono text-indigo-700 dark:text-indigo-400">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
                     </div>
                   </div>
                 );
               })()}
 
               {/* Action Buttons */}
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                 {editingCartItem.originalPrice !== undefined ? (
                   <button
                     type="button"
@@ -1938,7 +1938,7 @@ export const PosBillingView: React.FC = () => {
                       setEditUnitRate(editingCartItem.originalPrice || 0);
                       setEditDiscountPercent(0);
                     }}
-                    className="py-2 px-3 rounded-xl border border-slate-300 font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1 cursor-pointer"
+                    className="py-2 px-3 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset to MRP</span>
@@ -1951,7 +1951,7 @@ export const PosBillingView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setEditingCartItem(null)}
-                    className="py-2 px-4 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                    className="py-2 px-4 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1973,8 +1973,8 @@ export const PosBillingView: React.FC = () => {
       {/* ADD BRAND-NEW CUSTOM / OPEN SALE ITEM MODAL */}
       {showCustomItemModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
-            <div className="p-3.5 sm:p-4 bg-indigo-600 text-white flex items-center justify-between shrink-0">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[96vw] sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+            <div className="p-3.5 sm:p-4 bg-indigo-600 dark:bg-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold shrink-0">
                   <Sparkles className="w-4 h-4" />
@@ -1995,35 +1995,35 @@ export const PosBillingView: React.FC = () => {
             <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-xs overflow-y-auto modal-content-scroll flex-1">
               {/* Item Name */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Custom Item / Service Name *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Custom Item / Service Name *</label>
                 <input
                   type="text"
                   value={customItemName}
                   onChange={(e) => setCustomItemName(e.target.value)}
                   placeholder="e.g. Computer Repair Service, Custom Fitting, Delivery Fee"
-                  className="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   autoFocus
                 />
               </div>
 
               {/* Price Entry Mode */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">Sale Amount Type</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sale Amount Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setCustomItemPriceMode('EXCLUSIVE')}
                     className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
                       customItemPriceMode === 'EXCLUSIVE'
-                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border-indigo-500'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <div>
                       <div className="font-bold">Base Rate</div>
                       <div className="text-[10px] opacity-75">Tax gets added on top</div>
                     </div>
-                    {customItemPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                    {customItemPriceMode === 'EXCLUSIVE' && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
                   </button>
 
                   <button
@@ -2031,15 +2031,15 @@ export const PosBillingView: React.FC = () => {
                     onClick={() => setCustomItemPriceMode('INCLUSIVE')}
                     className={`py-2 px-3 rounded-xl font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
                       customItemPriceMode === 'INCLUSIVE'
-                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border-indigo-500'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <div>
                       <div className="font-bold">Flat Inclusive Total</div>
                       <div className="text-[10px] opacity-75">Taxes included in price</div>
                     </div>
-                    {customItemPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600" />}
+                    {customItemPriceMode === 'INCLUSIVE' && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
                   </button>
                 </div>
               </div>
@@ -2047,41 +2047,41 @@ export const PosBillingView: React.FC = () => {
               {/* Price & Quantity & Unit */}
               <div className="grid grid-cols-3 gap-2.5">
                 <div className="col-span-1">
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {customItemPriceMode === 'EXCLUSIVE' ? 'Base Rate (₹):' : 'Total Price (₹):'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{business.currencySymbol}</span>
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold">{business.currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       step="any"
                       value={customItemPrice || ''}
                       onChange={(e) => setCustomItemPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full pl-6 pr-2 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full pl-6 pr-2 py-2 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="0.00"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Quantity:</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Quantity:</label>
                   <input
                     type="number"
                     min="0.01"
                     step="any"
                     value={customItemQty || ''}
                     onChange={(e) => setCustomItemQty(parseFloat(e.target.value) || 1)}
-                    className="w-full px-2.5 py-2 text-xs font-mono font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
+                    className="w-full px-2.5 py-2 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Unit:</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Unit:</label>
                   <select
                     value={customItemUnit}
                     onChange={(e) => setCustomItemUnit(e.target.value)}
-                    className="w-full px-2 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none"
+                    className="w-full px-2 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                   >
                     <option value="Pcs">Pcs</option>
                     <option value="Nos">Nos</option>
@@ -2097,11 +2097,11 @@ export const PosBillingView: React.FC = () => {
               {/* GST Rate & HSN Code */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">GST Tax Rate:</label>
                   <select
                     value={customItemGstRate}
                     onChange={(e) => setCustomItemGstRate(Number(e.target.value) as GstTaxRate)}
-                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    className="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                   >
                     <option value={0}>0% (Tax Exempt)</option>
                     <option value={5}>5% GST</option>
@@ -2112,13 +2112,13 @@ export const PosBillingView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">HSN / SAC Code:</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">HSN / SAC Code:</label>
                   <input
                     type="text"
                     value={customItemHsn}
                     onChange={(e) => setCustomItemHsn(e.target.value)}
                     placeholder="9987"
-                    className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-300 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                   />
                 </div>
               </div>
@@ -2126,10 +2126,10 @@ export const PosBillingView: React.FC = () => {
               {/* 5-Line Custom Item Description / Scope of Work */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block font-bold text-slate-700">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300">
                     Item Description (5 Lines):
                   </label>
-                  <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                     {customItemNotes ? customItemNotes.split('\n').length : 0}/5 Lines
                   </span>
                 </div>
@@ -2138,12 +2138,12 @@ export const PosBillingView: React.FC = () => {
                   value={customItemNotes}
                   onChange={(e) => setCustomItemNotes(e.target.value)}
                   placeholder={"Line 1: Service details / scope of work\nLine 2: Parts / materials used\nLine 3: Serial / Asset / Tracking ID\nLine 4: Warranty / service guarantee terms\nLine 5: Additional technician notes"}
-                  className="w-full px-3 py-2 text-xs font-sans bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-y min-h-[95px]"
+                  className="w-full px-3 py-2 text-xs font-sans bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-y min-h-[95px]"
                 />
 
                 {/* Quick Helper Tag Chips */}
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                  <span className="text-[10px] text-slate-400 font-semibold">Quick insert:</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">Quick insert:</span>
                   {[
                     { label: '+ Labor / Repair', text: 'Scope: Inspection, Service & Testing' },
                     { label: '+ 90-Day Guarantee', text: 'Service Warranty: 90 Days' },
@@ -2159,7 +2159,7 @@ export const PosBillingView: React.FC = () => {
                           return trimmed ? `${trimmed}\n${chip.text}` : chip.text;
                         });
                       }}
-                      className="px-2 py-0.5 text-[10px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 rounded-md border border-slate-200 transition-colors font-medium cursor-pointer"
+                      className="px-2 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 rounded-md border border-slate-200 dark:border-slate-700 transition-colors font-medium cursor-pointer"
                     >
                       {chip.label}
                     </button>
@@ -2186,29 +2186,29 @@ export const PosBillingView: React.FC = () => {
                 const itemTaxTotal = preview.cgstAmount + preview.sgstAmount + preview.igstAmount + (preview.cessAmount || 0);
 
                 return (
-                  <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1 text-xs">
-                    <div className="flex justify-between text-slate-600">
+                  <div className="p-3 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 rounded-xl space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
                       <span>Taxable Value:</span>
                       <span className="font-mono font-semibold">{formatCurrency(preview.taxableAmount, business.currencySymbol)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
                       <span>GST ({gst}%):</span>
                       <span className="font-mono font-semibold">{formatCurrency(itemTaxTotal, business.currencySymbol)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-900 font-extrabold pt-1 border-t border-indigo-200 text-sm">
+                    <div className="flex justify-between text-slate-900 dark:text-white font-extrabold pt-1 border-t border-indigo-200 dark:border-indigo-800/80 text-sm">
                       <span>Total Amount Added:</span>
-                      <span className="font-mono text-indigo-700">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
+                      <span className="font-mono text-indigo-700 dark:text-indigo-400">{formatCurrency(preview.totalAmount, business.currencySymbol)}</span>
                     </div>
                   </div>
                 );
               })()}
 
               {/* Action buttons */}
-              <div className="pt-2 border-t border-slate-200 flex justify-end gap-2">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowCustomItemModal(false)}
-                  className="py-2 px-4 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  className="py-2 px-4 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel
                 </button>

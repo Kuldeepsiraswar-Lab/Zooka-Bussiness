@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { STANDARD_UNITS, COMMON_HSN_CODES } from '../../utils/constants';
 import { calculateBaseRateFromInclusive } from '../../utils/gstCalculations';
 import { CustomHsnModal } from '../common/CustomHsnModal';
+import { HsnLookupDialog } from '../common/HsnLookupDialog';
 import { 
   Truck, 
   Search, 
@@ -50,6 +51,7 @@ export const PurchasesView: React.FC = () => {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState(false);
+  const [hsnLookupTargetIndex, setHsnLookupTargetIndex] = useState<number | null>(null);
   const [selectedBillForView, setSelectedBillForView] = useState<PurchaseBill | null>(null);
 
   // Purchase form state
@@ -917,7 +919,7 @@ export const PurchasesView: React.FC = () => {
                               </div>
                             </td>
 
-                            {/* HSN */}
+                             {/* HSN */}
                             <td className="py-2.5 px-2 text-center align-top">
                               <div className="relative">
                                 <input
@@ -940,6 +942,15 @@ export const PurchasesView: React.FC = () => {
                                     </option>
                                   ))}
                                 </datalist>
+                                <button
+                                  type="button"
+                                  onClick={() => setHsnLookupTargetIndex(idx)}
+                                  className="mt-1 w-full text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50/60 hover:bg-indigo-100/70 border border-indigo-200/60 rounded py-0.5 px-1 flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs truncate"
+                                  title="Lookup code in App Dialog"
+                                >
+                                  <Search className="w-2.5 h-2.5 shrink-0" />
+                                  <span>Lookup...</span>
+                                </button>
                               </div>
                             </td>
 
@@ -1346,6 +1357,23 @@ export const PurchasesView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* HSN / SAC Code App Lookup Dialog */}
+      <HsnLookupDialog
+        isOpen={hsnLookupTargetIndex !== null}
+        onClose={() => setHsnLookupTargetIndex(null)}
+        currentCode={hsnLookupTargetIndex !== null && pItems[hsnLookupTargetIndex] ? pItems[hsnLookupTargetIndex].hsnCode : ''}
+        onSelect={(item) => {
+          if (hsnLookupTargetIndex !== null && pItems[hsnLookupTargetIndex]) {
+            handleItemFieldChange(hsnLookupTargetIndex, 'hsnCode', item.code);
+            handleItemFieldChange(hsnLookupTargetIndex, 'gstRate', item.gstRate as GstTaxRate);
+            if (item.uqc && item.uqc !== 'OTH') {
+              handleItemFieldChange(hsnLookupTargetIndex, 'unit', item.uqc);
+            }
+          }
+        }}
+        onOpenCustomManager={() => setIsCustomHsnModalOpen(true)}
+      />
 
       {/* Custom HSN & SAC Management Modal */}
       <CustomHsnModal

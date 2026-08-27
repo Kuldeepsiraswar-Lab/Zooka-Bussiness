@@ -24,6 +24,7 @@ import { getChequeReminderMetrics } from '../../utils/chequeReminders';
 import { formatINR } from '../../utils/formatters';
 import { HeaderDensity, HeaderStyle } from '../../types';
 import { getAccentBg, getAccentText } from '../../utils/themeColors';
+import { AppThemeDropdown } from '../common/AppThemeDropdown';
 
 interface HeaderProps {
   onOpenNewInvoice: () => void;
@@ -329,20 +330,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewInvoice, onOpenQuickSea
           </button>
         )}
 
-        {/* Theme Toggle in Header */}
+        {/* App Theme Dropdown in Header */}
         {config.showThemeToggle !== false && (
-          <button
-            onClick={toggleTheme}
-            className="flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 transition-all cursor-pointer active:scale-95 shadow-xs"
-            title={`Toggle Theme (Current: ${theme === 'system' ? `System (${resolvedTheme.toUpperCase()})` : resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
-            aria-label="Toggle Theme"
-          >
-            {resolvedTheme === 'dark' ? (
-              <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-300" />
-            )}
-          </button>
+          <AppThemeDropdown compact align="right" />
         )}
 
         {/* Fullscreen App Icon in Header */}

@@ -8,6 +8,7 @@ import { BarcodeScannerModal } from './BarcodeScannerModal';
 import { BarcodeLabelPrintModal } from './BarcodeLabelPrintModal';
 import { BulkProductUploadModal } from './BulkProductUploadModal';
 import { CustomHsnModal } from '../common/CustomHsnModal';
+import { HsnLookupDialog } from '../common/HsnLookupDialog';
 import { 
   Package, 
   Search, 
@@ -71,6 +72,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
   const [isLabelPrintOpen, setIsLabelPrintOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState(false);
+  const [isHsnLookupOpen, setIsHsnLookupOpen] = useState(false);
   const [selectedProductForLabel, setSelectedProductForLabel] = useState<Product | null>(null);
 
   // Add / Edit Modal
@@ -645,14 +647,25 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block font-semibold text-slate-700">HSN / SAC Code</label>
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomHsnModalOpen(true)}
-                      className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
-                    >
-                      <Tag className="w-3 h-3" />
-                      <span>Custom Codes</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsHsnLookupOpen(true)}
+                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200/60"
+                        title="Lookup HSN in App Dialog Format"
+                      >
+                        <Search className="w-3 h-3" />
+                        <span>App Directory</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomHsnModalOpen(true)}
+                        className="text-[11px] font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Tag className="w-3 h-3" />
+                        <span>Custom</span>
+                      </button>
+                    </div>
                   </div>
                   <div className="relative">
                     <input
@@ -930,6 +943,21 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
           bulkCreateProducts(items, updateExisting);
         }}
         currencySymbol={business.currencySymbol}
+      />
+
+      {/* HSN / SAC Code App Lookup Dialog */}
+      <HsnLookupDialog
+        isOpen={isHsnLookupOpen}
+        onClose={() => setIsHsnLookupOpen(false)}
+        currentCode={hsnCode}
+        onSelect={(item) => {
+          setHsnCode(item.code);
+          setGstRate(item.gstRate);
+          if (item.uqc && item.uqc !== 'OTH') setUnit(item.uqc);
+          if (item.type === 'SAC') setIsService(true);
+          showToast('success', 'HSN Code Selected', `${item.code} (${item.gstRate}% GST) applied.`);
+        }}
+        onOpenCustomManager={() => setIsCustomHsnModalOpen(true)}
       />
 
       {/* Custom HSN & SAC Management Modal */}

@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import { 
   Sun, 
   Moon, 
-  Laptop, 
   Check, 
   Palette, 
   Sparkles, 
@@ -14,9 +13,13 @@ import {
   CheckCircle2,
   Bookmark,
   ShieldCheck,
-  Plus
+  Plus,
+  ChevronDown,
+  Layers
 } from 'lucide-react';
 import { THEME_PALETTES, ThemePaletteDefinition, getThemePalette } from '../../utils/themeColors';
+import { AppThemeDropdown } from '../common/AppThemeDropdown';
+import { AppDropdown } from '../common/AppDropdown';
 
 export const ThemeSettingsTab: React.FC = () => {
   const { 
@@ -58,26 +61,13 @@ export const ThemeSettingsTab: React.FC = () => {
         card: 'bg-slate-900 border-slate-800 text-slate-100',
         subtext: 'text-slate-400'
       }
-    },
-    {
-      id: 'system' as const,
-      name: 'System Default',
-      description: 'Automatically synchronizes with your device operating system display preferences.',
-      icon: Laptop,
-      color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800',
-      badge: 'Auto Sync',
-      preview: {
-        bg: 'bg-gradient-to-r from-slate-100 to-slate-900 border-slate-400',
-        card: 'bg-white/80 dark:bg-slate-900/80 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100',
-        subtext: 'text-slate-500 dark:text-slate-400'
-      }
     }
   ];
 
-  const handleSelectThemeMode = (selectedTheme: 'light' | 'dark' | 'system') => {
+  const handleSelectThemeMode = (selectedTheme: 'light' | 'dark') => {
     setTheme(selectedTheme);
-    const label = selectedTheme === 'light' ? 'Light Mode' : selectedTheme === 'dark' ? 'Dark Mode' : 'System Sync Mode';
-    showToast('success', 'Theme Display Mode Updated', `Interface appearance switched to ${label}.`);
+    const label = selectedTheme === 'light' ? 'Light Mode' : 'Dark Mode';
+    showToast('success', 'App Theme Mode Updated', `Interface appearance switched to ${label}.`);
   };
 
   const handleSelectThemeColor = (colorKey: string) => {
@@ -105,39 +95,36 @@ export const ThemeSettingsTab: React.FC = () => {
                 Appearance & Theme Customization
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Auto-match all buttons, bottom navigation, active indicators, and modal accents across the entire ERP.
+                Auto-match all buttons, dropdowns, bottom navigation, active indicators, and modal accents across the entire ERP.
               </p>
             </div>
           </div>
 
-          {/* Current Active Theme Color Badge */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Active Theme:</span>
-            <span 
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white shadow-xs"
-              style={{ backgroundColor: currentPalette.hex }}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{currentPalette.name}</span>
-            </span>
+          {/* Quick App Dropdown Theme Selector */}
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">App Dropdown Theme</span>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{currentPalette.name}</span>
+            </div>
+            <AppThemeDropdown />
           </div>
         </div>
 
-        {/* Display Mode (Light / Dark / System) */}
+        {/* Display Mode (Light & Dark Only - No System) */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              1. Base Display Mode
+              1. Base App Display Mode
             </h4>
             <span className="text-[11px] text-slate-400">
-              Current: <strong className="text-slate-700 dark:text-slate-200">{theme.toUpperCase()} ({resolvedTheme.toUpperCase()})</strong>
+              Active: <strong className="text-slate-700 dark:text-slate-200">{resolvedTheme.toUpperCase()} MODE</strong>
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {themeOptions.map((opt) => {
               const Icon = opt.icon;
-              const isSelected = theme === opt.id;
+              const isSelected = resolvedTheme === opt.id;
 
               return (
                 <div
@@ -353,6 +340,46 @@ export const ThemeSettingsTab: React.FC = () => {
                 className="text-xs px-3 py-1.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
                 style={{ borderColor: currentPalette.hex, boxShadow: `0 0 0 2px ${currentPalette.ringHex}` }}
               />
+            </div>
+          </div>
+
+          {/* App Dropdown Theme Demo Section */}
+          <div className="pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <Layers className="w-3.5 h-3.5" style={{ color: currentPalette.hex }} />
+                <span>App Dropdown Theme Demo (No System Dropdown)</span>
+              </div>
+              <span className="text-[10px] text-slate-400">Custom theme-styled menu & active focus glow</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+              <div>
+                <AppDropdown
+                  label="Quick Select Palette (App Dropdown)"
+                  value={activeThemeColor}
+                  options={Object.values(THEME_PALETTES).map(p => ({
+                    value: p.id,
+                    label: p.name,
+                    description: p.tagline,
+                    colorDot: p.hex
+                  }))}
+                  onChange={(val) => handleSelectThemeColor(val)}
+                  size="sm"
+                />
+              </div>
+              <div>
+                <AppDropdown
+                  label="Quick Select Display Mode (App Dropdown)"
+                  value={resolvedTheme}
+                  options={[
+                    { value: 'light', label: 'Light Mode', description: 'Clean daytime white interface', icon: Sun },
+                    { value: 'dark', label: 'Dark Mode', description: 'Midnight dark focus theme', icon: Moon }
+                  ]}
+                  onChange={(val) => handleSelectThemeMode(val as 'light' | 'dark')}
+                  size="sm"
+                />
+              </div>
             </div>
           </div>
         </div>

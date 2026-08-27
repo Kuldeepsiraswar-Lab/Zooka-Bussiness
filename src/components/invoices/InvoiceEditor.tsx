@@ -20,6 +20,8 @@ import {
 import { formatCurrency, validateGstin, normalizeSignatureUrl } from '../../utils/formatters';
 import { cleanDefaultBusinessProfile } from '../../utils/cleanDefaults';
 import { CustomHsnModal } from '../common/CustomHsnModal';
+import { HsnLookupDialog } from '../common/HsnLookupDialog';
+import { AppSelectDialog } from '../common/AppSelectDialog';
 import { 
   saveInvoiceDraft, 
   getInvoiceDraft, 
@@ -95,6 +97,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
   } = useApp();
   const isEditing = !!initialData?.id;
   const [isCustomHsnModalOpen, setIsCustomHsnModalOpen] = useState<boolean>(false);
+  const [hsnLookupTargetIndex, setHsnLookupTargetIndex] = useState<number | null>(null);
   const [dispatchModalInvoice, setDispatchModalInvoice] = useState<Invoice | null>(null);
 
   // Auto-Save Draft & Persistence State
@@ -1122,17 +1125,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
         {/* Main Left Column (Invoice Details & Items) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Invoice Meta Bar */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               1. Document Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Doc Type</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Doc Type</label>
                 <select
                   value={invoiceType}
                   onChange={(e) => setInvoiceType(e.target.value as InvoiceType)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer"
                 >
                   <option value="TAX_INVOICE">Tax Invoice</option>
                   <option value="BILL_OF_SUPPLY">Bill of Supply</option>
@@ -1144,7 +1147,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700">Invoice Number</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Invoice Number</label>
                   {!isEditing && (
                     <button
                       type="button"
@@ -1153,7 +1156,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         setInvoiceNumber(seq.invoiceNumber);
                         showToast('info', 'Sequence Refreshed', `Assigned next consecutive serial ${seq.invoiceNumber}`);
                       }}
-                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                      className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold flex items-center gap-0.5 cursor-pointer"
                       title="Fetch live consecutive invoice number"
                     >
                       <RotateCcw className="w-2.5 h-2.5" />
@@ -1165,51 +1168,51 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   type="text"
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-mono font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-mono font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Date</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Invoice Date</label>
                 <input
                   type="date"
                   value={invoiceDate}
                   onChange={(e) => setInvoiceDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Due Date</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Due Date</label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Customer / Buyer Information & Supply Details */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 2. Customer Details & Location
               </h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Saved Customer / Party
                 </label>
                 <select
                   value={selectedCustomerId}
                   onChange={(e) => handleCustomerSelect(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer"
                 >
                   <option value="">-- Choose Existing Contact --</option>
                   {parties.filter(p => p.type !== 'VENDOR').map(p => (
@@ -1221,7 +1224,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Customer / Business Name *
                 </label>
                 <input
@@ -1229,7 +1232,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="e.g. Acme Corp or Rajesh Kumar"
-                  className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                   required
                 />
               </div>
@@ -1237,9 +1240,9 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
                   <span>Customer GSTIN</span>
-                  <span className="text-[10px] text-slate-400 font-normal">State auto-syncs</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">State auto-syncs</span>
                 </label>
                 <input
                   type="text"
@@ -1247,12 +1250,12 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   value={customerGstin}
                   onChange={(e) => handleGstinChange(e.target.value)}
                   placeholder="27AABCU9603R1ZM"
-                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl uppercase focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Client Registered State
                 </label>
                 <select
@@ -1266,7 +1269,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     setPlaceOfSupplyStateCode(code);
                     setPlaceOfSupplyState(name);
                   }}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer"
                 >
                   {INDIAN_STATES.map(s => (
                     <option key={s.code} value={s.code}>
@@ -1277,7 +1280,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Place of Supply (POS)
                 </label>
                 <select
@@ -1288,7 +1291,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     setPlaceOfSupplyStateCode(stCode);
                     setPlaceOfSupplyState(st ? st.name : '');
                   }}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer"
                 >
                   {INDIAN_STATES.map(s => (
                     <option key={s.code} value={s.code}>
@@ -1301,78 +1304,78 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone / Mobile</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone / Mobile</label>
                 <input
                   type="text"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Billing Address</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Billing Address</label>
                 <input
                   type="text"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
                   placeholder="Full Street Address, City, Pincode"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Clean Supply Mode & Reverse Charge Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-600">Tax Type:</span>
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tax Type:</span>
                 <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
                   isInterState
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    ? 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                    : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                 }`}>
                   {isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST + SGST)'}
                 </span>
-                <span className="text-xs text-slate-500 font-mono">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                   POS: {placeOfSupplyState} ({placeOfSupplyStateCode})
                 </span>
               </div>
 
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                 <input
                   type="checkbox"
                   checked={isReverseCharge}
                   onChange={(e) => setIsReverseCharge(e.target.checked)}
                   className="rounded text-indigo-600 cursor-pointer"
                 />
-                <span className="font-semibold text-slate-700">Reverse Charge (RCM)</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Reverse Charge (RCM)</span>
               </label>
             </div>
           </div>
 
           {/* Line Items Table */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   3. Line Items & Products
                 </h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Add products, services, custom selling rates, and item-wise GST tax rates
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
                 {/* Two Flexible Entry Modes Selector */}
-                <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
-                  <span className="px-2 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">Entry Mode:</span>
+                <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                  <span className="px-2 text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Entry Mode:</span>
                   <button
                     type="button"
                     onClick={() => setPriceEntryMode('EXCLUSIVE')}
                     className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       priceEntryMode === 'EXCLUSIVE'
-                        ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-400 shadow-xs border border-indigo-200 dark:border-indigo-800'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                     title="Enter custom selling rate directly before tax (Tax Exclusive)"
                   >
@@ -1383,8 +1386,8 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     onClick={() => setPriceEntryMode('INCLUSIVE')}
                     className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       priceEntryMode === 'INCLUSIVE'
-                        ? 'bg-white text-indigo-700 shadow-xs border border-indigo-200'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-400 shadow-xs border border-indigo-200 dark:border-indigo-800'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                     title="Enter flat final customer amount inclusive of GST (Tax Inclusive)"
                   >
@@ -1392,14 +1395,14 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   </button>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px]">
-                  <span className="px-2 text-slate-500 font-medium">Quick Apply GST:</span>
+                <div className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-[11px] border border-slate-200 dark:border-slate-700">
+                  <span className="px-2 text-slate-500 dark:text-slate-400 font-medium">Quick Apply GST:</span>
                   {([0, 5, 12, 18, 28] as GstTaxRate[]).map((rate) => (
                     <button
                       key={rate}
                       type="button"
                       onClick={() => applyGstRateToAllItems(rate)}
-                      className="px-2 py-0.5 rounded-lg font-bold bg-white text-slate-700 hover:text-indigo-600 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                      className="px-2 py-0.5 rounded-lg font-bold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer border border-slate-200 dark:border-slate-600"
                     >
                       {rate}%
                     </button>
@@ -1409,7 +1412,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Item Row</span>
@@ -1441,7 +1444,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               ) : (
                 <table className="w-full text-left text-xs border-collapse min-w-[840px]">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-600 font-semibold bg-slate-50/80">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold bg-slate-50/80 dark:bg-slate-800/80">
                       <th className="py-2.5 px-3">Item Particulars & Details</th>
                       <th className="py-2.5 px-2 w-32">
                         <div className="flex items-center justify-between">
@@ -1449,7 +1452,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                           <button
                             type="button"
                             onClick={() => setIsCustomHsnModalOpen(true)}
-                            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                            className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold flex items-center gap-0.5 cursor-pointer"
                             title="Manage custom HSN/SAC codes"
                           >
                             <Tag className="w-2.5 h-2.5" />
@@ -1459,26 +1462,26 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                       </th>
                       <th className="py-2.5 px-2 w-16 text-center">Qty</th>
                       <th className="py-2.5 px-2 w-20">Unit</th>
-                      <th className={`py-2.5 px-2 w-28 ${priceEntryMode === 'EXCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                      <th className={`py-2.5 px-2 w-28 ${priceEntryMode === 'EXCLUSIVE' ? 'bg-indigo-50/70 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold' : ''}`}>
                         <div className="flex items-center gap-1">
                           <span>Rate (₹ Excl.)</span>
-                          {priceEntryMode === 'EXCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                          {priceEntryMode === 'EXCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>}
                         </div>
                       </th>
                       <th className="py-2.5 px-2 w-16 text-center">Disc %</th>
                       <th className="py-2.5 px-2 w-48">
                         Item GST ({isInterState ? 'IGST' : 'CGST+SGST'})
                       </th>
-                      <th className={`py-2.5 px-3 text-right w-32 ${priceEntryMode === 'INCLUSIVE' ? 'bg-indigo-50/70 text-indigo-900 font-bold' : ''}`}>
+                      <th className={`py-2.5 px-3 text-right w-32 ${priceEntryMode === 'INCLUSIVE' ? 'bg-indigo-50/70 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold' : ''}`}>
                         <div className="flex items-center justify-end gap-1">
-                          {priceEntryMode === 'INCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>}
+                          {priceEntryMode === 'INCLUSIVE' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>}
                           <span>Line Total (₹ Incl.)</span>
                         </div>
                       </th>
                       <th className="py-2.5 px-2 w-10 text-center"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                     {items.map((item, idx) => {
                       const searchFilteredProducts = products.filter(p => {
                         if (!item.name || item.name.length < 1) return true;
@@ -1493,7 +1496,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
                       return (
                         <React.Fragment key={item.id}>
-                          <tr className="hover:bg-slate-50/70 bg-white">
+                          <tr className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 bg-white dark:bg-slate-900">
                             <td className="py-2.5 px-3 align-top">
                               {/* Product Name with Autocomplete Input */}
                               <div className="relative">
@@ -1506,16 +1509,16 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   }}
                                   onFocus={() => setActiveSuggestIndex(idx)}
                                   placeholder="Type to search product or enter custom name..."
-                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none transition-all"
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition-all"
                                   required
                                 />
 
                                 {/* Auto-Complete Dropdown */}
                                 {activeSuggestIndex === idx && searchFilteredProducts.length > 0 && (
-                                  <div className="absolute left-0 top-full mt-1 w-full sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 z-50 max-h-64 overflow-y-auto divide-y divide-slate-100">
-                                    <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                  <div className="absolute left-0 top-full mt-1 w-full sm:w-96 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                    <div className="p-2 bg-slate-50 dark:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                                       <span className="flex items-center gap-1">
-                                        <Sparkles className="w-3 h-3 text-indigo-600" />
+                                        <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                                         Matching Inventory ({searchFilteredProducts.length})
                                       </span>
                                       <button
@@ -1524,7 +1527,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                           e.stopPropagation();
                                           setActiveSuggestIndex(null);
                                         }}
-                                        className="text-slate-400 hover:text-slate-700 px-1"
+                                        className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-1"
                                       >
                                         Close ✕
                                       </button>
@@ -1540,44 +1543,44 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                           onClick={() => handleSelectProductForIndex(idx, p)}
                                           className={`p-2.5 transition-colors cursor-pointer flex items-start justify-between gap-2 ${
                                             isOutOfStock && stockSettings.blockBillingOnOutOfStock
-                                              ? 'hover:bg-rose-50/70 bg-rose-50/20'
-                                              : 'hover:bg-indigo-50/70'
+                                              ? 'hover:bg-rose-50/70 dark:hover:bg-rose-950/40 bg-rose-50/20 dark:bg-rose-950/20'
+                                              : 'hover:bg-indigo-50/70 dark:hover:bg-indigo-950/40'
                                           }`}
                                         >
                                           <div className="space-y-0.5">
-                                            <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                            <div className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
                                               <span>{p.name}</span>
                                               {p.id === item.productId && (
-                                                <span className="text-[9px] px-1.5 py-0.2 bg-emerald-50 text-emerald-700 font-bold rounded">Selected</span>
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold rounded">Selected</span>
                                               )}
                                               {isOutOfStock ? (
-                                                <span className="text-[9px] px-1.5 py-0.2 bg-rose-100 text-rose-700 font-bold rounded flex items-center gap-0.5">
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-bold rounded flex items-center gap-0.5">
                                                   <Ban className="w-2.5 h-2.5" /> Out of stock
                                                 </span>
                                               ) : isLow ? (
-                                                <span className="text-[9px] px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold rounded flex items-center gap-0.5">
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-bold rounded flex items-center gap-0.5">
                                                   <AlertTriangle className="w-2.5 h-2.5" /> Low stock
                                                 </span>
                                               ) : null}
                                             </div>
-                                            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                                            <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                                               <span className="font-mono">HSN: {p.hsnCode}</span>
                                               <span>•</span>
-                                              <span>Stock: <strong className={isOutOfStock ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-slate-700'}>{p.currentStock} {p.unit}</strong></span>
-                                              <span className="text-slate-400 font-mono text-[9px]">(Min: {effectiveThresh})</span>
+                                              <span>Stock: <strong className={isOutOfStock ? 'text-rose-600 dark:text-rose-400' : isLow ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'}>{p.currentStock} {p.unit}</strong></span>
+                                              <span className="text-slate-400 dark:text-slate-500 font-mono text-[9px]">(Min: {effectiveThresh})</span>
                                               {p.category && (
                                                 <>
                                                   <span>•</span>
-                                                  <span className="text-slate-400">{p.category}</span>
+                                                  <span className="text-slate-400 dark:text-slate-500">{p.category}</span>
                                                 </>
                                               )}
                                             </div>
                                           </div>
                                           <div className="text-right whitespace-nowrap">
-                                            <div className="font-mono font-bold text-xs text-indigo-700">
+                                            <div className="font-mono font-bold text-xs text-indigo-700 dark:text-indigo-400">
                                               ₹{p.sellingPrice.toLocaleString('en-IN')}
                                             </div>
-                                            <div className="text-[10px] text-slate-400 font-medium">
+                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                               +{p.gstRate}% GST
                                             </div>
                                           </div>
@@ -1593,7 +1596,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditItem(idx)}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] border border-indigo-200 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
                                   title="Open Custom Amount (₹Rate) & Flexible Entry Editor"
                                 >
                                   <Edit3 className="w-2.5 h-2.5" />
@@ -1604,17 +1607,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 {((item.originalPrice !== undefined && item.rate !== item.originalPrice) || 
                                   (item.productId && products.find(p => p.id === item.productId)?.sellingPrice !== undefined && products.find(p => p.id === item.productId)!.sellingPrice !== item.rate)) && (
                                   <>
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                                      <Tag className="w-2.5 h-2.5 text-amber-600" />
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                      <Tag className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
                                       Custom Rate
                                     </span>
                                     <button
                                       type="button"
                                       onClick={() => handleResetItemToMRP(idx)}
-                                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                                       title="Reset to standard MRP rate"
                                     >
-                                      <RotateCcw className="w-2.5 h-2.5 text-slate-500" />
+                                      <RotateCcw className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
                                       ↺ Reset to MRP (₹{(item.originalPrice ?? products.find(p => p.id === item.productId)?.sellingPrice)?.toLocaleString('en-IN')})
                                     </button>
                                   </>
@@ -1630,7 +1633,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   value={item.hsnCode}
                                   onChange={(e) => handleItemChange(idx, 'hsnCode', e.target.value)}
                                   placeholder="HSN / SAC"
-                                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono uppercase focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                 />
                                 <datalist id={`inv-hsn-list-${idx}`}>
                                   {customHsnCodes.map(h => (
@@ -1644,61 +1647,25 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                     </option>
                                   ))}
                                 </datalist>
+                                <button
+                                  type="button"
+                                  onClick={() => setHsnLookupTargetIndex(idx)}
+                                  className="mt-1 w-full text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/60 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/70 border border-indigo-200/60 dark:border-indigo-800 rounded-md py-0.5 px-1 flex items-center justify-center gap-1 transition-all cursor-pointer truncate shadow-2xs"
+                                  title="Open App HSN / SAC Directory Dialog"
+                                >
+                                  <Search className="w-2.5 h-2.5 shrink-0" />
+                                  <span className="truncate">Lookup Code...</span>
+                                </button>
                               </div>
-                              <select
-                                value=""
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (val === '__manage_custom__') {
-                                    setIsCustomHsnModalOpen(true);
-                                    return;
-                                  }
-                                  if (val.startsWith('custom:')) {
-                                    const cId = val.replace('custom:', '');
-                                    const match = customHsnCodes.find(h => h.id === cId);
-                                    if (match) {
-                                      handleItemChange(idx, 'hsnCode', match.code);
-                                      handleItemChange(idx, 'gstRate', match.gstRate);
-                                      if (match.uqc && match.uqc !== 'OTH') handleItemChange(idx, 'unit', match.uqc);
-                                    }
-                                  } else if (val) {
-                                    const match = COMMON_HSN_CODES.find(h => h.code === val);
-                                    if (match) {
-                                      handleItemChange(idx, 'hsnCode', match.code);
-                                      handleItemChange(idx, 'gstRate', match.defaultGst);
-                                    }
-                                  }
-                                }}
-                                className="mt-1 w-full text-[9px] text-slate-400 bg-transparent border-0 truncate cursor-pointer"
-                              >
-                                <option value="">Lookup Code...</option>
-                                {customHsnCodes.length > 0 && (
-                                  <optgroup label={`Custom Codes (${customHsnCodes.length})`}>
-                                    {customHsnCodes.map(h => (
-                                      <option key={h.id} value={`custom:${h.id}`}>
-                                        ⭐ {h.code} - {h.description.slice(0, 18)} ({h.gstRate}%)
-                                      </option>
-                                    ))}
-                                  </optgroup>
-                                )}
-                                <optgroup label={`Standard Master (${COMMON_HSN_CODES.length})`}>
-                                  {COMMON_HSN_CODES.map(h => (
-                                    <option key={h.code} value={h.code}>
-                                      {h.code} - {h.description.slice(0, 18)} ({h.defaultGst}%)
-                                    </option>
-                                  ))}
-                                </optgroup>
-                                <option value="__manage_custom__">⚙ + Manage Custom Directory...</option>
-                              </select>
                             </td>
 
                             {/* Direct Quantity Input & Minus/Plus Stepper Buttons */}
                             <td className="py-2.5 px-2 align-top">
-                              <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden shadow-2xs">
+                              <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 overflow-hidden shadow-2xs">
                                 <button
                                   type="button"
                                   onClick={() => handleItemQtyStep(idx, -1)}
-                                  className="px-1.5 py-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-bold transition-colors cursor-pointer shrink-0"
+                                  className="px-1.5 py-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200 font-bold transition-colors cursor-pointer shrink-0"
                                   title="Decrease quantity by 1"
                                 >
                                   <Minus className="w-2.5 h-2.5" />
@@ -1709,13 +1676,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   step="any"
                                   value={item.quantity}
                                   onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                                  className="w-12 py-1 bg-white text-xs font-bold text-center focus:outline-none"
+                                  className="w-12 py-1 bg-white dark:bg-slate-900 text-xs font-bold text-center text-slate-900 dark:text-white focus:outline-none"
                                   required
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleItemQtyStep(idx, 1)}
-                                  className="px-1.5 py-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-bold transition-colors cursor-pointer shrink-0"
+                                  className="px-1.5 py-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200 font-bold transition-colors cursor-pointer shrink-0"
                                   title="Increase quantity by 1"
                                 >
                                   <Plus className="w-2.5 h-2.5" />
@@ -1727,7 +1694,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                               <select
                                 value={item.unit}
                                 onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                                className="w-full px-1 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] focus:outline-none"
+                                className="w-full px-1 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
                               >
                                 {STANDARD_UNITS.map(u => (
                                   <option key={u} value={u}>{u}</option>
@@ -1746,19 +1713,19 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   onChange={(e) => handleItemChange(idx, 'rate', parseFloat(e.target.value) || 0)}
                                   className={`w-full px-2 py-1.5 rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
                                     priceEntryMode === 'EXCLUSIVE'
-                                      ? 'bg-white border-2 border-indigo-400 text-indigo-950 shadow-2xs font-bold'
-                                      : 'bg-slate-50 border border-slate-200 text-slate-800'
+                                      ? 'bg-white dark:bg-slate-900 border-2 border-indigo-400 dark:border-indigo-500 text-indigo-950 dark:text-indigo-200 shadow-2xs font-bold'
+                                      : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100'
                                   }`}
                                   placeholder="0.00"
                                   required
                                 />
                               </div>
-                              <div className="text-[9px] text-slate-400 font-mono mt-0.5 flex items-center justify-between">
+                              <div className="text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-0.5 flex items-center justify-between">
                                 <span>Base Excl.</span>
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditItem(idx)}
-                                  className="text-indigo-600 hover:underline font-semibold text-[9px] cursor-pointer"
+                                  className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold text-[9px] cursor-pointer"
                                 >
                                   Edit ₹
                                 </button>
@@ -1774,7 +1741,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   max="100"
                                   value={item.discountPercent || ''}
                                   onChange={(e) => handleItemChange(idx, 'discountPercent', parseFloat(e.target.value) || 0)}
-                                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono text-center text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                   placeholder="0"
                                 />
                                 <div className="flex justify-center gap-1">
@@ -1784,7 +1751,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                       type="button"
                                       onClick={() => handleItemChange(idx, 'discountPercent', item.discountPercent === disc ? 0 : disc)}
                                       className={`px-1 py-0.2 rounded text-[9px] font-bold cursor-pointer transition-colors ${
-                                        item.discountPercent === disc ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                        item.discountPercent === disc ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
                                       }`}
                                       title={`Apply ${disc}% discount`}
                                     >
@@ -1801,7 +1768,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 <select
                                   value={item.gstRate}
                                   onChange={(e) => handleItemChange(idx, 'gstRate', parseInt(e.target.value) as GstTaxRate)}
-                                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                                  className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer"
                                 >
                                   <option value="0">0% (Nil / Exempt)</option>
                                   <option value="5">5% (Essential Goods)</option>
@@ -1812,7 +1779,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
                                 {/* Dynamic Item-Wise Tax Split Tag */}
                                 <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium leading-tight ${
-                                  isInterState ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                                  isInterState ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300' : 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
                                 }`}>
                                   {isInterState ? (
                                     <span>IGST {item.gstRate}% : ₹{item.igstAmount.toFixed(2)}</span>
@@ -1834,13 +1801,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                   onChange={(e) => handleItemInclusiveTotalChange(idx, parseFloat(e.target.value) || 0)}
                                   className={`w-full px-2 py-1.5 text-right rounded-lg text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all ${
                                     priceEntryMode === 'INCLUSIVE'
-                                      ? 'bg-white border-2 border-indigo-500 text-indigo-700 font-extrabold shadow-2xs'
-                                      : 'bg-slate-50 border border-slate-200 text-slate-900 font-bold'
+                                      ? 'bg-white dark:bg-slate-900 border-2 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-extrabold shadow-2xs'
+                                      : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold'
                                   }`}
                                   placeholder="0.00"
                                 />
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
                                 Taxable: {formatCurrency(item.taxableAmount, business.currencySymbol)}
                               </div>
                             </td>
@@ -1849,7 +1816,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                               <button
                                 type="button"
                                 onClick={() => handleRemoveItem(idx)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                                className="p-1 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded transition-colors cursor-pointer"
                                 title="Delete Item"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1858,13 +1825,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                           </tr>
 
                           {/* Secondary Description Line & Tracking Row (Sr. No., Warranty & Multi-line Description) */}
-                          <tr className="bg-slate-50/60 border-b border-slate-200">
+                          <tr className="bg-slate-50/60 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
                             <td colSpan={9} className="px-3 py-2">
                               <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
                                 {/* Serial Number (Sr. No. / IMEI) */}
                                 {lineSettings.enableSerialNumber && (
                                   <div className="md:col-span-4 flex items-center gap-1.5">
-                                    <span className="text-[10px] font-bold text-blue-800 bg-blue-100/70 px-2 py-1 rounded-md whitespace-nowrap">
+                                    <span className="text-[10px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100/70 dark:bg-blue-950/70 px-2 py-1 rounded-md whitespace-nowrap">
                                       {lineSettings.serialNumberLabel || 'Sr. No.'}:
                                     </span>
                                     <input
@@ -1872,7 +1839,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                       value={item.serialNumber || ''}
                                       onChange={(e) => handleItemChange(idx, 'serialNumber', e.target.value)}
                                       placeholder="e.g. SN-882910, IMEI: 86492004..."
-                                      className="w-full px-2.5 py-1 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none placeholder:text-slate-400"
+                                      className="w-full px-2.5 py-1 text-xs font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                   </div>
                                 )}
@@ -1880,8 +1847,8 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 {/* Warranty Line & Quick Presets */}
                                 {lineSettings.enableWarranty && (
                                   <div className="md:col-span-4 flex items-center gap-1.5">
-                                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-1 rounded-md flex items-center gap-1 whitespace-nowrap">
-                                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/70 px-2 py-1 rounded-md flex items-center gap-1 whitespace-nowrap">
+                                      <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                                       {lineSettings.warrantyLabel || 'Warranty'}:
                                     </span>
                                     <input
@@ -1889,7 +1856,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                       value={item.warranty || ''}
                                       onChange={(e) => handleItemChange(idx, 'warranty', e.target.value)}
                                       placeholder="e.g. 1 Year Comprehensive"
-                                      className="w-full px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder:text-slate-400"
+                                      className="w-full px-2.5 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                     {lineSettings.warrantyOptions && lineSettings.warrantyOptions.length > 0 && (
                                       <select
@@ -1899,7 +1866,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                             handleItemChange(idx, 'warranty', e.target.value);
                                           }
                                         }}
-                                        className="text-[10px] bg-white border border-slate-200 rounded-lg py-1 px-1 text-slate-600 cursor-pointer max-w-[90px]"
+                                        className="text-[10px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-1 text-slate-600 dark:text-slate-300 cursor-pointer max-w-[90px]"
                                         title="Quick select warranty preset"
                                       >
                                         <option value="">Presets...</option>
@@ -1914,13 +1881,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 {/* Batch No. if enabled */}
                                 {lineSettings.enableBatchNumber && (
                                   <div className="md:col-span-4 flex items-center gap-1.5">
-                                    <span className="text-[10px] font-medium text-slate-500 whitespace-nowrap">Batch:</span>
+                                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">Batch:</span>
                                     <input
                                       type="text"
                                       value={item.batchNumber || ''}
                                       onChange={(e) => handleItemChange(idx, 'batchNumber', e.target.value)}
                                       placeholder="Batch No."
-                                      className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                                      className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                   </div>
                                 )}
@@ -1928,7 +1895,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                 {/* Multi-line Description Line */}
                                 {lineSettings.enableDescription && (
                                   <div className="md:col-span-12 flex items-center gap-2 pt-0.5">
-                                    <span className="text-[10px] font-semibold text-slate-500 whitespace-nowrap">
+                                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
                                       Description:
                                     </span>
                                     <input
@@ -1936,7 +1903,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                                       value={item.description || ''}
                                       onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
                                       placeholder={lineSettings.descriptionPlaceholder || 'Item specs, particulars or notes...'}
-                                      className="w-full px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                                      className="w-full px-2.5 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400 dark:placeholder-slate-500"
                                     />
                                   </div>
                                 )}
@@ -2196,46 +2163,46 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </div>
 
           {/* Notes & Terms Box */}
-          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Notes</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Invoice Notes</label>
               <textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Terms & Conditions</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Terms & Conditions</label>
               <textarea
                 rows={3}
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
             {/* Authorized Signatory Preview */}
-            <div className="pt-2 border-t border-slate-100">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <FileSignature className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <FileSignature className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   Authorized Signatory
                 </span>
-                <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/70 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                   Included on Invoice
                 </span>
               </div>
-              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div className="text-[11px]">
-                  <div className="font-bold text-slate-800">{business.signatoryName || 'Authorized Signatory'}</div>
-                  <div className="text-slate-500 text-[10px]">{business.signatoryDesignation || 'Authorised Person'}</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-200">{business.signatoryName || 'Authorized Signatory'}</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-[10px]">{business.signatoryDesignation || 'Authorised Person'}</div>
                 </div>
                 <img
                   src={normalizeSignatureUrl(business.signatureUrl)}
                   alt="Authorized Signature"
-                  className="h-9 max-w-[100px] object-contain bg-white p-1 rounded border border-slate-200"
+                  className="h-9 max-w-[100px] object-contain bg-white dark:bg-slate-700 p-1 rounded border border-slate-200 dark:border-slate-600"
                 />
               </div>
             </div>
@@ -2266,10 +2233,10 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           (prod?.sellingPrice !== undefined && effectiveBaseRate !== prod.sellingPrice);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto modal-overlay">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[96vw] sm:max-w-lg md:max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto modal-overlay">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl max-w-[96vw] sm:max-w-lg md:max-w-xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto">
               {/* Modal Header */}
-              <div className="px-4 py-3.5 sm:px-6 sm:py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+              <div className="px-4 py-3.5 sm:px-6 sm:py-4 bg-slate-900 dark:bg-slate-950 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
                     <SlidersHorizontal className="w-4 h-4" />
@@ -2293,31 +2260,31 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               {/* Modal Body */}
               <div className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-3.5 sm:space-y-4 flex-1">
                 {/* Selected Item Summary Card with Visual Badges & Revert */}
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3">
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-xs text-slate-900">
+                      <span className="font-bold text-xs text-slate-900 dark:text-white">
                         {currentItem.name || 'Untitled Item'}
                       </span>
                       {currentItem.hsnCode && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                           HSN: {currentItem.hsnCode}
                         </span>
                       )}
                       {isCustomized ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                          <Tag className="w-2.5 h-2.5 text-amber-600" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                          <Tag className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
                           Custom Rate Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                           Standard MRP
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500 flex items-center gap-2">
-                      <span>Standard MRP / Rate: <strong className="text-slate-700 font-mono">₹{standardMrp.toLocaleString('en-IN')}</strong></span>
-                      {prod && <span>• Stock: <strong className="text-slate-700">{prod.currentStock} {prod.unit}</strong></span>}
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                      <span>Standard MRP / Rate: <strong className="text-slate-700 dark:text-slate-200 font-mono">₹{standardMrp.toLocaleString('en-IN')}</strong></span>
+                      {prod && <span>• Stock: <strong className="text-slate-700 dark:text-slate-200">{prod.currentStock} {prod.unit}</strong></span>}
                     </div>
                   </div>
 
@@ -2330,10 +2297,10 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         setEditDiscountPercent(0);
                         showToast('info', 'Reset to Standard Rate', `Reset rate to MRP ₹${standardMrp.toLocaleString('en-IN')}`);
                       }}
-                      className="shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs transition-colors cursor-pointer"
+                      className="shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs transition-colors cursor-pointer"
                       title="Reset to MRP / Default selling price"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span>↺ Reset to MRP (₹{standardMrp.toLocaleString('en-IN')})</span>
                     </button>
                   )}
@@ -2341,10 +2308,10 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
                 {/* Two Flexible Entry Modes Selector */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
                     Select Pricing Entry Mode:
                   </label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                     <button
                       type="button"
                       onClick={() => {
@@ -2353,15 +2320,15 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                       }}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
                         editPriceMode === 'EXCLUSIVE'
-                          ? 'bg-white text-indigo-900 shadow-sm border border-indigo-200'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 shadow-sm border border-indigo-200 dark:border-indigo-800'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'EXCLUSIVE' ? 'bg-indigo-600' : 'bg-slate-300'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'EXCLUSIVE' ? 'bg-indigo-600 dark:bg-indigo-400' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
                         <span>Base Unit Rate (Tax Exclusive)</span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-normal ml-3.5">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal ml-3.5">
                         Enter custom selling rate directly before tax
                       </span>
                     </button>
@@ -2374,15 +2341,15 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                       }}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
                         editPriceMode === 'INCLUSIVE'
-                          ? 'bg-white text-indigo-900 shadow-sm border border-indigo-200'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 shadow-sm border border-indigo-200 dark:border-indigo-800'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'INCLUSIVE' ? 'bg-indigo-600' : 'bg-slate-300'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${editPriceMode === 'INCLUSIVE' ? 'bg-indigo-600 dark:bg-indigo-400' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
                         <span>Total Line Sale (Tax Inclusive)</span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-normal ml-3.5">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal ml-3.5">
                         Enter flat final customer amount (e.g. ₹1,000 all incl.)
                       </span>
                     </button>
@@ -2391,12 +2358,12 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
                 {/* Mode-Specific Price Input */}
                 {editPriceMode === 'EXCLUSIVE' ? (
-                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 border border-indigo-100">
-                    <label className="block text-xs font-bold text-indigo-950">
+                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60">
+                    <label className="block text-xs font-bold text-indigo-950 dark:text-indigo-200">
                       Custom Base Selling Rate (₹ Excl. Tax):
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">₹</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600 dark:text-indigo-400">₹</span>
                       <input
                         type="number"
                         min="0"
@@ -2404,18 +2371,18 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         value={editRate || ''}
                         onChange={(e) => handleEditRateChange(parseFloat(e.target.value) || 0)}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white border-2 border-indigo-400 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white dark:bg-slate-800 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
                         autoFocus
                       />
                     </div>
 
                     {/* Quick Rate Preset Chips */}
                     <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                      <span className="text-[10px] text-slate-500 font-bold">Quick Rates:</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Quick Rates:</span>
                       <button
                         type="button"
                         onClick={() => handleEditRateChange(standardMrp)}
-                        className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                        className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer transition-colors"
                       >
                         Standard MRP (₹{standardMrp.toLocaleString('en-IN')})
                       </button>
@@ -2426,7 +2393,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                             key={pct}
                             type="button"
                             onClick={() => handleEditRateChange(discounted)}
-                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer transition-colors"
                           >
                             {pct}% Off (₹{discounted.toLocaleString('en-IN')})
                           </button>
@@ -2435,12 +2402,12 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 border border-indigo-100">
-                    <label className="block text-xs font-bold text-indigo-950">
+                  <div className="space-y-2 p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60">
+                    <label className="block text-xs font-bold text-indigo-950 dark:text-indigo-200">
                       Flat Line Sale Amount (₹ Total Inclusive of GST):
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600">₹</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-indigo-600 dark:text-indigo-400">₹</span>
                       <input
                         type="number"
                         min="0"
@@ -2448,23 +2415,23 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         value={editTotal || ''}
                         onChange={(e) => handleEditTotalChange(parseFloat(e.target.value) || 0)}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white border-2 border-indigo-500 rounded-xl text-indigo-950 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold font-mono bg-white dark:bg-slate-800 border-2 border-indigo-500 rounded-xl text-indigo-950 dark:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
                         autoFocus
                       />
                     </div>
-                    <p className="text-[10px] text-slate-500">
-                      System automatically computes base selling rate: <strong className="text-slate-800 font-mono">₹{effectiveBaseRate.toFixed(2)}</strong> and extracts exact GST amounts.
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      System automatically computes base selling rate: <strong className="text-slate-800 dark:text-slate-200 font-mono">₹{effectiveBaseRate.toFixed(2)}</strong> and extracts exact GST amounts.
                     </p>
 
                     {/* Quick Inclusive Total Presets */}
                     <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                      <span className="text-[10px] text-slate-500 font-bold">Quick Totals:</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Quick Totals:</span>
                       {[500, 1000, 2000, 5000, 10000].map(amt => (
                         <button
                           key={amt}
                           type="button"
                           onClick={() => handleEditTotalChange(amt)}
-                          className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors"
+                          className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer transition-colors"
                         >
                           ₹{amt.toLocaleString('en-IN')}
                         </button>
@@ -2476,14 +2443,14 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 {/* Quantity Input & Stepper + Unit */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Quantity (Units):
                     </label>
-                    <div className="flex items-center border border-slate-300 rounded-xl bg-slate-50 overflow-hidden">
+                    <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 overflow-hidden">
                       <button
                         type="button"
                         onClick={() => handleEditQuantityChange(Math.max(0.01, editQuantity - 1))}
-                        className="px-3 py-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-bold transition-colors cursor-pointer"
+                        className="px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 font-bold transition-colors cursor-pointer"
                         title="Decrease quantity"
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -2494,13 +2461,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         step="any"
                         value={editQuantity}
                         onChange={(e) => handleEditQuantityChange(parseFloat(e.target.value) || 1)}
-                        className="w-full py-2 bg-white text-xs font-bold font-mono text-center focus:outline-none"
+                        className="w-full py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-bold font-mono text-center focus:outline-none"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => handleEditQuantityChange(editQuantity + 1)}
-                        className="px-3 py-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-bold transition-colors cursor-pointer"
+                        className="px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 font-bold transition-colors cursor-pointer"
                         title="Increase quantity"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -2509,11 +2476,11 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Unit of Measure:</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Unit of Measure:</label>
                     <select
                       value={editUnit}
                       onChange={(e) => setEditUnit(e.target.value)}
-                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                     >
                       {STANDARD_UNITS.map(u => (
                         <option key={u} value={u}>{u}</option>
@@ -2525,7 +2492,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 {/* Item-Level Discounts & GST Selection */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Item Discount (%):
                     </label>
                     <div className="flex items-center gap-1.5">
@@ -2536,7 +2503,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                         value={editDiscountPercent || ''}
                         onChange={(e) => handleEditDiscountChange(parseFloat(e.target.value) || 0)}
                         placeholder="0"
-                        className="w-full px-3 py-2 text-xs font-bold font-mono bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-xs font-bold font-mono bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <div className="flex gap-1 shrink-0">
                         {[5, 10, 15, 20].map(disc => (
@@ -2547,7 +2514,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                             className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
                               editDiscountPercent === disc
                                 ? 'bg-indigo-600 text-white'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                             }`}
                           >
                             {disc}%
@@ -2556,18 +2523,18 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                       </div>
                     </div>
                     {liveCalcs.discountAmount > 0 && (
-                      <div className="text-[10px] text-emerald-600 font-semibold mt-1">
+                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
                         Discount Amount: -₹{liveCalcs.discountAmount.toFixed(2)}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">GST Tax Rate:</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">GST Tax Rate:</label>
                     <select
                       value={editGstRate}
                       onChange={(e) => handleEditGstChange(Number(e.target.value) as GstTaxRate)}
-                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                      className="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                     >
                       <option value={0}>0% (Tax Exempt / Nil)</option>
                       <option value={5}>5% (Essential Goods)</option>
@@ -2579,7 +2546,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                 </div>
 
                 {/* Real-Time Tax Breakdown Box */}
-                <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5">
+                <div className="p-4 rounded-xl bg-slate-900 dark:bg-slate-950 text-white space-y-2.5 border border-slate-800">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                       <Calculator className="w-3.5 h-3.5 text-cyan-400" />
@@ -2593,21 +2560,21 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                    <div className="bg-slate-800/80 dark:bg-slate-900 p-2 rounded-lg border border-slate-700/50">
                       <div className="text-[10px] text-slate-400">Base Unit Rate</div>
                       <div className="font-bold text-slate-200">₹{effectiveBaseRate.toFixed(2)}</div>
                     </div>
-                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                    <div className="bg-slate-800/80 dark:bg-slate-900 p-2 rounded-lg border border-slate-700/50">
                       <div className="text-[10px] text-slate-400">Taxable Value</div>
                       <div className="font-bold text-slate-200">₹{liveCalcs.taxableAmount.toFixed(2)}</div>
                     </div>
-                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                    <div className="bg-slate-800/80 dark:bg-slate-900 p-2 rounded-lg border border-slate-700/50">
                       <div className="text-[10px] text-slate-400">Total GST ({editGstRate}%)</div>
                       <div className="font-bold text-cyan-300">
                         ₹{(isInterState ? liveCalcs.igstAmount : (liveCalcs.cgstAmount + liveCalcs.sgstAmount)).toFixed(2)}
                       </div>
                     </div>
-                    <div className="bg-slate-800/80 p-2 rounded-lg">
+                    <div className="bg-slate-800/80 dark:bg-slate-900 p-2 rounded-lg border border-slate-700/50">
                       <div className="text-[10px] text-slate-400">Net Line Total</div>
                       <div className="font-extrabold text-emerald-400 text-sm">
                         ₹{liveCalcs.totalAmount.toFixed(2)}
@@ -2627,11 +2594,11 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               </div>
 
               {/* Modal Footer */}
-              <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 shrink-0">
+              <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditingItemIndex(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2648,6 +2615,24 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
           </div>
         );
       })()}
+
+      {/* HSN / SAC Code App Lookup Dialog */}
+      <HsnLookupDialog
+        isOpen={hsnLookupTargetIndex !== null}
+        onClose={() => setHsnLookupTargetIndex(null)}
+        currentCode={hsnLookupTargetIndex !== null && items[hsnLookupTargetIndex] ? items[hsnLookupTargetIndex].hsnCode : ''}
+        onSelect={(item) => {
+          if (hsnLookupTargetIndex !== null && items[hsnLookupTargetIndex]) {
+            handleItemChange(hsnLookupTargetIndex, 'hsnCode', item.code);
+            handleItemChange(hsnLookupTargetIndex, 'gstRate', item.gstRate as GstTaxRate);
+            if (item.uqc && item.uqc !== 'OTH') {
+              handleItemChange(hsnLookupTargetIndex, 'unit', item.uqc);
+            }
+            showToast('success', 'HSN Applied', `${item.code} (${item.gstRate}% GST) selected.`);
+          }
+        }}
+        onOpenCustomManager={() => setIsCustomHsnModalOpen(true)}
+      />
 
       {/* Custom HSN & SAC Management Modal */}
       <CustomHsnModal

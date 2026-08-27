@@ -1,3 +1,4 @@
+import QRCode from 'qrcode';
 import { INDIAN_STATES } from './constants';
 
 export const formatCurrency = (amount: number | undefined | null, symbol: string = '₹'): string => {
@@ -178,8 +179,6 @@ export const generateEwayBillNo = (): string => {
   const p3 = Math.floor(1000 + Math.random() * 9000);
   return `${p1}${p2}${p3}`;
 };
-
-import QRCode from 'qrcode';
 
 // Build real, 100% standard ISO/IEC 18004 compliant QR Code 2D bit matrix
 export const generateQrMatrix = (text: string, _legacySize?: number): boolean[][] => {

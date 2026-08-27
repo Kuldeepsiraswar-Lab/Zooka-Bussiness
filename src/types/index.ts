@@ -491,6 +491,11 @@ export interface Company {
   pincode: string;
   phone: string;
   email: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  branchName?: string;
+  upiId?: string;
   financialYear: string;
   currency: string;
   currencySymbol: string;
@@ -506,6 +511,7 @@ export interface Company {
   sessionTimeoutSettings?: SessionTimeoutConfig;
   biometricSettings?: BiometricSecurityConfig;
   dispatchSettings?: any;
+  automatedBackupSettings?: import('./backup').AutomatedBackupSettings;
   createdAt: string;
   updatedAt?: string;
 }
@@ -552,6 +558,11 @@ export interface InvoiceTemplateConfig {
   themeColor: string; // Primary accent color (hex or tailwind base)
   secondaryColor?: string;
   headerColor?: string;
+  textColor?: string;             // Primary / Body text color
+  headingTextColor?: string;      // Business Name, Main Headings & Section Titles text color
+  tableHeaderTextColor?: string;  // Line items table header row text color
+  accentTextColor?: string;       // Accent / Highlights / Key metadata labels text color
+  mutedTextColor?: string;        // Muted / Captions / Secondary text color
   headerStyle: 'BANNER' | 'MODERN_SPLIT' | 'CENTERED' | 'MINIMAL_BORDERED' | 'THERMAL' | 'TRADE_CLASSIC';
   fontFamily: 'sans' | 'serif' | 'mono';
   tableStyle: 'BORDERED' | 'STRIPED' | 'MINIMAL' | 'BOXED';
@@ -766,8 +777,11 @@ export interface BusinessProfile {
   sessionTimeoutSettings?: SessionTimeoutConfig;
   biometricSettings?: BiometricSecurityConfig;
   dispatchSettings?: any;
+  automatedBackupSettings?: import('./backup').AutomatedBackupSettings;
   themeColor?: string;
 }
+
+export * from './backup';
 
 export interface BiometricCredentialInfo {
   id: string;

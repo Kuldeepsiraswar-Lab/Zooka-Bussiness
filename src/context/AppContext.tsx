@@ -1081,6 +1081,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       pincode: newCompany.pincode,
       phone: newCompany.phone,
       email: newCompany.email,
+      bankName: newCompany.bankName || cleanDefaultBusinessProfile.bankName,
+      accountNumber: newCompany.accountNumber || cleanDefaultBusinessProfile.accountNumber,
+      ifscCode: newCompany.ifscCode || cleanDefaultBusinessProfile.ifscCode,
+      branchName: newCompany.branchName || cleanDefaultBusinessProfile.branchName,
+      upiId: newCompany.upiId || cleanDefaultBusinessProfile.upiId,
       signatoryName: adminUser.name,
       invoicePrefix: '',
       nextInvoiceNumber: 1,
@@ -1145,7 +1150,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (id === currentCompanyId) {
-      if (updates.name || updates.tradeName || updates.gstin || updates.state) {
+      if (updates.name || updates.tradeName || updates.gstin || updates.state || updates.bankName !== undefined || updates.accountNumber !== undefined || updates.ifscCode !== undefined || updates.branchName !== undefined || updates.upiId !== undefined) {
         setBusiness(prev => {
           const newProfile = {
             ...prev,
@@ -1159,6 +1164,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             pincode: updates.pincode || prev.pincode,
             phone: updates.phone || prev.phone,
             email: updates.email || prev.email,
+            bankName: updates.bankName !== undefined ? updates.bankName : prev.bankName,
+            accountNumber: updates.accountNumber !== undefined ? updates.accountNumber : prev.accountNumber,
+            ifscCode: updates.ifscCode !== undefined ? updates.ifscCode : prev.ifscCode,
+            branchName: updates.branchName !== undefined ? updates.branchName : prev.branchName,
+            upiId: updates.upiId !== undefined ? updates.upiId : prev.upiId,
           };
           cloudDb.saveBusinessProfile(id, newProfile).catch(console.warn);
           return newProfile;
@@ -1214,6 +1224,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             pincode: profileUpdates.pincode || c.pincode,
             phone: profileUpdates.phone || c.phone,
             email: profileUpdates.email || c.email,
+            bankName: profileUpdates.bankName !== undefined ? profileUpdates.bankName : (companyUpdates?.bankName !== undefined ? companyUpdates.bankName : c.bankName),
+            accountNumber: profileUpdates.accountNumber !== undefined ? profileUpdates.accountNumber : (companyUpdates?.accountNumber !== undefined ? companyUpdates.accountNumber : c.accountNumber),
+            ifscCode: profileUpdates.ifscCode !== undefined ? profileUpdates.ifscCode : (companyUpdates?.ifscCode !== undefined ? companyUpdates.ifscCode : c.ifscCode),
+            branchName: profileUpdates.branchName !== undefined ? profileUpdates.branchName : (companyUpdates?.branchName !== undefined ? companyUpdates.branchName : c.branchName),
+            upiId: profileUpdates.upiId !== undefined ? profileUpdates.upiId : (companyUpdates?.upiId !== undefined ? companyUpdates.upiId : c.upiId),
             currency: profileUpdates.currency || c.currency,
             currencySymbol: profileUpdates.currencySymbol || c.currencySymbol,
             financialYear: companyUpdates?.financialYear || c.financialYear,
@@ -1985,6 +2000,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             pincode: profile.pincode || c.pincode,
             currency: profile.currency || c.currency,
             currencySymbol: profile.currencySymbol || c.currencySymbol,
+            bankName: profile.bankName !== undefined ? profile.bankName : c.bankName,
+            accountNumber: profile.accountNumber !== undefined ? profile.accountNumber : c.accountNumber,
+            ifscCode: profile.ifscCode !== undefined ? profile.ifscCode : c.ifscCode,
+            branchName: profile.branchName !== undefined ? profile.branchName : c.branchName,
+            upiId: profile.upiId !== undefined ? profile.upiId : c.upiId,
             headerConfig: updated.headerConfig || c.headerConfig,
             footerConfig: updated.footerConfig || c.footerConfig,
             lowStockSettings: updated.lowStockSettings || c.lowStockSettings,

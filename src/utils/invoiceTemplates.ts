@@ -350,6 +350,107 @@ export const COLOR_PALETTES = [
   { name: 'Charcoal Black', hex: '#18181b', lightHex: '#fafafa' },
 ];
 
+export interface TextColorThemePreset {
+  id: string;
+  name: string;
+  description: string;
+  textColor: string;             // Body text
+  headingTextColor: string;      // Headings & titles
+  tableHeaderTextColor: string;  // Table column headers
+  accentTextColor: string;       // Accent labels & badges
+  mutedTextColor: string;        // Captions & footnotes
+}
+
+export const TEXT_COLOR_THEMES: TextColorThemePreset[] = [
+  {
+    id: 'DEFAULT_SLATE',
+    name: 'Executive Slate (Default)',
+    description: 'Crisp, modern slate tones with high readability and balanced contrast.',
+    textColor: '#0f172a',
+    headingTextColor: '#0f172a',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#4f46e5',
+    mutedTextColor: '#64748b',
+  },
+  {
+    id: 'JET_BLACK',
+    name: 'Ink-Saver Jet Black (100% Contrast)',
+    description: 'Pure high-contrast black typography ideal for laser printing and xerox copies.',
+    textColor: '#000000',
+    headingTextColor: '#000000',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#000000',
+    mutedTextColor: '#475569',
+  },
+  {
+    id: 'MIDNIGHT_NAVY',
+    name: 'Corporate Midnight Navy',
+    description: 'Deep midnight blue tones for legal, enterprise B2B, and consulting invoices.',
+    textColor: '#0f172a',
+    headingTextColor: '#1e3a8a',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#2563eb',
+    mutedTextColor: '#64748b',
+  },
+  {
+    id: 'WARM_CHARCOAL',
+    name: 'Warm Stone & Charcoal',
+    description: 'Earthy warm charcoal tones giving a luxury, handcrafted, bespoke aesthetic.',
+    textColor: '#292524',
+    headingTextColor: '#1c1917',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#d97706',
+    mutedTextColor: '#78716c',
+  },
+  {
+    id: 'EMERALD_ACCENT',
+    name: 'Botanical Forest & Emerald',
+    description: 'Rich dark slate body paired with vibrant emerald headings for pharma & agro businesses.',
+    textColor: '#064e3b',
+    headingTextColor: '#065f46',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#059669',
+    mutedTextColor: '#047857',
+  },
+  {
+    id: 'ROYAL_PURPLE',
+    name: 'Creative Luxe Amethyst',
+    description: 'Deep violet headings and royal accents tailored for creative design and fashion studios.',
+    textColor: '#1e1b4b',
+    headingTextColor: '#4c1d95',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#7c3aed',
+    mutedTextColor: '#6b21a8',
+  },
+  {
+    id: 'CRIMSON_BOLD',
+    name: 'Crimson Tech & Electronics',
+    description: 'Sharp crimson headers and deep onyx body for electronics and appliance dealerships.',
+    textColor: '#18181b',
+    headingTextColor: '#991b1b',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#dc2626',
+    mutedTextColor: '#71717a',
+  }
+];
+
+export const POPULAR_TEXT_COLORS = [
+  { name: 'Pure Black', hex: '#000000' },
+  { name: 'Onyx Dark', hex: '#0f172a' },
+  { name: 'Slate Gray', hex: '#334155' },
+  { name: 'Midnight Navy', hex: '#1e3a8a' },
+  { name: 'Royal Blue', hex: '#2563eb' },
+  { name: 'Indigo Deep', hex: '#3730a3' },
+  { name: 'Forest Emerald', hex: '#065f46' },
+  { name: 'Ruby Dark', hex: '#991b1b' },
+  { name: 'Amber Bronze', hex: '#92400e' },
+  { name: 'Warm Charcoal', hex: '#292524' },
+  { name: 'Amethyst Violet', hex: '#581c87' },
+  { name: 'Teal Ocean', hex: '#115e59' },
+  { name: 'Pure White', hex: '#ffffff' },
+  { name: 'Muted Light Slate', hex: '#64748b' },
+];
+
 export function createDefaultCustomTemplate(customName = 'My Custom GST Template'): InvoiceTemplateConfig {
   return {
     id: `CUSTOM_${Date.now()}`,
@@ -359,6 +460,11 @@ export function createDefaultCustomTemplate(customName = 'My Custom GST Template
     badge: 'Custom',
     themeColor: '#4f46e5',
     headerColor: '#eef2ff',
+    textColor: '#0f172a',
+    headingTextColor: '#0f172a',
+    tableHeaderTextColor: '#ffffff',
+    accentTextColor: '#4f46e5',
+    mutedTextColor: '#64748b',
     headerStyle: 'BANNER',
     fontFamily: 'sans',
     tableStyle: 'BORDERED',

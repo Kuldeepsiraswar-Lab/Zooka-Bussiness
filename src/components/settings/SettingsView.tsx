@@ -59,6 +59,7 @@ import { SessionTimeoutSettingsTab } from './SessionTimeoutSettingsTab';
 import { PwaSettingsTab } from './PwaSettingsTab';
 import { BiometricSettingsTab } from './BiometricSettingsTab';
 import { DispatchSettingsTab } from './DispatchSettingsTab';
+import { AutomatedBackupSettingsTab } from './AutomatedBackupSettingsTab';
 import { CloudSyncStatusBadge } from '../common/CloudSyncStatusBadge';
 import { getThemePalette } from '../../utils/themeColors';
 
@@ -1203,6 +1204,21 @@ export const SettingsView: React.FC = () => {
                 )}
               </div>
             </div>
+
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Real-time Google Cloud Firestore synchronization active</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => updateBusiness(formData)}
+                className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer w-full sm:w-auto justify-center"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save & Cloud Sync Banking</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -1745,108 +1761,114 @@ export const SettingsView: React.FC = () => {
 
         {/* TAB 6: Backup & Reset */}
         {activeTab === 'backup' && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <Database className="w-4 h-4 text-indigo-600" />
-                Database Storage, Google Cloud Firestore & Backup
-              </h3>
-            </div>
+          <div className="space-y-6">
+            {/* Automated Google Drive Backup Tool */}
+            <AutomatedBackupSettingsTab />
 
-            {/* Cloud DB Live Status */}
-            <CloudSyncStatusBadge />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              {/* Export Backup */}
-              <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="font-bold text-indigo-900 flex items-center gap-1.5 mb-1">
-                    <Download className="w-4 h-4 text-indigo-600" />
-                    Export Full System Backup
-                  </div>
-                  <p className="text-indigo-800 text-[11px]">
-                    Download a full JSON snapshot of all your companies, invoices, products, stock levels, vendor purchase bills, journal vouchers, authorized signature, and company profile.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={exportDatabaseJSON}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow transition-colors cursor-pointer w-fit"
-                >
-                  Download JSON Backup
-                </button>
+            {/* Manual Export, Restore & Reset Container */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Database className="w-4 h-4 text-indigo-600" />
+                  Manual Snapshot Export & System Restore
+                </h3>
               </div>
 
-              {/* Import Backup */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
-                    <Upload className="w-4 h-4 text-slate-600" />
-                    Restore from JSON Backup
-                  </div>
-                  <p className="text-slate-500 text-[11px]">
-                    Upload a previously exported VyaparFlow backup JSON file to restore and sync with Firestore.
-                  </p>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleFileChange}
-                    className="mt-2 text-xs text-slate-600"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleImportSubmit}
-                  disabled={!importFileContent}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 disabled:opacity-40 rounded-xl shadow transition-colors cursor-pointer w-fit"
-                >
-                  Restore Data
-                </button>
-              </div>
-            </div>
+              {/* Cloud DB Live Status */}
+              <CloudSyncStatusBadge />
 
-            {/* Clean Database Reset Area */}
-            <div className="pt-6 border-t border-slate-200">
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <div className="font-bold text-rose-900 text-xs flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-rose-600" />
-                    Reset & Initialize Clean Database
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                {/* Export Backup */}
+                <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5 mb-1">
+                      <Download className="w-4 h-4 text-indigo-600" />
+                      Export Full System Backup
+                    </div>
+                    <p className="text-indigo-800 dark:text-indigo-300 text-[11px]">
+                      Download a full JSON snapshot of all your companies, invoices, products, stock levels, vendor purchase bills, journal vouchers, authorized signature, and company profile.
+                    </p>
                   </div>
-                  <p className="text-rose-700 text-[11px] mt-0.5">
-                    Clears all transactional invoices, products, and parties, setting up a fresh, empty workspace in Google Cloud Firestore.
-                  </p>
-                </div>
-
-                {!showResetConfirm ? (
                   <button
                     type="button"
-                    onClick={() => setShowResetConfirm(true)}
-                    className="px-4 py-2 text-xs font-semibold text-rose-700 bg-white border border-rose-300 hover:bg-rose-100 rounded-xl transition-all cursor-pointer whitespace-nowrap"
+                    onClick={exportDatabaseJSON}
+                    className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow transition-colors cursor-pointer w-fit"
                   >
-                    Clean Reset Database
+                    Download JSON Backup
                   </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetAllData();
-                        setShowResetConfirm(false);
-                      }}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer whitespace-nowrap"
-                    >
-                      Confirm Reset
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowResetConfirm(false)}
-                      className="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-xl cursor-pointer"
-                    >
-                      Cancel
-                    </button>
+                </div>
+
+                {/* Import Backup */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+                      <Upload className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                      Restore from JSON Backup
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">
+                      Upload a previously exported VyaparFlow backup JSON file to restore and sync with Firestore.
+                    </p>
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileChange}
+                      className="mt-2 text-xs text-slate-600 dark:text-slate-400"
+                    />
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={handleImportSubmit}
+                    disabled={!importFileContent}
+                    className="px-4 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 disabled:opacity-40 rounded-xl shadow transition-colors cursor-pointer w-fit"
+                  >
+                    Restore Data
+                  </button>
+                </div>
+              </div>
+
+              {/* Clean Database Reset Area */}
+              <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <div className="font-bold text-rose-900 dark:text-rose-200 text-xs flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-rose-600" />
+                      Reset & Initialize Clean Database
+                    </div>
+                    <p className="text-rose-700 dark:text-rose-400 text-[11px] mt-0.5">
+                      Clears all transactional invoices, products, and parties, setting up a fresh, empty workspace in Google Cloud Firestore.
+                    </p>
+                  </div>
+
+                  {!showResetConfirm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirm(true)}
+                      className="px-4 py-2 text-xs font-semibold text-rose-700 bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800 hover:bg-rose-100 rounded-xl transition-all cursor-pointer whitespace-nowrap"
+                    >
+                      Clean Reset Database
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetAllData();
+                          setShowResetConfirm(false);
+                        }}
+                        className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer whitespace-nowrap"
+                      >
+                        Confirm Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowResetConfirm(false)}
+                        className="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-xl cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

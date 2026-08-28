@@ -291,42 +291,42 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
 
       {/* Live Inventory Health Metrics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
             <span>Tracked Items</span>
-            <Layers className="w-4 h-4 text-indigo-600" />
+            <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div className="text-2xl font-black text-slate-900">{health.physicalItems}</div>
-          <p className="text-[11px] text-slate-400 mt-0.5">{health.serviceItems} service items excluded</p>
+          <div className="text-2xl font-black text-slate-900 dark:text-white">{health.physicalItems}</div>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{health.serviceItems} service items excluded</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-100 bg-emerald-50/20 shadow-2xs">
-          <div className="flex items-center justify-between text-emerald-700 text-xs font-bold mb-1">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-2xs">
+          <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 text-xs font-bold mb-1">
             <span>Healthy Stock</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-emerald-700">{health.healthyItems}</div>
-          <p className="text-[11px] text-emerald-600/80 mt-0.5">Above minimum alert limit</p>
+          <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{health.healthyItems}</div>
+          <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Above minimum alert limit</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-2xs">
-          <div className="flex items-center justify-between text-amber-800 text-xs font-bold mb-1">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20 shadow-2xs">
+          <div className="flex items-center justify-between text-amber-800 dark:text-amber-400 text-xs font-bold mb-1">
             <span>Low Stock Alert</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           </div>
-          <div className="text-2xl font-black text-amber-700">{health.lowStockItems}</div>
-          <p className="text-[11px] text-amber-600/80 mt-0.5">
+          <div className="text-2xl font-black text-amber-700 dark:text-amber-400">{health.lowStockItems}</div>
+          <p className="text-[11px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">
             {health.criticalItems} in critical red zone
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-2xs">
-          <div className="flex items-center justify-between text-rose-800 text-xs font-bold mb-1">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-950/20 shadow-2xs">
+          <div className="flex items-center justify-between text-rose-800 dark:text-rose-400 text-xs font-bold mb-1">
             <span>Out of Stock</span>
-            <Ban className="w-4 h-4 text-rose-600" />
+            <Ban className="w-4 h-4 text-rose-600 dark:text-rose-400" />
           </div>
-          <div className="text-2xl font-black text-rose-700">{health.outOfStockItems}</div>
-          <p className="text-[11px] text-rose-600/80 mt-0.5">0 units available in depot</p>
+          <div className="text-2xl font-black text-rose-700 dark:text-rose-400">{health.outOfStockItems}</div>
+          <p className="text-[11px] text-rose-600/80 dark:text-rose-400/80 mt-0.5">0 units available in depot</p>
         </div>
       </div>
 
@@ -335,15 +335,15 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
         {/* Left 2 Cols: Master Configuration */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Master Engine & Thresholds */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
                   <Sliders className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Stock Alert Parameters & Limits</h4>
-                  <p className="text-[11px] text-slate-500">Configure global default minimum and critical threshold quantities</p>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Stock Alert Parameters & Limits</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure global default minimum and critical threshold quantities</p>
                 </div>
               </div>
 
@@ -356,22 +356,22 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                   onChange={e => updateSetting('enabled', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Default Threshold */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800">
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     Default Low Stock Threshold (Units)
                   </label>
-                  <span className="text-[10px] text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     Fallback Limit
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Applied to items when individual product threshold is unset or 0.
                 </p>
                 <div className="flex items-center gap-2">
@@ -382,7 +382,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     disabled={!isCurrentUserAdmin}
                     value={localSettings.defaultThreshold}
                     onChange={e => updateSetting('defaultThreshold', Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-slate-900 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                    className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                   />
                   {/* Quick Preset Buttons */}
                   <div className="flex items-center gap-1">
@@ -395,7 +395,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                         className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
                           localSettings.defaultThreshold === val
                             ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                         }`}
                       >
                         {val}
@@ -406,17 +406,17 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
               </div>
 
               {/* Critical Stock Threshold */}
-              <div className="p-4 rounded-xl bg-rose-50/40 border border-rose-200/80 space-y-2.5">
+              <div className="p-4 rounded-xl bg-rose-50/40 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/60 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                  <label className="text-xs font-bold text-rose-950 dark:text-rose-200 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                     <span>Critical Emergency Threshold</span>
                   </label>
-                  <span className="text-[10px] text-rose-700 font-mono bg-rose-100/70 px-2 py-0.5 rounded border border-rose-200">
+                  <span className="text-[10px] text-rose-700 dark:text-rose-300 font-mono bg-rose-100/70 dark:bg-rose-900/60 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-800">
                     High Urgency
                   </span>
                 </div>
-                <p className="text-[11px] text-rose-800/80">
+                <p className="text-[11px] text-rose-800/80 dark:text-rose-300/80">
                   Items at or below this level trigger pulsing red alerts and top priority reorder lists.
                 </p>
                 <div className="flex items-center gap-2">
@@ -427,17 +427,17 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     disabled={!isCurrentUserAdmin}
                     value={localSettings.criticalStockThreshold}
                     onChange={e => updateSetting('criticalStockThreshold', Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-rose-900 bg-white border border-rose-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+                    className="w-24 px-3 py-1.5 text-sm font-bold font-mono text-rose-900 dark:text-rose-200 bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-700 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
                   />
-                  <span className="text-xs text-rose-700 font-medium">Units or fewer</span>
+                  <span className="text-xs text-rose-700 dark:text-rose-300 font-medium">Units or fewer</span>
                 </div>
               </div>
             </div>
 
             {/* Bulk Apply to all catalog action */}
-            <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 text-xs text-indigo-900">
-                <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 text-xs text-indigo-900 dark:text-indigo-200">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>
                   Update all <strong>{health.physicalItems} catalog products</strong> with default threshold of <strong>{localSettings.defaultThreshold} units</strong>?
                 </span>
@@ -454,21 +454,21 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
           </div>
 
           {/* Section 2: Billing & Dispatch Safeguards */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-5">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-5">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Point of Sale & Billing Enforcements</h4>
-                <p className="text-[11px] text-slate-500">Guard against invoicing depleted goods and handle negative balances</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Point of Sale & Billing Enforcements</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Guard against invoicing depleted goods and handle negative balances</p>
               </div>
             </div>
 
             <div className="space-y-4">
               {/* Negative Stock Behavior Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                   When Stock Depletes (Negative Stock Policy)
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -478,21 +478,21 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                       title: 'Strictly Block Billing',
                       desc: 'Prevent creating invoice or POS checkout if stock is insufficient.',
                       badge: 'Recommended for Warehouses',
-                      color: 'border-rose-300 bg-rose-50/30 text-rose-950',
+                      color: 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-950/30 text-rose-950 dark:text-rose-100',
                     },
                     {
                       id: 'WARN' as LowStockBehavior,
                       title: 'Warn & Allow Override',
                       desc: 'Display clear warning modal with option to continue billing.',
                       badge: 'Default Retail Policy',
-                      color: 'border-amber-300 bg-amber-50/30 text-amber-950',
+                      color: 'border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/30 text-amber-950 dark:text-amber-100',
                     },
                     {
                       id: 'ALLOW' as LowStockBehavior,
                       title: 'Allow Without Alert',
                       desc: 'Permit unconstrained negative balances without popups.',
                       badge: 'For Fast Drop-Shipping',
-                      color: 'border-slate-300 bg-slate-50 text-slate-900',
+                      color: 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100',
                     },
                   ].map(b => (
                     <label
@@ -500,7 +500,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                       className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                         localSettings.negativeStockBehavior === b.id
                           ? `${b.color} ring-2 ring-indigo-500/20 shadow-xs`
-                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/40'
                       }`}
                     >
                       <div>
@@ -526,12 +526,12 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                             }}
                             className="text-indigo-600 focus:ring-indigo-500"
                           />
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                             {b.badge}
                           </span>
                         </div>
-                        <div className="font-bold text-xs text-slate-900 mt-1">{b.title}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{b.desc}</div>
+                        <div className="font-bold text-xs text-slate-900 dark:text-white mt-1">{b.title}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{b.desc}</div>
                       </div>
                     </label>
                   ))}
@@ -539,11 +539,11 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
               </div>
 
               {/* Micro-rules toggles */}
-              <div className="divide-y divide-slate-100 border-t border-slate-100 pt-2">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 border-t border-slate-100 dark:border-slate-800 pt-2">
                 <label className="py-2.5 flex items-center justify-between cursor-pointer">
                   <div className="space-y-0.5 pr-4">
-                    <span className="text-xs font-bold text-slate-800">Prompt Warning on Low Stock Invoicing</span>
-                    <p className="text-[11px] text-slate-500">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Prompt Warning on Low Stock Invoicing</span>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       Alert counter staff when an item drops into low or critical stock during active checkout.
                     </p>
                   </div>
@@ -552,14 +552,14 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     disabled={!isCurrentUserAdmin}
                     checked={localSettings.warnOnLowStockBilling}
                     onChange={e => updateSetting('warnOnLowStockBilling', e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer"
                   />
                 </label>
 
                 <label className="py-2.5 flex items-center justify-between cursor-pointer">
                   <div className="space-y-0.5 pr-4">
-                    <span className="text-xs font-bold text-slate-800">Hard-Block Depleted Out-of-Stock (0 Units)</span>
-                    <p className="text-[11px] text-slate-500">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Hard-Block Depleted Out-of-Stock (0 Units)</span>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       Immediately disable line-item addition in POS and Invoices when available stock is 0.
                     </p>
                   </div>
@@ -568,7 +568,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     disabled={!isCurrentUserAdmin}
                     checked={localSettings.blockBillingOnOutOfStock}
                     onChange={e => updateSetting('blockBillingOnOutOfStock', e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer"
                   />
                 </label>
               </div>
@@ -579,77 +579,77 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
         {/* Right 1 Col: Badges, Display & Automation */}
         <div className="space-y-6">
           {/* Visual Badging Controls */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
                 <Bell className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">UI Badges & Notification Banners</h4>
-                <p className="text-[11px] text-slate-500">Visibility of inventory status across menus</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">UI Badges & Notification Banners</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Visibility of inventory status across menus</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">Sidebar & Mobile Alert Badges</span>
-                  <span className="text-[11px] text-slate-500">Show numeric warning bubble on Inventory tab</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Sidebar & Mobile Alert Badges</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Show numeric warning bubble on Inventory tab</span>
                 </div>
                 <input
                   type="checkbox"
                   disabled={!isCurrentUserAdmin}
                   checked={localSettings.showLowStockBadge}
                   onChange={e => updateSetting('showLowStockBadge', e.target.checked)}
-                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">Dashboard Restock Alert Banner</span>
-                  <span className="text-[11px] text-slate-500">Display persistent action banner on main dashboard</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Dashboard Restock Alert Banner</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Display persistent action banner on main dashboard</span>
                 </div>
                 <input
                   type="checkbox"
                   disabled={!isCurrentUserAdmin}
                   checked={localSettings.showDashboardBanner}
                   onChange={e => updateSetting('showDashboardBanner', e.target.checked)}
-                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-pointer">
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">Email Digest Alerts</span>
-                  <span className="text-[11px] text-slate-500">Include low-stock summaries in periodic audit reports</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Email Digest Alerts</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Include low-stock summaries in periodic audit reports</span>
                 </div>
                 <input
                   type="checkbox"
                   disabled={!isCurrentUserAdmin}
                   checked={localSettings.emailAlertDigest || false}
                   onChange={e => updateSetting('emailAlertDigest', e.target.checked)}
-                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 cursor-pointer"
                 />
               </label>
             </div>
           </div>
 
           {/* Smart Reorder & Procurement Config */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
-              <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-2xs space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold">
                 <ShoppingCart className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Procurement & Auto Reorder</h4>
-                <p className="text-[11px] text-slate-500">Supplier replenishment parameters</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Procurement & Auto Reorder</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Supplier replenishment parameters</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Default Replenishment Multiplier (Units)
                 </label>
                 <div className="flex items-center gap-2">
@@ -659,20 +659,20 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                     disabled={!isCurrentUserAdmin}
                     value={localSettings.defaultReorderMultiplier}
                     onChange={e => updateSetting('defaultReorderMultiplier', Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3 py-1.5 text-xs font-bold font-mono text-slate-900 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
+                    className="w-full px-3 py-1.5 text-xs font-bold font-mono text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
                   />
-                  <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Units / Order</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Units / Order</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                   Suggested restock volume generated when adding low-stock items to Purchase Bills.
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 space-y-2">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                 <button
                   type="button"
                   onClick={handleExportReorderReport}
-                  className="w-full py-2 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-200 text-xs font-bold border border-teal-200 dark:border-teal-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
                   <span>Export Reorder CSV ({health.lowStockItems} Items)</span>
@@ -681,7 +681,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveTab('purchases')}
-                  className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Create Supplier Purchase Bill</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -694,15 +694,15 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
 
       {/* Confirmation Modal for Bulk Threshold Synchronization */}
       {showBulkConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full border border-slate-100 shadow-2xl space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto animate-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs animate-fadeIn overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full border border-slate-100 dark:border-slate-800 shadow-2xl space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center mx-auto">
               <AlertCircle className="w-6 h-6" />
             </div>
 
             <div className="text-center space-y-1.5">
-              <h3 className="text-base font-black text-slate-900">Synchronize All Catalog Thresholds?</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Synchronize All Catalog Thresholds?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 This will set the minimum alert threshold of <strong>{localSettings.defaultThreshold} units</strong> across all <strong>{health.physicalItems} physical products</strong> in your inventory catalog and persist to Cloud Firestore.
               </p>
             </div>
@@ -711,7 +711,7 @@ export const LowStockSettingsTab: React.FC<LowStockSettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setShowBulkConfirmModal(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>

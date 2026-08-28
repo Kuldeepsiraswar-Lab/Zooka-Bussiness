@@ -232,7 +232,7 @@ export const InvoiceTemplateManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-indigo-700/50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-950 text-white p-6 rounded-2xl shadow-lg border border-indigo-700/50 dark:border-indigo-900/60">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-indigo-500/30 text-indigo-200 rounded-lg">
@@ -243,7 +243,7 @@ export const InvoiceTemplateManager: React.FC = () => {
               {allTemplates.length} Templates Available
             </span>
           </div>
-          <p className="text-xs text-indigo-100/80 max-w-xl">
+          <p className="text-xs text-indigo-100/80 dark:text-slate-300 max-w-xl">
             Choose from 10+ standard Indian GST-compliant invoice billing designs or build custom branded templates with tailored colors, fonts, tables, and serial number badges.
           </p>
         </div>
@@ -252,9 +252,9 @@ export const InvoiceTemplateManager: React.FC = () => {
           <button
             type="button"
             onClick={() => handleOpenCustomDesigner()}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-xl shadow-md active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-indigo-600 hover:bg-slate-100 dark:hover:bg-indigo-500 rounded-xl shadow-md active:scale-95 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-indigo-600" />
+            <Plus className="w-4 h-4 text-indigo-600 dark:text-indigo-200" />
             <span>Design Custom Template</span>
           </button>
         </div>
@@ -265,7 +265,7 @@ export const InvoiceTemplateManager: React.FC = () => {
         {/* Left: Template Catalog (7 cols) */}
         <div className="xl:col-span-7 space-y-4">
           {/* Filter Tabs */}
-          <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
             <div className="flex items-center gap-1.5 overflow-x-auto">
               <button
                 type="button"
@@ -273,7 +273,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                   activeTabFilter === 'ALL'
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 All ({allTemplates.length})
@@ -284,7 +284,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                   activeTabFilter === 'STANDARD'
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 Standard GST ({STANDARD_INVOICE_TEMPLATES.filter(t => t.category === 'STANDARD').length})
@@ -295,7 +295,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                   activeTabFilter === 'CUSTOM'
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 Custom Designed ({customTemplates.length})
@@ -306,15 +306,15 @@ export const InvoiceTemplateManager: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                   activeTabFilter === 'POS'
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 POS Thermal (80mm)
               </button>
             </div>
 
-            <div className="text-[11px] text-slate-500">
-              Active Default: <strong className="text-indigo-700">{allTemplates.find(t => t.id === activeTemplateId)?.name}</strong>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              Active Default: <strong className="text-indigo-700 dark:text-indigo-400">{allTemplates.find(t => t.id === activeTemplateId)?.name}</strong>
             </div>
           </div>
 
@@ -328,10 +328,10 @@ export const InvoiceTemplateManager: React.FC = () => {
                 <div
                   key={template.id}
                   onClick={() => setSelectedTemplateForPreview(template)}
-                  className={`group relative p-4 rounded-2xl border transition-all cursor-pointer bg-white flex flex-col justify-between ${
+                  className={`group relative p-4 rounded-2xl border transition-all cursor-pointer bg-white dark:bg-slate-900 flex flex-col justify-between ${
                     isSelected 
-                      ? 'ring-2 ring-indigo-600 border-indigo-600 shadow-md' 
-                      : 'border-slate-200 hover:border-slate-300 hover:shadow-xs'
+                      ? 'ring-2 ring-indigo-600 dark:ring-indigo-500 border-indigo-600 dark:border-indigo-500 shadow-md' 
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs'
                   }`}
                 >
                   <div className="space-y-2">
@@ -342,19 +342,19 @@ export const InvoiceTemplateManager: React.FC = () => {
                           className="w-3 h-3 rounded-full border shadow-2xs shrink-0"
                           style={{ backgroundColor: template.themeColor }}
                         />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                           {template.headerStyle}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-1">
                         {template.badge && (
-                          <span className="text-[9px] font-extrabold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full">
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full">
                             {template.badge}
                           </span>
                         )}
                         {isActive && (
-                          <span className="flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                          <span className="flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-full">
                             <Check className="w-3 h-3" />
                             Default
                           </span>
@@ -364,29 +364,29 @@ export const InvoiceTemplateManager: React.FC = () => {
 
                     {/* Title & Desc */}
                     <div>
-                      <h4 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center justify-between">
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center justify-between">
                         <span>{template.name}</span>
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                         {template.description}
                       </p>
                     </div>
 
                     {/* Features Tags */}
                     <div className="flex flex-wrap gap-1 pt-1">
-                      <span className="text-[9px] px-1.5 py-0.5 bg-slate-50 text-slate-600 rounded border border-slate-100 font-mono">
+                      <span className="text-[9px] px-1.5 py-0.5 bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded border border-slate-100 dark:border-slate-700 font-mono">
                         Font: {template.fontFamily}
                       </span>
-                      <span className="text-[9px] px-1.5 py-0.5 bg-slate-50 text-slate-600 rounded border border-slate-100 font-mono">
+                      <span className="text-[9px] px-1.5 py-0.5 bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded border border-slate-100 dark:border-slate-700 font-mono">
                         Table: {template.tableStyle}
                       </span>
                       {template.showUpiQr && (
-                        <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">
+                        <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded font-medium border border-blue-200 dark:border-blue-800/60">
                           UPI QR
                         </span>
                       )}
                       {template.showHsnSummaryTable && (
-                        <span className="text-[9px] px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded font-medium">
+                        <span className="text-[9px] px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 rounded font-medium border border-indigo-200 dark:border-indigo-800/60">
                           HSN Table
                         </span>
                       )}
@@ -394,7 +394,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -404,7 +404,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                         isActive
                           ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600'
+                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400'
                       }`}
                     >
                       {isActive ? (
@@ -424,7 +424,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                           e.stopPropagation();
                           handleOpenCustomDesigner(template);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                         title="Customize / Duplicate this template"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -439,7 +439,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                               setEditingTemplate(template);
                               setIsEditingCustom(true);
                             }}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                             title="Edit this custom template"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -447,7 +447,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                           <button
                             type="button"
                             onClick={(e) => handleDeleteCustomTemplate(template.id, e)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
                             title="Delete custom template"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -464,13 +464,13 @@ export const InvoiceTemplateManager: React.FC = () => {
 
         {/* Right: Live Interactive A4 Preview Canvas (5 cols) */}
         <div className="xl:col-span-5 space-y-3 sticky top-6">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 block">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
                   Live Document Preview
                 </span>
-                <h3 className="font-bold text-sm text-slate-900">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">
                   {selectedTemplateForPreview.name}
                 </h3>
               </div>
@@ -501,7 +501,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowFullModalPreview(true)}
-                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                   title="Full screen preview"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -510,8 +510,8 @@ export const InvoiceTemplateManager: React.FC = () => {
             </div>
 
             {/* Scaled Preview Canvas */}
-            <div className="bg-slate-100/80 p-3 rounded-xl border border-slate-200 overflow-hidden flex justify-center">
-              <div className="transform scale-[0.65] origin-top sm:scale-[0.7] md:scale-[0.75] xl:scale-[0.6] w-[794px] min-h-[950px] bg-white border border-slate-300 rounded-lg shadow-md p-6 pointer-events-none select-none">
+            <div className="bg-slate-100/80 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex justify-center">
+              <div className="transform scale-[0.65] origin-top sm:scale-[0.7] md:scale-[0.75] xl:scale-[0.6] w-[794px] min-h-[950px] bg-white border border-slate-300 dark:border-slate-700 rounded-lg shadow-md p-6 pointer-events-none select-none">
                 <InvoiceTemplateRenderer
                   invoice={sampleInvoice}
                   business={business}
@@ -521,8 +521,8 @@ export const InvoiceTemplateManager: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between text-xs">
-              <span className="text-indigo-900 font-medium">
+            <div className="p-3 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 flex items-center justify-between text-xs">
+              <span className="text-indigo-900 dark:text-indigo-200 font-medium">
                 Want to tweak this design for your business?
               </span>
               <button
@@ -539,10 +539,10 @@ export const InvoiceTemplateManager: React.FC = () => {
 
       {/* CUSTOM TEMPLATE DESIGNER MODAL */}
       {isEditingCustom && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-[98vw] md:max-w-4xl lg:max-w-5xl max-h-[96dvh] sm:max-h-[90dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-[98vw] md:max-w-4xl lg:max-w-5xl max-h-[96dvh] sm:max-h-[90dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
             {/* Modal Header */}
-            <div className="p-3.5 sm:p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div className="p-3.5 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 <div className="p-2 bg-indigo-500/30 rounded-xl shrink-0">
                   <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
@@ -575,25 +575,25 @@ export const InvoiceTemplateManager: React.FC = () => {
             </div>
 
             {/* Modal Body: Split Controls & Live Preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-y-auto divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-y-auto divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
               {/* Left Column: Form Controls (6 cols) */}
               <div className="lg:col-span-6 p-6 space-y-6 overflow-y-auto max-h-[75vh]">
                 {/* Template Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">Template Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Template Name</label>
                   <input
                     type="text"
                     value={editingTemplate.name}
                     onChange={(e) => setEditingTemplate(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g. My Premium Corporate Invoice"
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none"
                     required
                   />
                 </div>
 
                 {/* Color Palette & Custom Hex */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                     Branding Accent Color
                   </label>
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -604,36 +604,36 @@ export const InvoiceTemplateManager: React.FC = () => {
                         onClick={() => setEditingTemplate(prev => ({ ...prev, themeColor: color.hex, headerColor: color.lightHex }))}
                         className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
                           editingTemplate.themeColor === color.hex 
-                            ? 'ring-2 ring-indigo-600 border-indigo-600 bg-indigo-50/50' 
-                            : 'border-slate-200 hover:bg-slate-50'
+                            ? 'ring-2 ring-indigo-600 dark:ring-indigo-500 border-indigo-600 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/60' 
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                         }`}
                       >
                         <span className="w-5 h-5 rounded-full shadow-2xs" style={{ backgroundColor: color.hex }} />
-                        <span className="text-[9px] font-medium text-slate-600 truncate max-w-[50px]">{color.name.split(' ')[0]}</span>
+                        <span className="text-[9px] font-medium text-slate-600 dark:text-slate-400 truncate max-w-[50px]">{color.name.split(' ')[0]}</span>
                       </button>
                     ))}
                   </div>
 
                   <div className="flex items-center gap-2 pt-1">
-                    <span className="text-xs text-slate-500">Custom Hex:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Custom Hex:</span>
                     <input
                       type="color"
                       value={editingTemplate.themeColor}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, themeColor: e.target.value }))}
-                      className="w-8 h-8 rounded-lg cursor-pointer border border-slate-200 p-0.5"
+                      className="w-8 h-8 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-50 dark:bg-slate-800"
                     />
                     <input
                       type="text"
                       value={editingTemplate.themeColor}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, themeColor: e.target.value }))}
-                      className="w-24 px-2 py-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg"
+                      className="w-24 px-2 py-1 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg"
                     />
                   </div>
                 </div>
 
                 {/* Header Style */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">Header Style</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Header Style</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: 'TRADE_CLASSIC', label: 'Classic Trade / Retail (TM Style)', desc: 'Indian hardware, electrical & consumer trade format' },
@@ -648,12 +648,12 @@ export const InvoiceTemplateManager: React.FC = () => {
                         onClick={() => setEditingTemplate(prev => ({ ...prev, headerStyle: hdr.id as any }))}
                         className={`p-3 text-left rounded-xl border transition-all cursor-pointer ${
                           editingTemplate.headerStyle === hdr.id
-                            ? 'ring-2 ring-indigo-600 border-indigo-600 bg-indigo-50/50'
-                            : 'border-slate-200 hover:bg-slate-50'
+                            ? 'ring-2 ring-indigo-600 dark:ring-indigo-500 border-indigo-600 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/60'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                         }`}
                       >
-                        <div className="font-bold text-xs text-slate-900">{hdr.label}</div>
-                        <div className="text-[10px] text-slate-500">{hdr.desc}</div>
+                        <div className="font-bold text-xs text-slate-900 dark:text-white">{hdr.label}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">{hdr.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -662,11 +662,11 @@ export const InvoiceTemplateManager: React.FC = () => {
                 {/* Typography & Table Style */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">Font Family</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Font Family</label>
                     <select
                       value={editingTemplate.fontFamily}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, fontFamily: e.target.value as any }))}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none cursor-pointer"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none cursor-pointer"
                     >
                       <option value="sans">Inter / Modern Sans</option>
                       <option value="serif">Georgia / Classic Serif</option>
@@ -675,11 +675,11 @@ export const InvoiceTemplateManager: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">Table Styling</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Table Styling</label>
                     <select
                       value={editingTemplate.tableStyle}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, tableStyle: e.target.value as any }))}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none cursor-pointer"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none cursor-pointer"
                     >
                       <option value="BORDERED">Bordered Grid (Official)</option>
                       <option value="STRIPED">Zebra Striped Rows</option>
@@ -690,10 +690,10 @@ export const InvoiceTemplateManager: React.FC = () => {
                 </div>
 
                 {/* Section Visibility Toggles */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <label className="block text-xs font-bold text-slate-700">Section Visibility & Print Controls</label>
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Section Visibility & Print Controls</label>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showPaymentMode !== false}
@@ -703,7 +703,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Mode of Payment (Cash/UPI/Bank)</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showUpiQr}
@@ -713,7 +713,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>UPI Payment QR</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showBankDetails}
@@ -723,7 +723,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Bank Account Info</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showHsnSummaryTable}
@@ -733,7 +733,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>HSN Tax Summary Table</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showSerialNumber}
@@ -743,7 +743,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Sr. No. / IMEI Badges</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showWarranty}
@@ -753,7 +753,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Warranty Line</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showDescription}
@@ -763,7 +763,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Item Description</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showAmountInWords}
@@ -773,7 +773,7 @@ export const InvoiceTemplateManager: React.FC = () => {
                       <span>Amount in Words</span>
                     </label>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                    <label className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editingTemplate.showSignature}
@@ -786,39 +786,39 @@ export const InvoiceTemplateManager: React.FC = () => {
                 </div>
 
                 {/* Custom Watermark & Tagline */}
-                <div className="space-y-3 pt-2 border-t border-slate-100">
+                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700">Watermark Text (Optional)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Watermark Text (Optional)</label>
                     <input
                       type="text"
                       value={editingTemplate.watermarkText || ''}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, watermarkText: e.target.value }))}
                       placeholder="e.g. PAID, ORIGINAL, or leave blank"
-                      className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+                      className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700">Header Subtitle / Tagline (Optional)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Header Subtitle / Tagline (Optional)</label>
                     <input
                       type="text"
                       value={editingTemplate.headerTagline || ''}
                       onChange={(e) => setEditingTemplate(prev => ({ ...prev, headerTagline: e.target.value }))}
                       placeholder="e.g. Authorized Electronics & IT Solutions"
-                      className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+                      className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Right Column: Live Real-Time Updating Canvas (6 cols) */}
-              <div className="lg:col-span-6 p-6 bg-slate-100 flex flex-col items-center justify-start overflow-y-auto max-h-[75vh]">
+              <div className="lg:col-span-6 p-6 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-start overflow-y-auto max-h-[75vh]">
                 <div className="text-center pb-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                     Real-time Live Render Preview
                   </span>
                 </div>
-                <div className="transform scale-[0.62] origin-top w-[794px] min-h-[980px] bg-white border border-slate-300 rounded-lg shadow-xl p-6 select-none pointer-events-none">
+                <div className="transform scale-[0.62] origin-top w-[794px] min-h-[980px] bg-white border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl p-6 select-none pointer-events-none">
                   <InvoiceTemplateRenderer
                     invoice={sampleInvoice}
                     business={business}
@@ -834,8 +834,8 @@ export const InvoiceTemplateManager: React.FC = () => {
 
       {/* FULL SCREEN PREVIEW MODAL */}
       {showFullModalPreview && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 max-w-[98vw] md:max-w-4xl w-full max-h-[96dvh] sm:max-h-[92dvh] flex flex-col overflow-hidden my-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-[98vw] md:max-w-4xl w-full max-h-[96dvh] sm:max-h-[92dvh] flex flex-col overflow-hidden my-auto">
             <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
               <h3 className="font-bold text-xs sm:text-sm truncate">Preview: {selectedTemplateForPreview.name}</h3>
               <button
@@ -846,8 +846,8 @@ export const InvoiceTemplateManager: React.FC = () => {
                 Close ✕
               </button>
             </div>
-            <div className="p-3 sm:p-6 overflow-y-auto modal-content-scroll bg-slate-100 flex justify-center">
-              <div className="w-full max-w-[794px] bg-white border border-slate-300 rounded-lg shadow-lg p-3 sm:p-8 overflow-x-auto">
+            <div className="p-3 sm:p-6 overflow-y-auto modal-content-scroll bg-slate-100 dark:bg-slate-950 flex justify-center">
+              <div className="w-full max-w-[794px] bg-white border border-slate-300 dark:border-slate-700 rounded-lg shadow-lg p-3 sm:p-8 overflow-x-auto">
                 <InvoiceTemplateRenderer
                   invoice={sampleInvoice}
                   business={business}

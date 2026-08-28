@@ -223,7 +223,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/80 backdrop-blur-sm overflow-y-auto modal-overlay animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[95dvh] sm:max-h-[90dvh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[95dvh] sm:max-h-[90dvh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         
         {/* Modal Header */}
         <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white flex items-center justify-between border-b border-purple-900/40 shrink-0">
@@ -264,15 +264,15 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
         </div>
 
         {/* Modal Body / Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-4 sm:space-y-6 flex-1 text-slate-800">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto modal-content-scroll space-y-4 sm:space-y-6 flex-1 text-slate-800 dark:text-slate-200">
           
           {/* ======================================================================= */}
           {/* MANDATORY SUPER ADMIN AUTHORIZATION BANNER / SECURITY GATE             */}
           {/* ======================================================================= */}
           <div className={`rounded-2xl p-4 border transition-all ${
             isSuperAdminAuthorized 
-              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950' 
-              : 'bg-purple-50/80 border-purple-200 text-purple-950'
+              ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-200' 
+              : 'bg-purple-50/80 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-950 dark:text-purple-200'
           }`}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -293,14 +293,14 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                     </h3>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
                       isSuperAdminAuthorized
-                        ? 'bg-emerald-200/60 text-emerald-800'
-                        : 'bg-rose-100 text-rose-800 border border-rose-200'
+                        ? 'bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
                     }`}>
                       {isSuperAdminAuthorized ? 'Authorized' : 'Mandatory Requirement'}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-600 mt-1">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                     {isSuperAdminAuthorized
                       ? 'Verified as Super Administrator (Kuldeep Siraswar). You have master clearance to create business entities.'
                       : 'Without Super Admin verification, no company can be created in the system. Enter the Super Admin password or PIN to unlock.'}
@@ -311,7 +311,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
             {/* If not authorized, show input box */}
             {!isSuperAdminAuthorized && (
-              <div className="mt-3 pt-3 border-t border-purple-200/60">
+              <div className="mt-3 pt-3 border-t border-purple-200/60 dark:border-purple-800/60">
                 <div className="flex flex-col sm:flex-row items-center gap-2">
                   <div className="relative flex-1 w-full">
                     <KeyRound className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -323,7 +323,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                         if (superAdminError) setSuperAdminError(null);
                       }}
                       placeholder="Enter Super Admin Password or 4-digit Master PIN..."
-                      className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white font-mono"
+                      className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-purple-300 dark:border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
                     />
                   </div>
 
@@ -338,7 +338,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                 </div>
 
                 {superAdminError && (
-                  <div className="flex items-center gap-1.5 text-xs text-rose-600 mt-2 font-medium">
+                  <div className="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 mt-2 font-medium">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>{superAdminError}</span>
                   </div>
@@ -349,14 +349,14 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
           {/* Section 1: Business Identity */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 border-b border-indigo-100 pb-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-900/60 pb-1.5">
               <Building2 className="w-4 h-4" />
               <span>1. Company Legal & Tax Identity</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Company Legal Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -365,12 +365,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. Apex Industrial Supplies Pvt Ltd"
                   value={companyName}
                   onChange={e => setCompanyName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Trade / Brand Name
                 </label>
                 <input
@@ -378,12 +378,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. Apex Tools & Hardware"
                   value={tradeName}
                   onChange={e => setTradeName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   GSTIN (15 Digits)
                 </label>
                 <input
@@ -392,13 +392,13 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. 27AAACA1234M1Z2"
                   value={gstin}
                   onChange={e => handleGstinChange(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono uppercase bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono uppercase bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
-                <span className="text-[10px] text-slate-400 mt-0.5 block">State & PAN auto-extracted from GSTIN</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 block">State & PAN auto-extracted from GSTIN</span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Permanent Account Number (PAN)
                 </label>
                 <input
@@ -407,18 +407,18 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. AAACA1234M"
                   value={pan}
                   onChange={e => setPan(e.target.value.toUpperCase())}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono uppercase bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono uppercase bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Constitution / Business Type
                 </label>
                 <select
                   value={businessType}
                   onChange={e => setBusinessType(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
                   <option value="Private Limited • Trading & Services">Private Limited (Trading & Services)</option>
                   <option value="Proprietorship • Retail POS">Proprietorship (Retail Store)</option>
@@ -430,13 +430,13 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Financial Year
                 </label>
                 <select
                   value={financialYear}
                   onChange={e => setFinancialYear(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
                   <option value="2026-2027">FY 2026 - 2027 (Current)</option>
                   <option value="2025-2026">FY 2025 - 2026</option>
@@ -448,20 +448,20 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
           {/* Section 2: Address & Location */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 border-b border-indigo-100 pb-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-900/60 pb-1.5">
               <MapPin className="w-4 h-4" />
               <span>2. Place of Business & Address</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   State (Place of Supply) <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={state}
                   onChange={e => handleStateChange(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 font-medium"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
                 >
                   {INDIAN_STATES.map(st => (
                     <option key={st.code} value={st.name}>
@@ -472,7 +472,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   City / District
                 </label>
                 <input
@@ -480,12 +480,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. Pune"
                   value={city}
                   onChange={e => setCity(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Pincode
                 </label>
                 <input
@@ -494,12 +494,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. 411001"
                   value={pincode}
                   onChange={e => setPincode(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="sm:col-span-3">
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Principal Business Address
                 </label>
                 <input
@@ -507,22 +507,22 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. Plot No. 12, MIDC Industrial Area, Bhosari"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 3: Initial Administrator Credentials */}
-          <div className="bg-indigo-50/40 rounded-2xl p-4 border border-indigo-100 space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900 border-b border-indigo-200/60 pb-1.5">
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+          <div className="bg-indigo-50/40 dark:bg-indigo-950/30 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/60 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-200 border-b border-indigo-200/60 dark:border-indigo-800/60 pb-1.5">
+              <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>3. Primary Administrator Account (Default Sign-in for New Company)</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Admin Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -531,12 +531,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. Rakesh Mehta"
                   value={adminName}
                   onChange={e => setAdminName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Admin Email
                 </label>
                 <input
@@ -544,12 +544,12 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   placeholder="e.g. rakesh@company.com"
                   value={adminEmail}
                   onChange={e => setAdminEmail(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Admin Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -560,13 +560,13 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                     placeholder="Enter password..."
                     value={adminPassword}
                     onChange={e => setAdminPassword(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-white"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Admin 4-Digit PIN <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -578,7 +578,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                     placeholder="4-digit PIN"
                     value={adminPin}
                     onChange={e => setAdminPin(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-white"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
 
           {/* Section 4: Theme Color */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
               Company Branding Accent Color
             </label>
             <div className="flex items-center gap-3">
@@ -597,7 +597,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                   type="button"
                   onClick={() => setThemeColor(c.id)}
                   className={`w-8 h-8 rounded-xl ${c.class} flex items-center justify-center text-white transition-all cursor-pointer ${
-                    themeColor === c.id ? 'ring-3 ring-slate-900 scale-110 shadow-md' : 'opacity-70 hover:opacity-100'
+                    themeColor === c.id ? 'ring-3 ring-slate-900 dark:ring-white scale-110 shadow-md' : 'opacity-70 hover:opacity-100'
                   }`}
                   title={c.label}
                 >
@@ -608,9 +608,9 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-              <Crown className="w-3.5 h-3.5 text-purple-600" />
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+              <Crown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
               <span>Super Admin Master Policy Enforced</span>
             </div>
 
@@ -618,7 +618,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -628,7 +628,7 @@ export const CreateCompanyModal: React.FC<CreateCompanyModalProps> = ({
                 className={`px-6 py-2.5 font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
                   isSuperAdminAuthorized || isSuperAdminLoggedIn
                     ? 'bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-700 hover:from-purple-800 hover:to-indigo-700 text-white shadow-purple-600/25 active:scale-95'
-                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                    : 'bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                 }`}
               >
                 <Crown className="w-4 h-4 text-amber-300" />

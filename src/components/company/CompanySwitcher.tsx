@@ -82,15 +82,15 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 sm:left-auto sm:right-auto mt-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-96 max-h-[85dvh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800 modal-content-scroll">
+        <div className="absolute left-0 sm:left-auto sm:right-auto mt-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-96 max-h-[85dvh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800 dark:text-slate-200 modal-content-scroll">
           
           {/* Header */}
-          <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Select Business / Entity</span>
+              <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Select Business / Entity</span>
             </div>
-            <span className="text-[10px] font-extrabold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100">
+            <span className="text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">
               {companies.length} Companies
             </span>
           </div>
@@ -106,8 +106,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
                   onClick={() => handleSelectCompany(comp)}
                   className={`w-full p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     isCurrent
-                      ? 'bg-indigo-50/80 border border-indigo-200 shadow-2xs'
-                      : 'hover:bg-slate-50 border border-transparent'
+                      ? 'bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 shadow-2xs'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -117,7 +117,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-xs font-bold truncate ${isCurrent ? 'text-indigo-950' : 'text-slate-900'}`}>
+                        <span className={`text-xs font-bold truncate ${isCurrent ? 'text-indigo-950 dark:text-indigo-200' : 'text-slate-900 dark:text-white'}`}>
                           {comp.tradeName || comp.name}
                         </span>
                         {isCurrent && (
@@ -126,8 +126,8 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                        <span className="font-mono text-slate-600">{comp.gstin}</span>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        <span className="font-mono text-slate-600 dark:text-slate-400">{comp.gstin}</span>
                         <span>•</span>
                         <span className="truncate">{comp.state}</span>
                       </div>
@@ -135,7 +135,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
                   </div>
 
                   {isCurrent ? (
-                    <Check className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   ) : (
                     <span className="text-[10px] font-semibold text-slate-400 group-hover:text-indigo-600">
                       Switch
@@ -147,13 +147,13 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-2 px-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+          <div className="pt-2 px-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2">
             <button
               onClick={() => {
                 setIsOpen(false);
                 setIsCreateModalOpen(true);
               }}
-              className="py-2 px-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2 px-2 text-xs font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl border border-transparent dark:border-indigo-800/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ Add Company</span>
@@ -164,7 +164,7 @@ export const CompanySwitcher: React.FC<CompanySwitcherProps> = ({ compact = fals
                 setActiveTab('settings');
                 setIsOpen(false);
               }}
-              className="py-2 px-2 text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2 px-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-transparent dark:border-slate-700 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Manage Entities</span>

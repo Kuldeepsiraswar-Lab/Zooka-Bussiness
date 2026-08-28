@@ -50,6 +50,21 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
   const isTrade = template.headerStyle === 'TRADE_CLASSIC' || template.id === 'TRADE_CLASSIC_TM';
   const isThermal = template.headerStyle === 'THERMAL' || template.id === 'THERMAL_POS';
   
+  const isLogoVisible = (template.showLogo !== false) && (business.showLogoOnInvoice !== false);
+  const effectiveLogoShape: 'square' | 'circle' | 'rounded' = business.logoShape || template.logoShape || 'rounded';
+
+  const getLogoShapeClasses = (shape: 'square' | 'circle' | 'rounded', extraClasses = '') => {
+    switch (shape) {
+      case 'circle':
+        return `rounded-full aspect-square object-cover ${extraClasses}`;
+      case 'square':
+        return `rounded-none object-contain ${extraClasses}`;
+      case 'rounded':
+      default:
+        return `rounded-xl object-contain ${extraClasses}`;
+    }
+  };
+
   const bodyTextColor = template.textColor || (isTrade ? '#000000' : '#0f172a');
   const headingTextColor = template.headingTextColor || (template.headerStyle === 'BANNER' ? '#ffffff' : (isTrade ? '#000000' : '#0f172a'));
   const tableHeaderTextColor = template.tableHeaderTextColor || '#ffffff';
@@ -168,6 +183,21 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
         style={{ color: bodyTextColor }}
       >
         <div className="text-center pb-2 border-b border-dashed border-slate-400">
+          {isLogoVisible && (
+            <div className="flex justify-center pb-1.5">
+              {business.logoUrl ? (
+                <img
+                  src={business.logoUrl}
+                  alt="Company Logo"
+                  className={`max-h-12 max-w-[120px] ${getLogoShapeClasses(effectiveLogoShape)} border border-slate-300 p-0.5 bg-white`}
+                />
+              ) : (
+                <div className={`w-10 h-10 ${getLogoShapeClasses(effectiveLogoShape)} border-2 border-slate-800 bg-white flex items-center justify-center font-black text-xs`}>
+                  {(business.tradeName || business.name).slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+          )}
           <h2 className="font-bold text-sm uppercase tracking-wide" style={{ color: headingTextColor }}>{business.tradeName || business.name}</h2>
           <p className="text-[10px]" style={{ color: mutedTextColor }}>{business.address}, {business.city} - {business.pincode}</p>
           <p className="text-[10px] font-bold" style={{ color: headingTextColor }}>GSTIN: {business.gstin}</p>
@@ -350,12 +380,21 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
           <div className="px-4 pb-2 pt-0.5 relative flex items-center justify-between">
             {/* Logo Left */}
             <div className="w-20 shrink-0 flex items-center justify-start">
-              {template.showLogo && business.logoUrl ? (
-                <img src={business.logoUrl} alt="Logo" className="max-h-16 max-w-full object-contain" />
+              {isLogoVisible ? (
+                business.logoUrl ? (
+                  <img
+                    src={business.logoUrl}
+                    alt="Company Logo"
+                    className={`max-h-16 max-w-full ${getLogoShapeClasses(effectiveLogoShape)} border border-slate-300 p-0.5 bg-white shadow-2xs`}
+                  />
+                ) : (
+                  <div className={`w-14 h-14 ${getLogoShapeClasses(effectiveLogoShape)} border-2 border-cyan-500 bg-white flex items-center justify-center text-cyan-600 font-black text-xl tracking-tighter shadow-2xs`}>
+                    <span className="text-red-500">{(business.tradeName || business.name).charAt(0)}</span>
+                    <span className="text-cyan-600">{(business.tradeName || business.name).charAt(1) || 'M'}</span>
+                  </div>
+                )
               ) : (
-                <div className="w-14 h-14 rounded-full border-2 border-cyan-500 bg-white flex items-center justify-center text-cyan-600 font-black text-xl tracking-tighter shadow-2xs">
-                  <span className="text-red-500">T</span><span className="text-cyan-600">M</span>
-                </div>
+                <div className="w-1"></div>
               )}
             </div>
 
@@ -690,25 +729,42 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
             style={{ backgroundColor: themeHex, color: template.headingTextColor || '#ffffff' }}
           >
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                {template.showCopyTypeBadge && (
-                  <span className="inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white rounded backdrop-blur-xs">
-                    {copyLabel}
-                  </span>
+              <div className="flex items-start gap-3.5">
+                {isLogoVisible && (
+                  <div className="shrink-0 pt-0.5">
+                    {business.logoUrl ? (
+                      <img
+                        src={business.logoUrl}
+                        alt="Company Logo"
+                        className={`w-14 h-14 ${getLogoShapeClasses(effectiveLogoShape)} bg-white p-1 shadow-sm border border-white/30`}
+                      />
+                    ) : (
+                      <div className={`w-14 h-14 ${getLogoShapeClasses(effectiveLogoShape)} bg-white/20 backdrop-blur-xs border-2 border-white/40 flex items-center justify-center text-white font-black text-xl tracking-tight shadow-sm`}>
+                        {(business.tradeName || business.name).slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                 )}
-                <h1 className={`${fitToOnePage ? 'text-xl' : 'text-2xl'} font-black tracking-tight`} style={{ color: template.headingTextColor || '#ffffff' }}>
-                  {business.tradeName || business.name}
-                </h1>
-                {template.headerTagline && (
-                  <p className="text-[10px] text-white/80 font-medium italic">{template.headerTagline}</p>
-                )}
-                <p className="text-[10.5px] text-white/90 leading-tight max-w-md">
-                  {business.address}, {business.city}, {business.state} - {business.pincode}
-                </p>
-                <div className="flex flex-wrap gap-x-3 text-[10px] text-white/90 pt-0.5">
-                  <span>GSTIN: <strong className="font-mono">{business.gstin}</strong></span>
-                  <span>State Code: <strong className="font-mono">{business.stateCode}</strong></span>
-                  <span>Ph: {business.phone}</span>
+                <div className="space-y-1">
+                  {template.showCopyTypeBadge && (
+                    <span className="inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white rounded backdrop-blur-xs">
+                      {copyLabel}
+                    </span>
+                  )}
+                  <h1 className={`${fitToOnePage ? 'text-xl' : 'text-2xl'} font-black tracking-tight`} style={{ color: template.headingTextColor || '#ffffff' }}>
+                    {business.tradeName || business.name}
+                  </h1>
+                  {template.headerTagline && (
+                    <p className="text-[10px] text-white/80 font-medium italic">{template.headerTagline}</p>
+                  )}
+                  <p className="text-[10.5px] text-white/90 leading-tight max-w-md">
+                    {business.address}, {business.city}, {business.state} - {business.pincode}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 text-[10px] text-white/90 pt-0.5">
+                    <span>GSTIN: <strong className="font-mono">{business.gstin}</strong></span>
+                    <span>State Code: <strong className="font-mono">{business.stateCode}</strong></span>
+                    <span>Ph: {business.phone}</span>
+                  </div>
                 </div>
               </div>
 
@@ -729,28 +785,48 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
         ) : template.headerStyle === 'MODERN_SPLIT' ? (
           /* Modern Split Top Header */
           <div className={`flex items-start justify-between pb-3 border-b-2 gap-4`} style={{ borderColor: themeHex }}>
-            <div className="space-y-1">
-              {template.showCopyTypeBadge && (
-                <span 
-                  className="inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded"
-                  style={{ backgroundColor: `${themeHex}15`, color: accentTextColor }}
-                >
-                  {copyLabel}
-                </span>
+            <div className="flex items-start gap-3.5">
+              {isLogoVisible && (
+                <div className="shrink-0 pt-0.5">
+                  {business.logoUrl ? (
+                    <img
+                      src={business.logoUrl}
+                      alt="Company Logo"
+                      className={`w-14 h-14 ${getLogoShapeClasses(effectiveLogoShape)} bg-white p-1 border border-slate-200 shadow-2xs`}
+                    />
+                  ) : (
+                    <div 
+                      className={`w-14 h-14 ${getLogoShapeClasses(effectiveLogoShape)} border-2 flex items-center justify-center font-black text-xl tracking-tight shadow-2xs`}
+                      style={{ borderColor: themeHex, color: themeHex, backgroundColor: `${themeHex}10` }}
+                    >
+                      {(business.tradeName || business.name).slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </div>
               )}
-              <h1 className={`${fitToOnePage ? 'text-xl' : 'text-2xl'} font-black tracking-tight`} style={{ color: headingTextColor }}>
-                {business.tradeName || business.name}
-              </h1>
-              {template.headerTagline && (
-                <p className="text-[10.5px] font-medium" style={{ color: accentTextColor }}>{template.headerTagline}</p>
-              )}
-              <p className="text-[11px] leading-tight max-w-sm" style={{ color: mutedTextColor }}>
-                {business.address}, {business.city}, {business.state} - {business.pincode}
-              </p>
-              <div className="flex flex-wrap gap-x-3 text-[10.5px]" style={{ color: mutedTextColor }}>
-                <span>GSTIN: <strong className="font-mono" style={{ color: bodyTextColor }}>{business.gstin}</strong></span>
-                <span>Ph: {business.phone}</span>
-                {business.email && <span>Email: {business.email}</span>}
+              <div className="space-y-1">
+                {template.showCopyTypeBadge && (
+                  <span 
+                    className="inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded"
+                    style={{ backgroundColor: `${themeHex}15`, color: accentTextColor }}
+                  >
+                    {copyLabel}
+                  </span>
+                )}
+                <h1 className={`${fitToOnePage ? 'text-xl' : 'text-2xl'} font-black tracking-tight`} style={{ color: headingTextColor }}>
+                  {business.tradeName || business.name}
+                </h1>
+                {template.headerTagline && (
+                  <p className="text-[10.5px] font-medium" style={{ color: accentTextColor }}>{template.headerTagline}</p>
+                )}
+                <p className="text-[11px] leading-tight max-w-sm" style={{ color: mutedTextColor }}>
+                  {business.address}, {business.city}, {business.state} - {business.pincode}
+                </p>
+                <div className="flex flex-wrap gap-x-3 text-[10.5px]" style={{ color: mutedTextColor }}>
+                  <span>GSTIN: <strong className="font-mono" style={{ color: bodyTextColor }}>{business.gstin}</strong></span>
+                  <span>Ph: {business.phone}</span>
+                  {business.email && <span>Email: {business.email}</span>}
+                </div>
               </div>
             </div>
 
@@ -775,22 +851,39 @@ export const InvoiceTemplateRenderer: React.FC<InvoiceTemplateRendererProps> = (
           /* Official Minimal / Bordered Header */
           <div className="border border-slate-300 rounded-lg p-3.5 bg-slate-50/50">
             <div className="flex items-start justify-between pb-2.5 border-b border-slate-200 gap-4">
-              <div>
-                {template.showCopyTypeBadge && (
-                  <span className="inline-block px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700 rounded mb-1">
-                    {copyLabel}
-                  </span>
+              <div className="flex items-start gap-3.5">
+                {isLogoVisible && (
+                  <div className="shrink-0 pt-0.5">
+                    {business.logoUrl ? (
+                      <img
+                        src={business.logoUrl}
+                        alt="Company Logo"
+                        className={`w-13 h-13 ${getLogoShapeClasses(effectiveLogoShape)} bg-white p-0.5 border border-slate-300 shadow-2xs`}
+                      />
+                    ) : (
+                      <div className={`w-13 h-13 ${getLogoShapeClasses(effectiveLogoShape)} border-2 border-slate-400 bg-slate-100 flex items-center justify-center text-slate-800 font-black text-lg tracking-tight shadow-2xs`}>
+                        {(business.tradeName || business.name).slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                 )}
-                <h1 className={`${fitToOnePage ? 'text-lg' : 'text-xl'} font-black tracking-tight uppercase`} style={{ color: headingTextColor }}>
-                  {business.tradeName || business.name}
-                </h1>
-                <p className="text-[11px] mt-0.5" style={{ color: mutedTextColor }}>
-                  {business.address}, {business.city}, {business.state} - {business.pincode}
-                </p>
-                <div className="flex flex-wrap gap-x-3 text-[10.5px] mt-1" style={{ color: mutedTextColor }}>
-                  <span>GSTIN: <strong className="font-mono" style={{ color: bodyTextColor }}>{business.gstin}</strong></span>
-                  <span>State: <strong>{business.state} (Code: {business.stateCode})</strong></span>
-                  <span>Phone: {business.phone}</span>
+                <div>
+                  {template.showCopyTypeBadge && (
+                    <span className="inline-block px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700 rounded mb-1">
+                      {copyLabel}
+                    </span>
+                  )}
+                  <h1 className={`${fitToOnePage ? 'text-lg' : 'text-xl'} font-black tracking-tight uppercase`} style={{ color: headingTextColor }}>
+                    {business.tradeName || business.name}
+                  </h1>
+                  <p className="text-[11px] mt-0.5" style={{ color: mutedTextColor }}>
+                    {business.address}, {business.city}, {business.state} - {business.pincode}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 text-[10.5px] mt-1" style={{ color: mutedTextColor }}>
+                    <span>GSTIN: <strong className="font-mono" style={{ color: bodyTextColor }}>{business.gstin}</strong></span>
+                    <span>State: <strong>{business.state} (Code: {business.stateCode})</strong></span>
+                    <span>Phone: {business.phone}</span>
+                  </div>
                 </div>
               </div>
 

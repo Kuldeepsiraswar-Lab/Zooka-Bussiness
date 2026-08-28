@@ -14,7 +14,12 @@ import {
   Check, 
   FileSignature, 
   Image as ImageIcon,
-  Send
+  Send,
+  Eye,
+  EyeOff,
+  Square,
+  Circle,
+  Shapes
 } from 'lucide-react';
 import { Invoice } from '../../types';
 import { ShareInvoiceModal } from './ShareInvoiceModal';
@@ -38,22 +43,51 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
   }, [business.defaultTemplateId, business.customTemplates]);
 
   const isSignatureVisible = business.showSignatureOnInvoice !== false;
+  const isLogoVisible = business.showLogoOnInvoice !== false;
+  const currentLogoShape: 'rounded' | 'circle' | 'square' = business.logoShape || 'rounded';
+
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const invoice = invoices.find(i => i.id === invoiceId);
 
   if (!invoice) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
-        <p className="text-slate-500">Invoice not found.</p>
-        <button onClick={onBack} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold cursor-pointer">
-          Go Back
-        </button>
+      <div className="max-w-lg mx-auto p-8 my-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
+          <FileText className="w-8 h-8" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Invoice Record Not Found</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            The requested invoice (ID: <code className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{invoiceId || 'None'}</code>) could not be located in the current company ledger.
+          </p>
+        </div>
+        <div className="pt-2 flex items-center justify-center gap-3">
+          <button 
+            type="button"
+            onClick={onBack} 
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to Invoices</span>
+          </button>
+        </div>
       </div>
     );
   }
 
   const isThermal = activeTemplate.headerStyle === 'THERMAL' || activeTemplate.id === 'THERMAL_POS';
+
+  const handleToggleLogoVisibility = () => {
+    const newStatus = !isLogoVisible;
+    updateBusiness({ showLogoOnInvoice: newStatus }, true);
+    showToast('info', newStatus ? 'Logo Enabled' : 'Logo Hidden', newStatus ? 'Company logo is now visible on invoices.' : 'Company logo hidden on invoice print & export.');
+  };
+
+  const handleLogoShapeChange = (shape: 'rounded' | 'circle' | 'square') => {
+    updateBusiness({ logoShape: shape }, true);
+    showToast('success', 'Logo Shape Updated', `Company logo shape set to ${shape.charAt(0).toUpperCase() + shape.slice(1)}.`);
+  };
 
   const handlePrint = () => {
     if (!invoiceRef.current) {
@@ -274,23 +308,23 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
   return (
     <div className="space-y-6">
       {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             title="Go Back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900">{invoice.invoiceNumber}</h2>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">{invoice.invoiceNumber}</h2>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                 GST Compliant
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               {invoice.customerName} • {formatDate(invoice.invoiceDate)}
             </p>
           </div>
@@ -301,12 +335,78 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
           <select
             value={printCopyType}
             onChange={(e) => setPrintCopyType(e.target.value as any)}
-            className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none cursor-pointer"
+            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="ORIGINAL">Original for Recipient</option>
             <option value="DUPLICATE">Duplicate for Transporter</option>
             <option value="TRIPLICATE">Triplicate for Supplier</option>
           </select>
+
+          {/* Quick Logo Visibility Toggle */}
+          <button
+            type="button"
+            onClick={handleToggleLogoVisibility}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+              isLogoVisible 
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' 
+                : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+            }`}
+            title="Toggle company logo visibility on the invoice"
+          >
+            {isLogoVisible ? (
+              <Eye className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+            )}
+            <span>Logo: {isLogoVisible ? 'ON' : 'OFF'}</span>
+          </button>
+
+          {/* Quick Logo Shape Selector */}
+          {isLogoVisible && (
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <button
+                type="button"
+                onClick={() => handleLogoShapeChange('rounded')}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  currentLogoShape === 'rounded'
+                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Rounded rectangle logo"
+              >
+                <div className="w-3 h-3 rounded-sm border border-current"></div>
+                <span className="text-[11px]">Rounded</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleLogoShapeChange('circle')}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  currentLogoShape === 'circle'
+                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Circular avatar logo"
+              >
+                <Circle className="w-3 h-3" />
+                <span className="text-[11px]">Circle</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleLogoShapeChange('square')}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                  currentLogoShape === 'square'
+                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Square sharp logo"
+              >
+                <Square className="w-3 h-3" />
+                <span className="text-[11px]">Square</span>
+              </button>
+            </div>
+          )}
 
           {/* Fit to 1 Page Toggle (for A4) */}
           {!isThermal && (
@@ -314,14 +414,14 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
               onClick={() => setFitToOnePage(prev => !prev)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                 fitToOnePage 
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-xs' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 shadow-xs' 
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
               title="Compact rows to ensure complete invoice fits in 1 single A4 sheet"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>{fitToOnePage ? 'Fit to 1 A4: ON' : 'Fit to 1 A4'}</span>
-              {fitToOnePage && <Check className="w-3 h-3 text-indigo-600" />}
+              {fitToOnePage && <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
             </button>
           )}
 
@@ -335,12 +435,12 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
               isSignatureVisible 
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
-                : 'bg-slate-100 border-slate-300 text-slate-500'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' 
+                : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400'
             }`}
             title="Toggle Authorized Signature image on invoice"
           >
-            <FileSignature className="w-3.5 h-3.5 text-indigo-600" />
+            <FileSignature className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>Signature: {isSignatureVisible ? 'ON' : 'OFF'}</span>
           </button>
 
@@ -348,17 +448,17 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
           <button
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf || isGeneratingJpg}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50"
             title="Download formatted A4 PDF file"
           >
             {isGeneratingPdf ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400" />
                 <span>Exporting PDF...</span>
               </>
             ) : (
               <>
-                <Download className="w-4 h-4 text-indigo-600" />
+                <Download className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>Download PDF</span>
               </>
             )}
@@ -368,17 +468,17 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoiceId, o
           <button
             onClick={handleDownloadJpg}
             disabled={isGeneratingJpg || isGeneratingPdf}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 active:scale-95 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
             title="Download invoice as High Quality A4 JPG image format"
           >
             {isGeneratingJpg ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600 dark:text-emerald-400" />
                 <span>Exporting JPG...</span>
               </>
             ) : (
               <>
-                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <ImageIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Download JPG (A4)</span>
               </>
             )}

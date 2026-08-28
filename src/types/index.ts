@@ -500,6 +500,8 @@ export interface Company {
   currency: string;
   currencySymbol: string;
   logoUrl?: string;
+  showLogoOnInvoice?: boolean;
+  logoShape?: 'square' | 'circle' | 'rounded';
   themeColor?: string;
   invoicePrefix?: string;
   nextInvoiceNumber?: number;
@@ -566,6 +568,7 @@ export interface InvoiceTemplateConfig {
   fontFamily: 'sans' | 'serif' | 'mono';
   tableStyle: 'BORDERED' | 'STRIPED' | 'MINIMAL' | 'BOXED';
   showLogo: boolean;
+  logoShape?: 'square' | 'circle' | 'rounded';
   showPaymentMode?: boolean;
   showCashDetails?: boolean;
   showUpiQr: boolean;
@@ -741,6 +744,8 @@ export interface BusinessProfile {
   pincode: string;
   website?: string;
   logoUrl?: string;
+  showLogoOnInvoice?: boolean;
+  logoShape?: 'square' | 'circle' | 'rounded';
   signatureUrl?: string;
   signatoryName?: string;
   signatoryDesignation?: string;

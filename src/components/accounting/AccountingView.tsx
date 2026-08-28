@@ -934,18 +934,18 @@ export const AccountingView: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              <BookOpen className="w-6 h-6 text-indigo-600" />
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <BookOpen className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               Financial Accounting & General Ledger
             </h1>
             {biometricConfig.enabled && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 <span>Biometric Shield Active</span>
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Real-time double-entry posting engine, Ledger Master (Add/Edit/Delete), General Ledger Statements, Daybook, P&L & Balance Sheet.
           </p>
         </div>
@@ -954,10 +954,10 @@ export const AccountingView: React.FC = () => {
           {biometricConfig.enabled && biometricConfig.requireForAccounting && isBiometricAccountingUnlocked && (
             <button
               onClick={lockBiometricAccounting}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               title="Lock financial accounting session immediately"
             >
-              <Lock className="w-3.5 h-3.5 text-amber-600" />
+              <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               <span>Lock Ledgers</span>
             </button>
           )}
@@ -972,19 +972,19 @@ export const AccountingView: React.FC = () => {
                 setShowBankStatementImportModal(true);
               });
             }}
-            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
             title="Import Bank Statement CSV for auto-reconciliation and voucher posting"
           >
-            <Landmark className="w-4 h-4 text-indigo-600" />
-            <Upload className="w-3.5 h-3.5 text-indigo-600" />
+            <Landmark className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Upload className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>Bank Statement Auto Entry (CSV)</span>
           </button>
 
           <button
             onClick={handleOpenNewAccount}
-            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all cursor-pointer shadow-sm"
           >
-            <FolderPlus className="w-4 h-4 text-slate-600" />
+            <FolderPlus className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             <span>+ Add Ledger Account</span>
           </button>
 
@@ -999,13 +999,13 @@ export const AccountingView: React.FC = () => {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveSubTab('overview')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'overview'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Accounting Dashboard
@@ -1015,13 +1015,13 @@ export const AccountingView: React.FC = () => {
           onClick={() => setActiveSubTab('trial_balance')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === 'trial_balance'
-              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Layers className="w-4 h-4 text-indigo-600" />
+          <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Chart of Accounts & Ledger Master</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 font-bold">
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
             {dynamicAccountHeads.length}
           </span>
         </button>
@@ -1030,11 +1030,11 @@ export const AccountingView: React.FC = () => {
           onClick={() => setActiveSubTab('general_ledger')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === 'general_ledger'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileText className="w-4 h-4 text-indigo-600" />
+          <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>General Ledger Statement</span>
         </button>
 
@@ -1042,12 +1042,12 @@ export const AccountingView: React.FC = () => {
           onClick={() => setActiveSubTab('daybook')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === 'daybook'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <span>Daybook & Journal Entries</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700">
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             {journalEntries.length}
           </span>
         </button>
@@ -1056,8 +1056,8 @@ export const AccountingView: React.FC = () => {
           onClick={() => setActiveSubTab('pnl')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'pnl'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Profit & Loss Statement
@@ -1067,8 +1067,8 @@ export const AccountingView: React.FC = () => {
           onClick={() => setActiveSubTab('balance_sheet')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'balance_sheet'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           Balance Sheet
@@ -1082,70 +1082,70 @@ export const AccountingView: React.FC = () => {
         <div className="space-y-6">
           {/* Key Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                 <span>Revenue (Sales)</span>
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900">{formatINR(totalSalesRevenue)}</div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">From Tax Invoices</div>
+              <div className="text-xl font-extrabold text-slate-900 dark:text-white">{formatINR(totalSalesRevenue)}</div>
+              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">From Tax Invoices</div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                 <span>Total Purchases</span>
                 <TrendingDown className="w-4 h-4 text-rose-500" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900">{formatINR(totalPurchaseCost)}</div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">From Inward Bills</div>
+              <div className="text-xl font-extrabold text-slate-900 dark:text-white">{formatINR(totalPurchaseCost)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-1">From Inward Bills</div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                 <span>Net Estimated Profit</span>
-                <DollarSign className="w-4 h-4 text-indigo-500" />
+                <DollarSign className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
               </div>
-              <div className={`text-xl font-extrabold ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <div className={`text-xl font-extrabold ${netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {formatINR(netProfit)}
               </div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">After direct & indirect expenses</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-1">After direct & indirect expenses</div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
                 <span>Accounts Receivable</span>
                 <Scale className="w-4 h-4 text-amber-500" />
               </div>
-              <div className="text-xl font-extrabold text-amber-700">{formatINR(totalReceivables)}</div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">Outstanding from clients</div>
+              <div className="text-xl font-extrabold text-amber-700 dark:text-amber-400">{formatINR(totalReceivables)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-1">Outstanding from clients</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Chart of Accounts Summary */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     Accurate General Ledger Account Balances
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Click any account below to open its detailed statement of debits and credits
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleOpenNewAccount}
-                    className="text-xs text-indigo-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                     <span>New Account</span>
                   </button>
-                  <span className="text-slate-300">|</span>
+                  <span className="text-slate-300 dark:text-slate-600">|</span>
                   <button
                     onClick={() => setActiveSubTab('trial_balance')}
-                    className="text-xs text-indigo-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <span>Manage All</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -1161,25 +1161,25 @@ export const AccountingView: React.FC = () => {
                       setSelectedAccountId(acc.id);
                       setActiveSubTab('general_ledger');
                     }}
-                    className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/40 border border-slate-200 hover:border-indigo-300 flex items-center justify-between transition-all cursor-pointer group"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 hover:bg-indigo-50/40 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 flex items-center justify-between transition-all cursor-pointer group"
                   >
                     <div>
-                      <div className="font-bold text-slate-900 group-hover:text-indigo-600 flex items-center gap-1.5 transition-colors">
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 flex items-center gap-1.5 transition-colors">
                         <span>{acc.name}</span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-200/70 px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700 px-1.5 py-0.2 rounded">
                           {acc.code}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-500">{acc.category}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">{acc.category}</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-extrabold text-slate-900">
+                      <div className="font-extrabold text-slate-900 dark:text-white">
                         {formatINR(Math.abs(acc.balance))}
                       </div>
                       <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
                         acc.category === 'ASSET' || acc.category === 'EXPENSE'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-emerald-50 text-emerald-700'
+                          ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+                          : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                       }`}>
                         {acc.category === 'ASSET' || acc.category === 'EXPENSE' ? 'Dr Balance' : 'Cr Balance'}
                       </span>
@@ -1190,12 +1190,12 @@ export const AccountingView: React.FC = () => {
             </div>
 
             {/* Recent Daybook Log */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-sm text-slate-900">Recent Journal Vouchers</h3>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Recent Journal Vouchers</h3>
                 <button
                   onClick={() => setActiveSubTab('daybook')}
-                  className="text-xs text-indigo-600 font-semibold hover:underline"
+                  className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
                 >
                   Full Daybook &rarr;
                 </button>
@@ -1203,38 +1203,38 @@ export const AccountingView: React.FC = () => {
 
               <div className="space-y-3">
                 {journalEntries.slice(0, 4).map(entry => (
-                  <div key={entry.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs relative group">
+                  <div key={entry.id} className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs relative group">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-bold font-mono text-indigo-600">{entry.entryNumber}</span>
+                      <span className="font-bold font-mono text-indigo-600 dark:text-indigo-400">{entry.entryNumber}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-500">{entry.date}</span>
+                        <span className="text-slate-500 dark:text-slate-400">{entry.date}</span>
                         <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleOpenEditJv(entry)}
                             title="Edit Journal Entry"
-                            className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded cursor-pointer"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setEntryToDelete(entry)}
                             title="Delete Journal Entry"
-                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
                     </div>
-                    <p className="font-medium text-slate-900 mb-2 truncate">{entry.description}</p>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200">
+                    <p className="font-medium text-slate-900 dark:text-white mb-2 truncate">{entry.description}</p>
+                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200 dark:border-slate-700">
                       <div>
                         <span className="text-slate-400 font-semibold">Debit: </span>
-                        <span className="text-slate-700 font-medium">{entry.lines.filter(l => l.debit > 0).map(l => `${l.accountName} (${formatINR(l.debit)})`).join(', ')}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">{entry.lines.filter(l => l.debit > 0).map(l => `${l.accountName} (${formatINR(l.debit)})`).join(', ')}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-slate-400 font-semibold">Credit: </span>
-                        <span className="text-slate-700 font-medium">{entry.lines.filter(l => l.credit > 0).map(l => `${l.accountName} (${formatINR(l.credit)})`).join(', ')}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">{entry.lines.filter(l => l.credit > 0).map(l => `${l.accountName} (${formatINR(l.credit)})`).join(', ')}</span>
                       </div>
                     </div>
                   </div>
@@ -1250,15 +1250,15 @@ export const AccountingView: React.FC = () => {
          ========================================================================= */}
       {activeSubTab === 'trial_balance' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* Header & Master Controls */}
-            <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/70">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-850/80">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-600" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   Chart of Accounts & Ledger Master (Ind AS)
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Add, edit, customize, or delete general ledger account heads across Assets, Liabilities, Equity, Incomes & Expenses.
                 </p>
               </div>
@@ -1275,7 +1275,7 @@ export const AccountingView: React.FC = () => {
             </div>
 
             {/* Filter and Search Bar */}
-            <div className="p-3 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative">
                   <input
@@ -1283,20 +1283,20 @@ export const AccountingView: React.FC = () => {
                     placeholder="Search account code, name or group..."
                     value={coaSearch}
                     onChange={e => setCoaSearch(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-60 sm:w-72"
+                    className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-60 sm:w-72"
                   />
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                   {['ALL', 'ASSET', 'LIABILITY', 'EQUITY', 'INCOME', 'EXPENSE'].map(cat => (
                     <button
                       key={cat}
                       onClick={() => setCoaCategoryFilter(cat)}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                         coaCategoryFilter === cat
-                          ? 'bg-white text-indigo-600 shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       {cat}
@@ -1305,7 +1305,7 @@ export const AccountingView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-500 font-medium">
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 Showing {filteredChartOfAccounts.length} of {dynamicAccountHeads.length} Accounts
               </div>
             </div>
@@ -1313,7 +1313,7 @@ export const AccountingView: React.FC = () => {
             {/* Accounts Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100 text-slate-600 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-3 px-4">Code</th>
                     <th className="py-3 px-4">Account Name & Sub-Group</th>
@@ -1324,47 +1324,47 @@ export const AccountingView: React.FC = () => {
                     <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredChartOfAccounts.map(acc => {
                     const isDr = acc.category === 'ASSET' || acc.category === 'EXPENSE';
                     return (
-                      <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors group">
-                        <td className="py-3 px-4 font-mono font-bold text-indigo-600">
+                      <tr key={acc.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
+                        <td className="py-3 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
                           {acc.code}
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-bold text-slate-900 flex items-center gap-2">
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <span>{acc.name}</span>
                             {acc.isSystem && (
-                              <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                              <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-700">
                                 System Default
                               </span>
                             )}
                           </div>
                           {acc.subCategory && (
-                            <div className="text-[10px] text-slate-500 font-medium">
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                               {acc.subCategory}
                             </div>
                           )}
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            acc.category === 'ASSET' ? 'bg-blue-100 text-blue-800' :
-                            acc.category === 'LIABILITY' ? 'bg-amber-100 text-amber-800' :
-                            acc.category === 'EQUITY' ? 'bg-purple-100 text-purple-800' :
-                            acc.category === 'INCOME' ? 'bg-emerald-100 text-emerald-800' :
-                            'bg-rose-100 text-rose-800'
+                            acc.category === 'ASSET' ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300' :
+                            acc.category === 'LIABILITY' ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300' :
+                            acc.category === 'EQUITY' ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300' :
+                            acc.category === 'INCOME' ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300' :
+                            'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300'
                           }`}>
                             {acc.category}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right font-mono text-slate-600">
+                        <td className="py-3 px-4 text-right font-mono text-slate-600 dark:text-slate-400">
                           {acc.openingBalance ? formatINR(acc.openingBalance) : '-'}
                         </td>
-                        <td className="py-3 px-4 text-right font-mono font-bold text-blue-700">
+                        <td className="py-3 px-4 text-right font-mono font-bold text-blue-700 dark:text-blue-400">
                           {isDr ? formatINR(Math.abs(acc.balance)) : '-'}
                         </td>
-                        <td className="py-3 px-4 text-right font-mono font-bold text-emerald-700">
+                        <td className="py-3 px-4 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">
                           {!isDr ? formatINR(Math.abs(acc.balance)) : '-'}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -1375,7 +1375,7 @@ export const AccountingView: React.FC = () => {
                                 setSelectedAccountId(acc.id);
                                 setActiveSubTab('general_ledger');
                               }}
-                              className="px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 rounded-md font-semibold cursor-pointer flex items-center gap-1"
+                              className="px-2 py-1 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-md font-semibold cursor-pointer flex items-center gap-1"
                               title="View Ledger Statement"
                             >
                               <FileText className="w-3.5 h-3.5" />
@@ -1385,7 +1385,7 @@ export const AccountingView: React.FC = () => {
                             {/* Edit Account */}
                             <button
                               onClick={() => handleOpenEditAccount(acc)}
-                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md cursor-pointer transition-colors"
+                              className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-md cursor-pointer transition-colors"
                               title="Edit Ledger Account Details"
                             >
                               <Edit className="w-3.5 h-3.5" />
@@ -1394,7 +1394,7 @@ export const AccountingView: React.FC = () => {
                             {/* Delete Account */}
                             <button
                               onClick={() => setAccountToDelete(acc)}
-                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md cursor-pointer transition-colors"
+                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md cursor-pointer transition-colors"
                               title="Delete Ledger Account"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1413,15 +1413,15 @@ export const AccountingView: React.FC = () => {
                     </tr>
                   )}
                 </tbody>
-                <tfoot className="bg-slate-100 border-t-2 border-slate-300 font-extrabold text-xs">
+                <tfoot className="bg-slate-100 dark:bg-slate-800 border-t-2 border-slate-300 dark:border-slate-700 font-extrabold text-xs">
                   <tr>
-                    <td colSpan={4} className="py-3 px-4 text-slate-900 uppercase">
+                    <td colSpan={4} className="py-3 px-4 text-slate-900 dark:text-white uppercase">
                       Trial Balance Totals (Dr = Cr)
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-blue-800 text-sm">
+                    <td className="py-3 px-4 text-right font-mono text-blue-800 dark:text-blue-300 text-sm">
                       {formatINR(dynamicAccountHeads.filter(a => a.category === 'ASSET' || a.category === 'EXPENSE').reduce((s, a) => s + Math.abs(a.balance), 0))}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-emerald-800 text-sm">
+                    <td className="py-3 px-4 text-right font-mono text-emerald-800 dark:text-emerald-300 text-sm">
                       {formatINR(dynamicAccountHeads.filter(a => a.category !== 'ASSET' && a.category !== 'EXPENSE').reduce((s, a) => s + Math.abs(a.balance), 0))}
                     </td>
                     <td></td>
@@ -1439,21 +1439,21 @@ export const AccountingView: React.FC = () => {
       {activeSubTab === 'general_ledger' && (
         <div className="space-y-5">
           {/* Top Account Selector & Filter Bar */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Select General Ledger Account:
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[11px] font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 text-[11px] font-mono font-bold">
                     {currentAccount.code}
                   </span>
                 </div>
                 <select
                   value={selectedAccountId}
                   onChange={e => setSelectedAccountId(e.target.value)}
-                  className="px-3 py-2 text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-w-[280px]"
+                  className="px-3 py-2 text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-w-[280px]"
                 >
                   {dynamicAccountHeads.map(acc => (
                     <option key={acc.id} value={acc.id}>
@@ -1464,34 +1464,34 @@ export const AccountingView: React.FC = () => {
               </div>
 
               {/* Account Balance Summary Highlight */}
-              <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block">
                     Account Classification
                   </span>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     {currentAccount.category}
                   </span>
                 </div>
-                <div className="h-8 w-px bg-slate-200" />
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block">
                     Total Transactions
                   </span>
-                  <span className="text-xs font-mono font-bold text-slate-800">
+                  <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
                     {currentAccountPostings.length} Postings
                   </span>
                 </div>
-                <div className="h-8 w-px bg-slate-200" />
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block">
                     Closing Ledger Balance
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-mono font-extrabold text-indigo-700">
+                    <span className="text-sm font-mono font-extrabold text-indigo-700 dark:text-indigo-400">
                       {formatINR(Math.abs(currentAccount.balance))}
                     </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800">
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300">
                       {currentAccount.category === 'ASSET' || currentAccount.category === 'EXPENSE' ? 'Dr' : 'Cr'}
                     </span>
                   </div>
@@ -1500,7 +1500,7 @@ export const AccountingView: React.FC = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <input
@@ -1508,25 +1508,25 @@ export const AccountingView: React.FC = () => {
                     placeholder="Search narration or voucher #..."
                     value={ledgerSearch}
                     onChange={e => setLedgerSearch(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-60"
+                    className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-60"
                   />
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 </div>
 
-                <div className="flex items-center gap-1.5 text-slate-500">
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                   <span>From:</span>
                   <input
                     type="date"
                     value={ledgerStartDate}
                     onChange={e => setLedgerStartDate(e.target.value)}
-                    className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg text-xs"
                   />
                   <span>To:</span>
                   <input
                     type="date"
                     value={ledgerEndDate}
                     onChange={e => setLedgerEndDate(e.target.value)}
-                    className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg text-xs"
                   />
                 </div>
               </div>
@@ -1534,16 +1534,16 @@ export const AccountingView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowBankStatementImportModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer transition-colors shadow-2xs active:scale-95"
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 rounded-lg cursor-pointer transition-colors shadow-2xs active:scale-95"
                   title="Import Bank Statement CSV for this Account"
                 >
-                  <Landmark className="w-3.5 h-3.5 text-indigo-600" />
+                  <Landmark className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>Auto Entry from Bank Statement (CSV)</span>
                 </button>
 
                 <button
                   onClick={() => handleOpenEditAccount(currentAccount)}
-                  className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors"
                 >
                   <Edit className="w-3 h-3" />
                   <span>Edit Account Details</span>
@@ -1554,19 +1554,19 @@ export const AccountingView: React.FC = () => {
 
           {/* If current account is Bank Account, show specialized Bank Reconcile banner */}
           {(currentAccount.name.toLowerCase().includes('bank') || currentAccount.code === '1010' || currentAccount.subCategory?.toLowerCase().includes('bank')) && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50/50 border border-indigo-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50/50 dark:from-slate-850 dark:via-slate-900 dark:to-indigo-950/40 border border-indigo-200/90 dark:border-indigo-900/50 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 shrink-0">
                   <Landmark className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-indigo-950 flex items-center gap-2">
+                  <h4 className="text-xs font-extrabold text-indigo-950 dark:text-indigo-200 flex items-center gap-2">
                     <span>Reconcile & Auto-Populate {currentAccount.name} from Bank CSV</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                       AI Parser
                     </span>
                   </h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
                     Upload official bank statement CSV (HDFC, ICICI, SBI, Axis, Kotak) to auto-generate receipts, vendor payments, expenses, and contra transfers.
                   </p>
                 </div>
@@ -1583,10 +1583,10 @@ export const AccountingView: React.FC = () => {
           )}
 
           {/* General Ledger Statement Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold border-b border-slate-200">
+                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase text-[10px] font-bold border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Voucher Type</th>
@@ -1597,42 +1597,42 @@ export const AccountingView: React.FC = () => {
                     <th className="py-3 px-4 text-right">Running Balance</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {currentAccountPostings.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-4 font-mono text-slate-600">
+                    <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-2.5 px-4 font-mono text-slate-600 dark:text-slate-400">
                         {p.date}
                       </td>
                       <td className="py-2.5 px-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          p.voucherType === 'INVOICE' ? 'bg-indigo-100 text-indigo-800' :
-                          p.voucherType === 'PAYMENT_RECEIVED' ? 'bg-emerald-100 text-emerald-800' :
-                          p.voucherType === 'PURCHASE_BILL' ? 'bg-amber-100 text-amber-800' :
-                          p.voucherType === 'VENDOR_PAYMENT' ? 'bg-blue-100 text-blue-800' :
-                          p.voucherType === 'EXPENSE' ? 'bg-rose-100 text-rose-800' :
-                          'bg-purple-100 text-purple-800'
+                          p.voucherType === 'INVOICE' ? 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300' :
+                          p.voucherType === 'PAYMENT_RECEIVED' ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300' :
+                          p.voucherType === 'PURCHASE_BILL' ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300' :
+                          p.voucherType === 'VENDOR_PAYMENT' ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300' :
+                          p.voucherType === 'EXPENSE' ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300' :
+                          'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300'
                         }`}>
                           {p.voucherType.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td className="py-2.5 px-4 font-mono font-bold text-slate-900">
+                      <td className="py-2.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                         {p.voucherNumber}
                       </td>
                       <td className="py-2.5 px-4">
-                        <div className="font-semibold text-slate-900">{p.particulars}</div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{p.particulars}</div>
                         {p.oppositeAccount && (
-                          <div className="text-[10px] text-slate-400">
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500">
                             Opposite: {p.oppositeAccount}
                           </div>
                         )}
                       </td>
-                      <td className="py-2.5 px-4 text-right font-mono font-bold text-blue-700">
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-blue-700 dark:text-blue-400">
                         {p.debit > 0 ? formatINR(p.debit) : '-'}
                       </td>
-                      <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-700">
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">
                         {p.credit > 0 ? formatINR(p.credit) : '-'}
                       </td>
-                      <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900 dark:text-white">
                         {formatINR(p.runningBalance || 0)}
                         <span className="text-[10px] text-slate-400 ml-1 font-sans">
                           {p.balanceType || (currentAccount.category === 'ASSET' || currentAccount.category === 'EXPENSE' ? 'Dr' : 'Cr')}
@@ -1649,20 +1649,20 @@ export const AccountingView: React.FC = () => {
                     </tr>
                   )}
                 </tbody>
-                <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-200 text-xs">
+                <tfoot className="bg-slate-50 dark:bg-slate-800 font-bold border-t-2 border-slate-200 dark:border-slate-700 text-xs">
                   <tr>
-                    <td colSpan={4} className="py-3 px-4 text-slate-800 uppercase font-extrabold">
+                    <td colSpan={4} className="py-3 px-4 text-slate-800 dark:text-slate-200 uppercase font-extrabold">
                       Total Ledger Postings & Final Balance
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-blue-700">
+                    <td className="py-3 px-4 text-right font-mono text-blue-700 dark:text-blue-400">
                       {formatINR(currentAccountPostings.reduce((s, p) => s + p.debit, 0))}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-emerald-700">
+                    <td className="py-3 px-4 text-right font-mono text-emerald-700 dark:text-emerald-400">
                       {formatINR(currentAccountPostings.reduce((s, p) => s + p.credit, 0))}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-indigo-900 font-extrabold text-sm">
+                    <td className="py-3 px-4 text-right font-mono text-indigo-900 dark:text-indigo-300 font-extrabold text-sm">
                       {formatINR(Math.abs(currentAccount.balance))}
-                      <span className="text-xs ml-1 font-sans text-slate-500">
+                      <span className="text-xs ml-1 font-sans text-slate-500 dark:text-slate-400">
                         {currentAccount.category === 'ASSET' || currentAccount.category === 'EXPENSE' ? 'Dr' : 'Cr'}
                       </span>
                     </td>
@@ -1678,12 +1678,12 @@ export const AccountingView: React.FC = () => {
           TAB 4: DAYBOOK & JOURNAL ENTRIES
          ========================================================================= */}
       {activeSubTab === 'daybook' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Header & Filter Bar */}
-          <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-850/80">
             <div>
-              <h3 className="font-bold text-sm text-slate-900">General Journal Entries (Double-Entry Book)</h3>
-              <p className="text-xs text-slate-500">Edit, delete, or create manual journal adjustments</p>
+              <h3 className="font-bold text-sm text-slate-900 dark:text-white">General Journal Entries (Double-Entry Book)</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Edit, delete, or create manual journal adjustments</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -1693,7 +1693,7 @@ export const AccountingView: React.FC = () => {
                   placeholder="Search voucher # or narration..."
                   value={daybookSearch}
                   onChange={e => setDaybookSearch(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-52 sm:w-64"
+                  className="pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 w-52 sm:w-64"
                 />
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               </div>
@@ -1701,7 +1701,7 @@ export const AccountingView: React.FC = () => {
               <select
                 value={daybookAccountFilter}
                 onChange={e => setDaybookAccountFilter(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-xl outline-none text-slate-700"
+                className="px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none text-slate-700 dark:text-slate-200"
               >
                 <option value="all">All Accounts</option>
                 {dynamicAccountHeads.map(acc => (
@@ -1713,7 +1713,7 @@ export const AccountingView: React.FC = () => {
 
               <button
                 onClick={handleOpenNewJv}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow cursor-pointer transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Voucher</span>
@@ -1721,37 +1721,37 @@ export const AccountingView: React.FC = () => {
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredDaybookEntries.map(entry => {
               const drTotal = entry.lines.reduce((s, l) => s + l.debit, 0);
               return (
-                <div key={entry.id} className="p-4 hover:bg-slate-50/70 transition-colors">
+                <div key={entry.id} className="p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <span className="px-2.5 py-1 text-xs font-mono font-bold bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
+                      <span className="px-2.5 py-1 text-xs font-mono font-bold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 rounded-lg border border-indigo-100 dark:border-indigo-800">
                         {entry.entryNumber}
                       </span>
-                      <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {entry.date}
                       </span>
                       {entry.reference && (
-                        <span className="text-[11px] text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                           Ref: {entry.reference}
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="text-xs font-extrabold text-slate-900">
+                      <div className="text-xs font-extrabold text-slate-900 dark:text-white">
                         Total Amount: {formatINR(drTotal)}
                       </div>
 
                       {/* Action Buttons: Edit, Delete */}
-                      <div className="flex items-center gap-1 pl-3 border-l border-slate-200">
+                      <div className="flex items-center gap-1 pl-3 border-l border-slate-200 dark:border-slate-700">
                         <button
                           onClick={() => handleOpenEditJv(entry)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
                           title="Edit this Journal Voucher"
                         >
                           <Edit className="w-3.5 h-3.5" />
@@ -1760,7 +1760,7 @@ export const AccountingView: React.FC = () => {
 
                         <button
                           onClick={() => setEntryToDelete(entry)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
                           title="Delete this Journal Voucher"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1770,29 +1770,29 @@ export const AccountingView: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-700 font-medium mb-3 italic">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mb-3 italic">
                     "{entry.description}"
                   </p>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="bg-slate-100/70 text-slate-600 uppercase text-[10px] font-bold">
+                      <thead className="bg-slate-100/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase text-[10px] font-bold">
                         <tr>
                           <th className="py-1.5 px-3">Account Head</th>
                           <th className="py-1.5 px-3 text-right">Debit (Dr)</th>
                           <th className="py-1.5 px-3 text-right">Credit (Cr)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {entry.lines.map((line, idx) => (
-                          <tr key={idx} className="hover:bg-white">
-                            <td className="py-1.5 px-3 font-medium text-slate-800">
+                          <tr key={idx} className="hover:bg-white dark:hover:bg-slate-800/80">
+                            <td className="py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200">
                               {line.accountName}
                             </td>
-                            <td className="py-1.5 px-3 text-right font-mono font-semibold text-blue-700">
+                            <td className="py-1.5 px-3 text-right font-mono font-semibold text-blue-700 dark:text-blue-400">
                               {line.debit > 0 ? formatINR(line.debit) : '-'}
                             </td>
-                            <td className="py-1.5 px-3 text-right font-mono font-semibold text-emerald-700">
+                            <td className="py-1.5 px-3 text-right font-mono font-semibold text-emerald-700 dark:text-emerald-400">
                               {line.credit > 0 ? formatINR(line.credit) : '-'}
                             </td>
                           </tr>
@@ -1817,14 +1817,14 @@ export const AccountingView: React.FC = () => {
           TAB 5: STATEMENT OF PROFIT & LOSS
          ========================================================================= */}
       {activeSubTab === 'pnl' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <div>
-              <h3 className="font-extrabold text-base text-slate-900">Statement of Profit & Loss</h3>
-              <p className="text-xs text-slate-500">For the period 01-Apr-2026 to 31-Mar-2027</p>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Statement of Profit & Loss</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">For the period 01-Apr-2026 to 31-Mar-2027</p>
             </div>
             <div className="text-right">
-              <span className="font-mono text-xs bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-bold">
+              <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-600 dark:text-slate-300 font-bold">
                 Accrual Basis (GST Aligned)
               </span>
             </div>
@@ -1833,44 +1833,44 @@ export const AccountingView: React.FC = () => {
           <div className="space-y-6 text-xs">
             {/* 1. Revenue */}
             <div>
-              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 bg-slate-50 p-2 rounded-lg">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px] mb-2 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg">
                 I. Revenue from Operations
               </h4>
               <div className="space-y-2 px-2">
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Taxable Sales Turnover</span>
-                  <span className="font-mono font-bold">{formatINR(totalSalesRevenue)}</span>
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Taxable Sales Turnover</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">{formatINR(totalSalesRevenue)}</span>
                 </div>
-                <div className="flex justify-between py-1 font-bold text-slate-900 bg-emerald-50/50 p-2 rounded">
+                <div className="flex justify-between py-1 font-bold text-slate-900 dark:text-white bg-emerald-50/50 dark:bg-emerald-950/40 p-2 rounded">
                   <span>Total Revenue (A)</span>
-                  <span className="font-mono">{formatINR(totalSalesRevenue)}</span>
+                  <span className="font-mono text-emerald-700 dark:text-emerald-300">{formatINR(totalSalesRevenue)}</span>
                 </div>
               </div>
             </div>
 
             {/* 2. Expenses */}
             <div>
-              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 bg-slate-50 p-2 rounded-lg">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px] mb-2 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg">
                 II. Expenses
               </h4>
               <div className="space-y-2 px-2">
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Cost of Materials Purchased (COGS)</span>
-                  <span className="font-mono font-semibold">{formatINR(totalPurchaseCost)}</span>
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Cost of Materials Purchased (COGS)</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(totalPurchaseCost)}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Operating & Administrative Expenses</span>
-                  <span className="font-mono font-semibold">{formatINR(totalExpensesAmount)}</span>
+                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Operating & Administrative Expenses</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(totalExpensesAmount)}</span>
                 </div>
-                <div className="flex justify-between py-1 font-bold text-slate-900 bg-rose-50/50 p-2 rounded">
+                <div className="flex justify-between py-1 font-bold text-slate-900 dark:text-white bg-rose-50/50 dark:bg-rose-950/40 p-2 rounded">
                   <span>Total Expenses (B)</span>
-                  <span className="font-mono">{formatINR(totalPurchaseCost + totalExpensesAmount)}</span>
+                  <span className="font-mono text-rose-700 dark:text-rose-300">{formatINR(totalPurchaseCost + totalExpensesAmount)}</span>
                 </div>
               </div>
             </div>
 
             {/* 3. Net Result */}
-            <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between font-extrabold text-sm">
+            <div className="p-4 rounded-xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-between font-extrabold text-sm">
               <span>Estimated Net Profit Before Tax (A - B)</span>
               <span className={`font-mono text-base ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {formatINR(netProfit)}
@@ -1884,14 +1884,14 @@ export const AccountingView: React.FC = () => {
           TAB 6: BALANCE SHEET
          ========================================================================= */}
       {activeSubTab === 'balance_sheet' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <div>
-              <h3 className="font-extrabold text-base text-slate-900">Provisional Balance Sheet</h3>
-              <p className="text-xs text-slate-500">As of today (Double-Entry Financial Position)</p>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Provisional Balance Sheet</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">As of today (Double-Entry Financial Position)</p>
             </div>
             <div className="text-right">
-              <span className="font-mono text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-bold border border-emerald-200">
+              <span className="font-mono text-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full font-bold border border-emerald-200 dark:border-emerald-800">
                 Balanced Position
               </span>
             </div>
@@ -1900,58 +1900,58 @@ export const AccountingView: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
             {/* Liabilities & Equity */}
             <div className="space-y-4">
-              <div className="p-2.5 rounded-lg bg-amber-50 text-amber-900 font-bold uppercase tracking-wider text-[11px]">
+              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-bold uppercase tracking-wider text-[11px]">
                 Equities & Liabilities
               </div>
 
               <div className="space-y-2">
-                <div className="font-bold text-slate-700">1. Current Liabilities:</div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Trade Payables (Sundry Creditors)</span>
-                  <span className="font-mono font-semibold">{formatINR(Math.abs(creditorsHead?.balance || totalPayables))}</span>
+                <div className="font-bold text-slate-700 dark:text-slate-300">1. Current Liabilities:</div>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Trade Payables (Sundry Creditors)</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(Math.abs(creditorsHead?.balance || totalPayables))}</span>
                 </div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">GST Output Tax Liability</span>
-                  <span className="font-mono font-semibold">{formatINR(netGstPayable)}</span>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">GST Output Tax Liability</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(netGstPayable)}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="font-bold text-slate-700">2. Owner's Equity & Retained Earnings:</div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Owner Capital (Equity)</span>
-                  <span className="font-mono font-semibold">{formatINR(Math.abs(capitalHead?.balance || 0))}</span>
+                <div className="font-bold text-slate-700 dark:text-slate-300">2. Owner's Equity & Retained Earnings:</div>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Owner Capital (Equity)</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(Math.abs(capitalHead?.balance || 0))}</span>
                 </div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Current Period Net Profit</span>
-                  <span className="font-mono font-semibold">{formatINR(netProfit)}</span>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Current Period Net Profit</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(netProfit)}</span>
                 </div>
               </div>
             </div>
 
             {/* Assets */}
             <div className="space-y-4">
-              <div className="p-2.5 rounded-lg bg-blue-50 text-blue-900 font-bold uppercase tracking-wider text-[11px]">
+              <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-900 dark:text-blue-300 font-bold uppercase tracking-wider text-[11px]">
                 Assets
               </div>
 
               <div className="space-y-2">
-                <div className="font-bold text-slate-700">1. Current Assets:</div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Trade Receivables (Sundry Debtors)</span>
-                  <span className="font-mono font-semibold">{formatINR(Math.abs(debtorsHead?.balance || totalReceivables))}</span>
+                <div className="font-bold text-slate-700 dark:text-slate-300">1. Current Assets:</div>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Trade Receivables (Sundry Debtors)</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(Math.abs(debtorsHead?.balance || totalReceivables))}</span>
                 </div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Bank Balance (HDFC Current Account)</span>
-                  <span className="font-mono font-semibold">{formatINR(Math.abs(bankHead?.balance || 0))}</span>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Bank Balance (HDFC Current Account)</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(Math.abs(bankHead?.balance || 0))}</span>
                 </div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Cash in Hand</span>
-                  <span className="font-mono font-semibold">{formatINR(Math.abs(cashHead?.balance || 0))}</span>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Cash in Hand</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(Math.abs(cashHead?.balance || 0))}</span>
                 </div>
-                <div className="flex justify-between py-1 pl-4 border-b border-slate-100">
-                  <span className="text-slate-600">Input Tax Credit (ITC) Available</span>
-                  <span className="font-mono font-semibold">{formatINR(excessItcCarriedForward)}</span>
+                <div className="flex justify-between py-1 pl-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Input Tax Credit (ITC) Available</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatINR(excessItcCarriedForward)}</span>
                 </div>
               </div>
             </div>
@@ -1963,18 +1963,18 @@ export const AccountingView: React.FC = () => {
           LEDGER MASTER (ADD / EDIT ACCOUNT HEAD) MODAL
          ========================================================================= */}
       {showAccountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md md:max-w-lg w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md md:max-w-lg w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                   <FolderPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                     {editingAccountId ? 'Edit Ledger Account' : 'Create New Ledger Account'}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {editingAccountId ? 'Update account code, group or opening balance' : 'Add custom ledger head to Chart of Accounts'}
                   </p>
                 </div>
@@ -1984,7 +1984,7 @@ export const AccountingView: React.FC = () => {
                   setShowAccountModal(false);
                   setEditingAccountId(null);
                 }} 
-                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1993,11 +1993,11 @@ export const AccountingView: React.FC = () => {
             <form onSubmit={handleSaveAccount} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Account Category *</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Account Category *</label>
                   <select
                     value={accCategory}
                     onChange={e => handleCategoryChange(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
                   >
                     <option value="ASSET">ASSET (Current / Fixed Assets / Bank)</option>
                     <option value="LIABILITY">LIABILITY (Duties, Loans, Creditors)</option>
@@ -2008,36 +2008,36 @@ export const AccountingView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Account Code *</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Account Code *</label>
                   <input
                     type="text"
                     placeholder="e.g. 5040"
                     value={accCode}
                     onChange={e => setAccCode(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Account Head Name *</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Account Head Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. State Bank of India A/c, Staff Salary, Travelling Expenses"
                   value={accName}
                   onChange={e => setAccName(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Sub-Group / Classification</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Sub-Group / Classification</label>
                 <select
                   value={accSubCategory}
                   onChange={e => setAccSubCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {(SUBCATEGORY_OPTIONS[accCategory] || []).map(sub => (
                     <option key={sub} value={sub}>{sub}</option>
@@ -2047,23 +2047,23 @@ export const AccountingView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Opening Balance (₹)</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Opening Balance (₹)</label>
                   <input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
                     value={accOpeningBalance || ''}
                     onChange={e => setAccOpeningBalance(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Opening Balance Type</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Opening Balance Type</label>
                   <select
                     value={accOpeningType}
                     onChange={e => setAccOpeningType(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
                   >
                     <option value="Dr">Debit (Dr)</option>
                     <option value="Cr">Credit (Cr)</option>
@@ -2072,30 +2072,30 @@ export const AccountingView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Description / Notes</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Description / Notes</label>
                 <input
                   type="text"
                   placeholder="Optional account description or purpose"
                   value={accDescription}
                   onChange={e => setAccDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAccountModal(false);
                     setEditingAccountId(null);
                   }}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow cursor-pointer"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow cursor-pointer transition-all"
                 >
                   {editingAccountId ? 'Save Changes' : 'Create Ledger Account'}
                 </button>
@@ -2109,39 +2109,39 @@ export const AccountingView: React.FC = () => {
           DELETE ACCOUNT CONFIRMATION MODAL
          ========================================================================= */}
       {accountToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                   Delete Ledger Account "{accountToDelete.name}"?
                 </h3>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
-                  Are you sure you want to remove account <span className="font-mono font-bold text-slate-800">[{accountToDelete.code}] {accountToDelete.name}</span> from the Chart of Accounts?
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Are you sure you want to remove account <span className="font-mono font-bold text-slate-800 dark:text-slate-200">[{accountToDelete.code}] {accountToDelete.name}</span> from the Chart of Accounts?
                 </p>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] space-y-1">
-              <div><span className="font-semibold text-slate-500">Classification:</span> {accountToDelete.category} ({accountToDelete.subCategory || 'General'})</div>
-              <div><span className="font-semibold text-slate-500">Current Balance:</span> {formatINR(Math.abs(accountToDelete.balance))}</div>
+            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] space-y-1">
+              <div><span className="font-semibold text-slate-500 dark:text-slate-400">Classification:</span> <span className="text-slate-800 dark:text-slate-200">{accountToDelete.category} ({accountToDelete.subCategory || 'General'})</span></div>
+              <div><span className="font-semibold text-slate-500 dark:text-slate-400">Current Balance:</span> <span className="font-mono font-bold text-slate-900 dark:text-white">{formatINR(Math.abs(accountToDelete.balance))}</span></div>
             </div>
 
             <div className="pt-2 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setAccountToDelete(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDeleteAccount}
-                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer transition-all"
               >
                 Yes, Delete Account
               </button>
@@ -2154,18 +2154,18 @@ export const AccountingView: React.FC = () => {
           CREATE / EDIT JOURNAL VOUCHER MODAL
          ========================================================================= */}
       {showJvModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-[98vw] md:max-w-xl lg:max-w-2xl w-full text-xs space-y-4 max-h-[96dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-[98vw] md:max-w-xl lg:max-w-2xl w-full text-xs space-y-4 max-h-[96dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                   <Receipt className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                     {editingJvId ? `Edit Journal Voucher (${editingJvNumber})` : 'New General Journal Entry'}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {editingJvId ? 'Update accounting ledger accounts, amounts and narration' : 'Post a double-entry ledger adjustment'}
                   </p>
                 </div>
@@ -2175,7 +2175,7 @@ export const AccountingView: React.FC = () => {
                   setShowJvModal(false);
                   setEditingJvId(null);
                 }} 
-                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2184,48 +2184,48 @@ export const AccountingView: React.FC = () => {
             <form onSubmit={handleSaveJv} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Voucher Date *</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Voucher Date *</label>
                   <input
                     type="date"
                     value={jvDate}
                     onChange={e => setJvDate(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Reference / Bill / Cheque #</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Reference / Bill / Cheque #</label>
                   <input
                     type="text"
                     placeholder="e.g. CHQ-99128, ADJ-04"
                     value={jvReference}
                     onChange={e => setJvReference(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Narration / Description *</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Narration / Description *</label>
                 <input
                   type="text"
                   placeholder="Being amount transferred / adjusted towards..."
                   value={jvDescription}
                   onChange={e => setJvDescription(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               {/* Debit / Credit Lines */}
               <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800">Accounting Ledger Lines</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200">Accounting Ledger Lines</label>
                   <button
                     type="button"
                     onClick={handleAddJvLine}
-                    className="text-indigo-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Row
                   </button>
@@ -2233,11 +2233,11 @@ export const AccountingView: React.FC = () => {
 
                 <div className="space-y-2">
                   {jvLines.map((line, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
                       <select
                         value={line.accountId}
                         onChange={e => handleUpdateJvLine(idx, 'accountId', e.target.value)}
-                        className="flex-1 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg font-medium text-slate-800 text-xs"
+                        className="flex-1 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg font-medium text-slate-800 dark:text-slate-200 text-xs"
                       >
                         {dynamicAccountHeads.map(acc => (
                           <option key={acc.id} value={acc.id}>
@@ -2253,7 +2253,7 @@ export const AccountingView: React.FC = () => {
                           placeholder="Debit (Dr)"
                           value={line.debit || ''}
                           onChange={e => handleUpdateJvLine(idx, 'debit', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-right font-mono text-xs font-semibold text-blue-700"
+                          className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-right font-mono text-xs font-semibold text-blue-700 dark:text-blue-400"
                         />
                       </div>
 
@@ -2264,7 +2264,7 @@ export const AccountingView: React.FC = () => {
                           placeholder="Credit (Cr)"
                           value={line.credit || ''}
                           onChange={e => handleUpdateJvLine(idx, 'credit', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-right font-mono text-xs font-semibold text-emerald-700"
+                          className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-right font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400"
                         />
                       </div>
 
@@ -2272,7 +2272,7 @@ export const AccountingView: React.FC = () => {
                         type="button"
                         onClick={() => handleRemoveJvLine(idx)}
                         disabled={jvLines.length <= 2}
-                        className="p-1 text-slate-400 hover:text-rose-600 disabled:opacity-30 cursor-pointer"
+                        className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-30 cursor-pointer"
                         title="Remove row"
                       >
                         <X className="w-4 h-4" />
@@ -2284,10 +2284,10 @@ export const AccountingView: React.FC = () => {
 
               {/* Balance Checker */}
               <div className={`p-3 rounded-xl flex items-center justify-between text-xs font-bold ${
-                isJvBalanced ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                isJvBalanced ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
               }`}>
                 <div className="flex items-center gap-2">
-                  {isJvBalanced ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+                  {isJvBalanced ? <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
                   <span>{isJvBalanced ? 'Voucher is Balanced (Debit = Credit)' : 'Voucher is Unbalanced! Debits must equal Credits.'}</span>
                 </div>
                 <div className="space-x-4 font-mono">
@@ -2296,21 +2296,21 @@ export const AccountingView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowJvModal(false);
                     setEditingJvId(null);
                   }}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!isJvBalanced}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow cursor-pointer"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow cursor-pointer transition-all"
                 >
                   {editingJvId ? 'Update Journal Voucher' : 'Post Journal Voucher'}
                 </button>
@@ -2324,25 +2324,25 @@ export const AccountingView: React.FC = () => {
           DELETE JV CONFIRMATION MODAL
          ========================================================================= */}
       {entryToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-[96vw] sm:max-w-md w-full text-xs space-y-4 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                   Delete Journal Entry {entryToDelete.entryNumber}?
                 </h3>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
                   Are you sure you want to delete this journal voucher? This will remove the debit and credit postings from the General Ledger.
                 </p>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] space-y-1">
-              <div className="font-bold text-slate-800">"{entryToDelete.description}"</div>
-              <div className="text-slate-500 font-mono">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] space-y-1">
+              <div className="font-bold text-slate-800 dark:text-slate-200">"{entryToDelete.description}"</div>
+              <div className="text-slate-500 dark:text-slate-400 font-mono">
                 Date: {entryToDelete.date} | Lines: {entryToDelete.lines.length} | Amount: {formatINR(entryToDelete.lines.reduce((s, l) => s + l.debit, 0))}
               </div>
             </div>
@@ -2351,14 +2351,14 @@ export const AccountingView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEntryToDelete(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDeleteJv}
-                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow cursor-pointer transition-all"
               >
                 Yes, Delete Voucher
               </button>

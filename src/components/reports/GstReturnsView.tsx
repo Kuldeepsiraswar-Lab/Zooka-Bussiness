@@ -826,11 +826,11 @@ export const GstReturnsView: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Calculator className="w-6 h-6 text-indigo-600" />
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <Calculator className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             GST Returns & Statutory Registers
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Complete GST compliance center with Sale Register, Purchase Register, GSTR-1, GSTR-3B and HSN directory.
           </p>
         </div>
@@ -839,9 +839,9 @@ export const GstReturnsView: React.FC = () => {
           {returnType === 'sale_register' && (
             <button
               onClick={handleExportSalesCsv}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Export Sales CSV</span>
             </button>
           )}
@@ -849,9 +849,9 @@ export const GstReturnsView: React.FC = () => {
           {returnType === 'purchase_register' && (
             <button
               onClick={handleExportPurchaseCsv}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Export Purchase CSV</span>
             </button>
           )}
@@ -859,10 +859,10 @@ export const GstReturnsView: React.FC = () => {
           {(returnType === 'sale_register' || returnType === 'purchase_register') && (
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer"
               title="Print current register"
             >
-              <Printer className="w-4 h-4 text-slate-500" />
+              <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               <span className="hidden sm:inline">Print</span>
             </button>
           )}
@@ -881,19 +881,19 @@ export const GstReturnsView: React.FC = () => {
             <>
               <button
                 onClick={handleExportTariffCsv}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer"
                 title="Export Tariff Directory to CSV"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="hidden sm:inline">Export CSV</span>
               </button>
 
               <button
                 onClick={() => setIsBulkImportOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs transition-all cursor-pointer"
                 title="Bulk Import HSN/SAC Codes"
               >
-                <Upload className="w-4 h-4 text-indigo-600" />
+                <Upload className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span className="hidden sm:inline">Bulk Import</span>
               </button>
 
@@ -910,18 +910,18 @@ export const GstReturnsView: React.FC = () => {
       </div>
 
       {/* Main Switch Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-px">
         <button
           onClick={() => setReturnType('sale_register')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             returnType === 'sale_register'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <ArrowUpRight className="w-4 h-4" />
           <span>Sale Register (Outward Tax)</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             {filteredSalesInvoices.length}
           </span>
         </button>
@@ -930,13 +930,13 @@ export const GstReturnsView: React.FC = () => {
           onClick={() => setReturnType('purchase_register')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             returnType === 'purchase_register'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <ArrowDownLeft className="w-4 h-4" />
           <span>Purchase Register (Inward & ITC)</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             {filteredPurchaseBills.length}
           </span>
         </button>
@@ -945,8 +945,8 @@ export const GstReturnsView: React.FC = () => {
           onClick={() => setReturnType('gstr1')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             returnType === 'gstr1'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           GSTR-1 (Outward Supplies Return)
@@ -956,8 +956,8 @@ export const GstReturnsView: React.FC = () => {
           onClick={() => setReturnType('gstr3b')}
           className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             returnType === 'gstr3b'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           GSTR-3B (Summary Return & ITC Offset)
@@ -967,14 +967,14 @@ export const GstReturnsView: React.FC = () => {
           onClick={() => setReturnType('hsn_finder')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             returnType === 'hsn_finder'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <BookOpen className="w-4 h-4" />
           <span>HSN & SAC Tariff Directory</span>
           {customHsnCodes.length > 0 && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
               {customHsnCodes.length}
             </span>
           )}
@@ -985,18 +985,18 @@ export const GstReturnsView: React.FC = () => {
       {/* FILTER CONTROL BAR (Used by Sale Register & Purchase Register)    */}
       {/* ------------------------------------------------------------------ */}
       {(returnType === 'sale_register' || returnType === 'purchase_register') && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             {/* Filter Mode Toggle & Controls */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setFilterMode('month')}
                   className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                     filterMode === 'month'
-                      ? 'bg-white text-indigo-600 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-bold shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Filter by Month
@@ -1006,8 +1006,8 @@ export const GstReturnsView: React.FC = () => {
                   onClick={() => setFilterMode('date_range')}
                   className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                     filterMode === 'date_range'
-                      ? 'bg-white text-indigo-600 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-bold shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Filter by Date Range
@@ -1016,13 +1016,13 @@ export const GstReturnsView: React.FC = () => {
 
               {/* Month Dropdown Selector */}
               {filterMode === 'month' ? (
-                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
-                  <Calendar className="w-4 h-4 text-indigo-600" />
-                  <span className="text-slate-500 font-semibold">Month:</span>
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
+                  <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Month:</span>
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer"
+                    className="font-bold text-slate-800 dark:text-white bg-transparent outline-none cursor-pointer"
                   >
                     <option value="2026-08">August 2026 (Current)</option>
                     <option value="2026-07">July 2026</option>
@@ -1041,22 +1041,22 @@ export const GstReturnsView: React.FC = () => {
               ) : (
                 /* Date Range Pickers */
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
                     <span className="text-slate-400 font-medium">From:</span>
                     <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="font-semibold text-slate-800 bg-transparent outline-none cursor-pointer text-xs"
+                      className="font-semibold text-slate-800 dark:text-white bg-transparent outline-none cursor-pointer text-xs"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
                     <span className="text-slate-400 font-medium">To:</span>
                     <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="font-semibold text-slate-800 bg-transparent outline-none cursor-pointer text-xs"
+                      className="font-semibold text-slate-800 dark:text-white bg-transparent outline-none cursor-pointer text-xs"
                     />
                   </div>
                 </div>
@@ -1067,28 +1067,28 @@ export const GstReturnsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleQuickPreset('THIS_MONTH')}
-                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                 >
                   This Month
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickPreset('LAST_MONTH')}
-                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                 >
                   Last Month
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickPreset('THIS_QUARTER')}
-                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                 >
                   This Quarter
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickPreset('ALL_TIME')}
-                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                  className="px-2 py-1 text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                 >
                   All
                 </button>
@@ -1104,12 +1104,12 @@ export const GstReturnsView: React.FC = () => {
                   placeholder={returnType === 'sale_register' ? 'Search buyer, GSTIN, invoice #...' : 'Search vendor, bill #, GSTIN...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full pl-8 pr-7 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-white"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1121,7 +1121,7 @@ export const GstReturnsView: React.FC = () => {
                 <select
                   value={salesTypeFilter}
                   onChange={(e) => setSalesTypeFilter(e.target.value as any)}
-                  className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
                 >
                   <option value="ALL">All Supply Types</option>
                   <option value="B2B">B2B Registered Invoices</option>
@@ -1137,7 +1137,7 @@ export const GstReturnsView: React.FC = () => {
                 <select
                   value={purchaseItcFilter}
                   onChange={(e) => setPurchaseItcFilter(e.target.value as any)}
-                  className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
                 >
                   <option value="ALL">All Inward Bills</option>
                   <option value="ELIGIBLE_ALL">Eligible ITC (Input Goods/Services)</option>
@@ -1159,58 +1159,58 @@ export const GstReturnsView: React.FC = () => {
         <div className="space-y-6">
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Invoices</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{salesTotals.count}</div>
-              <div className="text-[10px] text-slate-500">Tax & Retail Invoices</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Invoices</div>
+              <div className="text-lg font-black text-slate-900 dark:text-white mt-1">{salesTotals.count}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Tax & Retail Invoices</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Taxable Value</div>
-              <div className="text-lg font-black text-indigo-900 mt-1">{formatINR(salesTotals.taxable)}</div>
-              <div className="text-[10px] text-slate-500">Net Taxable Turnover</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Taxable Value</div>
+              <div className="text-lg font-black text-indigo-900 dark:text-indigo-300 mt-1">{formatINR(salesTotals.taxable)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Net Taxable Turnover</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">CGST Output</div>
-              <div className="text-lg font-black text-slate-800 mt-1">{formatINR(salesTotals.cgst)}</div>
-              <div className="text-[10px] text-slate-500">Central Tax Output</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">CGST Output</div>
+              <div className="text-lg font-black text-slate-800 dark:text-slate-200 mt-1">{formatINR(salesTotals.cgst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Central Tax Output</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SGST Output</div>
-              <div className="text-lg font-black text-slate-800 mt-1">{formatINR(salesTotals.sgst)}</div>
-              <div className="text-[10px] text-slate-500">State / UT Tax Output</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">SGST Output</div>
+              <div className="text-lg font-black text-slate-800 dark:text-slate-200 mt-1">{formatINR(salesTotals.sgst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">State / UT Tax Output</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">IGST Output</div>
-              <div className="text-lg font-black text-indigo-600 mt-1">{formatINR(salesTotals.igst)}</div>
-              <div className="text-[10px] text-slate-500">Integrated Tax Output</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">IGST Output</div>
+              <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 mt-1">{formatINR(salesTotals.igst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Integrated Tax Output</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Gross Total (Tax Incl.)</div>
-              <div className="text-lg font-black text-indigo-950 mt-1">{formatINR(salesTotals.grandTotal)}</div>
-              <div className="text-[10px] text-indigo-700">Total GST: {formatINR(salesTotals.totalTax)}</div>
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-200 dark:border-indigo-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Gross Total (Tax Incl.)</div>
+              <div className="text-lg font-black text-indigo-950 dark:text-indigo-200 mt-1">{formatINR(salesTotals.grandTotal)}</div>
+              <div className="text-[10px] text-indigo-700 dark:text-indigo-300">Total GST: {formatINR(salesTotals.totalTax)}</div>
             </div>
           </div>
 
           {/* Sales Register Detailed Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-indigo-600" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>GST Sales Outward Register</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Detailed statutory record of outward tax invoices and retail sales
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-mono">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 font-mono">
                   {filteredSalesInvoices.length} invoices found
                 </span>
               </div>
@@ -1218,7 +1218,7 @@ export const GstReturnsView: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/80 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
+                <thead className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
                   <tr>
                     <th className="py-3 px-2 w-8 text-center"></th>
                     <th className="py-3 px-2.5 w-10 text-center">#</th>
@@ -1238,7 +1238,7 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-3 px-3 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredSalesInvoices.length > 0 ? (
                     filteredSalesInvoices.map((inv, idx) => {
                       const isExpanded = Boolean(expandedSaleInvIds[inv.id]);
@@ -1246,7 +1246,7 @@ export const GstReturnsView: React.FC = () => {
 
                       return (
                         <React.Fragment key={inv.id}>
-                          <tr className={`hover:bg-slate-50/80 transition-colors ${isExpanded ? 'bg-indigo-50/30' : ''}`}>
+                          <tr className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${isExpanded ? 'bg-indigo-50/30 dark:bg-indigo-950/20' : ''}`}>
                             <td className="py-2.5 px-2 text-center">
                               {inv.items && inv.items.length > 0 && (
                                 <button
@@ -1255,8 +1255,8 @@ export const GstReturnsView: React.FC = () => {
                                   title={isExpanded ? "Collapse item breakdown" : "Expand item breakdown"}
                                   className={`p-1 rounded-md transition-colors cursor-pointer ${
                                     isExpanded 
-                                      ? 'bg-indigo-100 text-indigo-700' 
-                                      : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-100'
+                                      ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' 
+                                      : 'text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                   }`}
                                 >
                                   {isExpanded ? (
@@ -1267,19 +1267,19 @@ export const GstReturnsView: React.FC = () => {
                                 </button>
                               )}
                             </td>
-                            <td className="py-2.5 px-2.5 text-center text-slate-400 font-mono">{idx + 1}</td>
-                            <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{inv.invoiceDate}</td>
-                            <td className="py-2.5 px-3 font-mono font-bold text-indigo-600 whitespace-nowrap">
+                            <td className="py-2.5 px-2.5 text-center text-slate-400 dark:text-slate-500 font-mono">{idx + 1}</td>
+                            <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">{inv.invoiceDate}</td>
+                            <td className="py-2.5 px-3 font-mono font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
                               {inv.invoiceNumber}
                             </td>
-                            <td className="py-2.5 px-4 font-semibold text-slate-900 max-w-[200px] truncate">
+                            <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-slate-100 max-w-[200px] truncate">
                               {inv.customerName}
                             </td>
                             <td className="py-2.5 px-3 font-mono text-[11px]">
                               {inv.customerGstin ? (
-                                <span className="text-indigo-700 font-bold">{inv.customerGstin}</span>
+                                <span className="text-indigo-700 dark:text-indigo-400 font-bold">{inv.customerGstin}</span>
                               ) : (
-                                <span className="text-slate-400 italic">B2C / Unregistered</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">B2C / Unregistered</span>
                               )}
                             </td>
 
@@ -1293,20 +1293,20 @@ export const GstReturnsView: React.FC = () => {
                                       className="flex items-center justify-between gap-1.5 text-[11px]" 
                                       title={`${item.name} (${item.quantity} ${item.unit || 'NOS'})`}
                                     >
-                                      <span className="font-medium text-slate-800 truncate">{item.name}</span>
-                                      <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                      <span className="font-medium text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
+                                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 shrink-0">
                                         {item.quantity} {item.unit || 'PCS'}
                                       </span>
                                     </div>
                                   ))
                                 ) : (
-                                  <span className="text-slate-400 italic text-[11px]">No products</span>
+                                  <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">No products</span>
                                 )}
                                 {inv.items && inv.items.length > 2 && (
                                   <button
                                     type="button"
                                     onClick={() => toggleSaleInvoiceExpand(inv.id)}
-                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5 cursor-pointer"
+                                    className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-0.5 cursor-pointer"
                                   >
                                     <span>+{inv.items.length - 2} more item{inv.items.length - 2 > 1 ? 's' : ''}</span>
                                   </button>
@@ -1325,8 +1325,8 @@ export const GstReturnsView: React.FC = () => {
                                         key={hIdx}
                                         className={`inline-flex items-center gap-0.5 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                                           isService
-                                            ? 'bg-amber-50 text-amber-800 border-amber-200/80'
-                                            : 'bg-indigo-50 text-indigo-700 border-indigo-200/80'
+                                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60'
+                                            : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/60'
                                         }`}
                                         title={isService ? `Services SAC Code: ${hsn}` : `Goods HSN Code: ${hsn}`}
                                       >
@@ -1337,38 +1337,38 @@ export const GstReturnsView: React.FC = () => {
                                   })}
                                 </div>
                               ) : (
-                                <span className="text-slate-400 italic text-[11px] font-mono">N/A</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic text-[11px] font-mono">N/A</span>
                               )}
                             </td>
 
-                            <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                            <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">
                               <span className="font-mono">{inv.placeOfSupplyStateCode}</span> - {inv.placeOfSupplyState}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
+                            <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900 dark:text-slate-100">
                               {formatINR(inv.subTotalTaxable)}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                            <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
                               {inv.totalCgst > 0 ? formatINR(inv.totalCgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                            <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
                               {inv.totalSgst > 0 ? formatINR(inv.totalSgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-indigo-600 font-semibold">
+                            <td className="py-2.5 px-3 text-right font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
                               {inv.totalIgst > 0 ? formatINR(inv.totalIgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800 dark:text-slate-200">
                               {formatINR(inv.totalTax)}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
                               {formatINR(inv.grandTotal)}
                             </td>
                             <td className="py-2.5 px-3 text-center">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 inv.status === 'PAID'
-                                  ? 'bg-emerald-100 text-emerald-800'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
                                   : inv.status === 'PARTIALLY_PAID'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-amber-100 text-amber-800'
+                                  ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300'
+                                  : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
                               }`}>
                                 {inv.status}
                               </span>
@@ -1377,10 +1377,10 @@ export const GstReturnsView: React.FC = () => {
 
                           {/* Expandable Line Items Details Table */}
                           {isExpanded && inv.items && inv.items.length > 0 && (
-                            <tr className="bg-slate-50/90 border-b border-indigo-100">
+                            <tr className="bg-slate-50/90 dark:bg-slate-850 border-b border-indigo-100 dark:border-slate-800">
                               <td colSpan={16} className="p-3 pl-8">
-                                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-                                  <div className="bg-gradient-to-r from-slate-800 to-indigo-900 text-white px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
+                                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                                  <div className="bg-gradient-to-r from-slate-800 to-indigo-900 dark:from-slate-900 dark:to-indigo-950 text-white px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       <Package className="w-3.5 h-3.5 text-indigo-300" />
                                       <span>Product & HSN Breakdown for Invoice #{inv.invoiceNumber}</span>
@@ -1388,7 +1388,7 @@ export const GstReturnsView: React.FC = () => {
                                     <span className="text-[10px] text-indigo-200 font-normal">{inv.items.length} Product Line Item{inv.items.length > 1 ? 's' : ''}</span>
                                   </div>
                                   <table className="w-full text-left text-[11px]">
-                                    <thead className="bg-slate-100 text-slate-600 uppercase text-[9px] font-bold">
+                                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase text-[9px] font-bold">
                                       <tr>
                                         <th className="py-1.5 px-2.5">#</th>
                                         <th className="py-1.5 px-3">Product Name</th>
@@ -1403,20 +1403,20 @@ export const GstReturnsView: React.FC = () => {
                                         <th className="py-1.5 px-3 text-right">Line Total (₹)</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                                       {inv.items.map((item, itmIdx) => (
-                                        <tr key={itmIdx} className="hover:bg-slate-50">
-                                          <td className="py-1.5 px-2.5 text-slate-400 font-mono">{itmIdx + 1}</td>
-                                          <td className="py-1.5 px-3 font-semibold text-slate-900">{item.name}</td>
-                                          <td className="py-1.5 px-2.5 font-mono font-bold text-indigo-700">{item.hsnCode || 'N/A'}</td>
+                                        <tr key={itmIdx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                          <td className="py-1.5 px-2.5 text-slate-400 dark:text-slate-500 font-mono">{itmIdx + 1}</td>
+                                          <td className="py-1.5 px-3 font-semibold text-slate-900 dark:text-white">{item.name}</td>
+                                          <td className="py-1.5 px-2.5 font-mono font-bold text-indigo-700 dark:text-indigo-400">{item.hsnCode || 'N/A'}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono">{item.quantity} {item.unit || 'NOS'}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono">{formatINR(item.rate)}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono font-semibold">{formatINR(item.taxableAmount)}</td>
-                                          <td className="py-1.5 px-2.5 text-center font-bold text-indigo-700">{item.gstRate}%</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500">{item.cgstAmount > 0 ? formatINR(item.cgstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500">{item.sgstAmount > 0 ? formatINR(item.sgstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-indigo-600 font-semibold">{item.igstAmount > 0 ? formatINR(item.igstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900">{formatINR(item.totalAmount)}</td>
+                                          <td className="py-1.5 px-2.5 text-center font-bold text-indigo-700 dark:text-indigo-400">{item.gstRate}%</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500 dark:text-slate-400">{item.cgstAmount > 0 ? formatINR(item.cgstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500 dark:text-slate-400">{item.sgstAmount > 0 ? formatINR(item.sgstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{item.igstAmount > 0 ? formatINR(item.igstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">{formatINR(item.totalAmount)}</td>
                                         </tr>
                                       ))}
                                     </tbody>
@@ -1430,11 +1430,11 @@ export const GstReturnsView: React.FC = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={16} className="py-12 text-center text-slate-400">
+                      <td colSpan={16} className="py-12 text-center text-slate-400 dark:text-slate-500">
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <Calculator className="w-8 h-8 text-slate-300" />
-                          <p className="text-sm font-semibold text-slate-600">No Sales Invoices Found</p>
-                          <p className="text-xs text-slate-400">
+                          <Calculator className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                          <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">No Sales Invoices Found</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
                             Try choosing a different month or expanding the date filter range above.
                           </p>
                         </div>
@@ -1445,17 +1445,17 @@ export const GstReturnsView: React.FC = () => {
 
                 {/* Table Footer with Summary Sums */}
                 {filteredSalesInvoices.length > 0 && (
-                  <tfoot className="bg-slate-100/90 font-bold border-t-2 border-slate-300 text-slate-900">
+                  <tfoot className="bg-slate-100/90 dark:bg-slate-800 font-bold border-t-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
                     <tr>
                       <td colSpan={9} className="py-3 px-4 text-right uppercase text-xs tracking-wider">
                         Total for {filteredSalesInvoices.length} Invoices:
                       </td>
                       <td className="py-3 px-3 text-right font-mono text-xs">{formatINR(salesTotals.taxable)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700">{formatINR(salesTotals.cgst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700">{formatINR(salesTotals.sgst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-700">{formatINR(salesTotals.igst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-900">{formatINR(salesTotals.totalTax)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-emerald-800 font-extrabold">{formatINR(salesTotals.grandTotal)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700 dark:text-slate-300">{formatINR(salesTotals.cgst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700 dark:text-slate-300">{formatINR(salesTotals.sgst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-700 dark:text-indigo-400">{formatINR(salesTotals.igst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-900 dark:text-indigo-300">{formatINR(salesTotals.totalTax)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-emerald-800 dark:text-emerald-400 font-extrabold">{formatINR(salesTotals.grandTotal)}</td>
                       <td></td>
                     </tr>
                   </tfoot>
@@ -1473,58 +1473,58 @@ export const GstReturnsView: React.FC = () => {
         <div className="space-y-6">
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Purchase Bills</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{purchaseTotals.count}</div>
-              <div className="text-[10px] text-slate-500">Inward Supplies</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Purchase Bills</div>
+              <div className="text-lg font-black text-slate-900 dark:text-white mt-1">{purchaseTotals.count}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Inward Supplies</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Taxable Purchases</div>
-              <div className="text-lg font-black text-indigo-900 mt-1">{formatINR(purchaseTotals.taxable)}</div>
-              <div className="text-[10px] text-slate-500">Inward Taxable Value</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Taxable Purchases</div>
+              <div className="text-lg font-black text-indigo-900 dark:text-indigo-300 mt-1">{formatINR(purchaseTotals.taxable)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Inward Taxable Value</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">CGST Input</div>
-              <div className="text-lg font-black text-slate-800 mt-1">{formatINR(purchaseTotals.cgst)}</div>
-              <div className="text-[10px] text-slate-500">Central Tax Input</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">CGST Input</div>
+              <div className="text-lg font-black text-slate-800 dark:text-slate-200 mt-1">{formatINR(purchaseTotals.cgst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Central Tax Input</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SGST Input</div>
-              <div className="text-lg font-black text-slate-800 mt-1">{formatINR(purchaseTotals.sgst)}</div>
-              <div className="text-[10px] text-slate-500">State / UT Tax Input</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">SGST Input</div>
+              <div className="text-lg font-black text-slate-800 dark:text-slate-200 mt-1">{formatINR(purchaseTotals.sgst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">State / UT Tax Input</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">IGST Input</div>
-              <div className="text-lg font-black text-indigo-600 mt-1">{formatINR(purchaseTotals.igst)}</div>
-              <div className="text-[10px] text-slate-500">Integrated Tax Input</div>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">IGST Input</div>
+              <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 mt-1">{formatINR(purchaseTotals.igst)}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Integrated Tax Input</div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Eligible ITC Input</div>
-              <div className="text-lg font-black text-emerald-950 mt-1">{formatINR(purchaseTotals.eligibleItc)}</div>
-              <div className="text-[10px] text-emerald-700">Gross: {formatINR(purchaseTotals.grandTotal)}</div>
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Eligible ITC Input</div>
+              <div className="text-lg font-black text-emerald-950 dark:text-emerald-200 mt-1">{formatINR(purchaseTotals.eligibleItc)}</div>
+              <div className="text-[10px] text-emerald-700 dark:text-emerald-300">Gross: {formatINR(purchaseTotals.grandTotal)}</div>
             </div>
           </div>
 
           {/* Purchase Register Detailed Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <ArrowDownLeft className="w-4 h-4 text-emerald-600" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <ArrowDownLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>GST Purchase Inward Register & ITC Ledger</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Statutory inward purchase bills, vendor GSTIN reconciliation and ITC eligibility
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-mono">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 font-mono">
                   {filteredPurchaseBills.length} bills recorded
                 </span>
               </div>
@@ -1532,7 +1532,7 @@ export const GstReturnsView: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/80 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
+                <thead className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
                   <tr>
                     <th className="py-3 px-2 w-8 text-center"></th>
                     <th className="py-3 px-2.5 w-10 text-center">#</th>
@@ -1553,7 +1553,7 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-3 px-3 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredPurchaseBills.length > 0 ? (
                     filteredPurchaseBills.map((bill, idx) => {
                       const isExpanded = Boolean(expandedPurchaseBillIds[bill.id]);
@@ -1561,7 +1561,7 @@ export const GstReturnsView: React.FC = () => {
 
                       return (
                         <React.Fragment key={bill.id}>
-                          <tr className={`hover:bg-slate-50/80 transition-colors ${isExpanded ? 'bg-emerald-50/30' : ''}`}>
+                          <tr className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${isExpanded ? 'bg-emerald-50/30 dark:bg-emerald-950/20' : ''}`}>
                             <td className="py-2.5 px-2 text-center">
                               {bill.items && bill.items.length > 0 && (
                                 <button
@@ -1570,8 +1570,8 @@ export const GstReturnsView: React.FC = () => {
                                   title={isExpanded ? "Collapse item breakdown" : "Expand item breakdown"}
                                   className={`p-1 rounded-md transition-colors cursor-pointer ${
                                     isExpanded 
-                                      ? 'bg-emerald-100 text-emerald-700' 
-                                      : 'text-slate-400 hover:text-emerald-600 hover:bg-slate-100'
+                                      ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300' 
+                                      : 'text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                   }`}
                                 >
                                   {isExpanded ? (
@@ -1582,24 +1582,24 @@ export const GstReturnsView: React.FC = () => {
                                 </button>
                               )}
                             </td>
-                            <td className="py-2.5 px-2.5 text-center text-slate-400 font-mono">{idx + 1}</td>
-                            <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{bill.billDate}</td>
-                            <td className="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">
+                            <td className="py-2.5 px-2.5 text-center text-slate-400 dark:text-slate-500 font-mono">{idx + 1}</td>
+                            <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">{bill.billDate}</td>
+                            <td className="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
                               {bill.billNumber}
                               {bill.vendorInvoiceNumber && (
-                                <span className="block text-[10px] font-normal text-slate-400">
+                                <span className="block text-[10px] font-normal text-slate-400 dark:text-slate-500">
                                   Ref: {bill.vendorInvoiceNumber}
                                 </span>
                               )}
                             </td>
-                            <td className="py-2.5 px-4 font-semibold text-slate-900 max-w-[200px] truncate">
+                            <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-slate-100 max-w-[200px] truncate">
                               {bill.vendorName}
                             </td>
                             <td className="py-2.5 px-3 font-mono text-[11px]">
                               {bill.vendorGstin ? (
-                                <span className="text-emerald-700 font-bold">{bill.vendorGstin}</span>
+                                <span className="text-emerald-700 dark:text-emerald-400 font-bold">{bill.vendorGstin}</span>
                               ) : (
-                                <span className="text-slate-400 italic">Unregistered Vendor</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Unregistered Vendor</span>
                               )}
                             </td>
 
@@ -1613,20 +1613,20 @@ export const GstReturnsView: React.FC = () => {
                                       className="flex items-center justify-between gap-1.5 text-[11px]" 
                                       title={`${item.name} (${item.quantity} ${item.unit || 'NOS'})`}
                                     >
-                                      <span className="font-medium text-slate-800 truncate">{item.name}</span>
-                                      <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                      <span className="font-medium text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
+                                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 shrink-0">
                                         {item.quantity} {item.unit || 'PCS'}
                                       </span>
                                     </div>
                                   ))
                                 ) : (
-                                  <span className="text-slate-400 italic text-[11px]">No products</span>
+                                  <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">No products</span>
                                 )}
                                 {bill.items && bill.items.length > 2 && (
                                   <button
                                     type="button"
                                     onClick={() => togglePurchaseBillExpand(bill.id)}
-                                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-0.5 cursor-pointer"
+                                    className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 flex items-center gap-0.5 cursor-pointer"
                                   >
                                     <span>+{bill.items.length - 2} more item{bill.items.length - 2 > 1 ? 's' : ''}</span>
                                   </button>
@@ -1645,8 +1645,8 @@ export const GstReturnsView: React.FC = () => {
                                         key={hIdx}
                                         className={`inline-flex items-center gap-0.5 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                                           isService
-                                            ? 'bg-amber-50 text-amber-800 border-amber-200/80'
-                                            : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60'
+                                            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60'
                                         }`}
                                         title={isService ? `Services SAC Code: ${hsn}` : `Goods HSN Code: ${hsn}`}
                                       >
@@ -1657,13 +1657,13 @@ export const GstReturnsView: React.FC = () => {
                                   })}
                                 </div>
                               ) : (
-                                <span className="text-slate-400 italic text-[11px] font-mono">N/A</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic text-[11px] font-mono">N/A</span>
                               )}
                             </td>
 
-                            <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                            <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">
                               <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                bill.isInterState ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                                bill.isInterState ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                               }`}>
                                 {bill.isInterState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)'}
                               </span>
@@ -1671,10 +1671,10 @@ export const GstReturnsView: React.FC = () => {
                             <td className="py-2.5 px-3 whitespace-nowrap">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 bill.itcEligibility === 'INELIGIBLE_17_5'
-                                  ? 'bg-rose-100 text-rose-800'
+                                  ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300'
                                   : bill.itcEligibility === 'ELIGIBLE_CAPITAL_GOODS'
-                                  ? 'bg-purple-100 text-purple-800'
-                                  : 'bg-emerald-100 text-emerald-800'
+                                  ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300'
+                                  : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
                               }`}>
                                 {bill.itcEligibility === 'INELIGIBLE_17_5'
                                   ? 'Blocked Sec 17(5)'
@@ -1683,31 +1683,31 @@ export const GstReturnsView: React.FC = () => {
                                   : 'Eligible ITC'}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
+                            <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900 dark:text-slate-100">
                               {formatINR(bill.subTotalTaxable)}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                            <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
                               {bill.totalCgst > 0 ? formatINR(bill.totalCgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                            <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-400">
                               {bill.totalSgst > 0 ? formatINR(bill.totalSgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-indigo-600 font-semibold">
+                            <td className="py-2.5 px-3 text-right font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
                               {bill.totalIgst > 0 ? formatINR(bill.totalIgst) : '-'}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800 dark:text-slate-200">
                               {formatINR(bill.totalTax)}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                            <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
                               {formatINR(bill.grandTotal)}
                             </td>
                             <td className="py-2.5 px-3 text-center">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 bill.status === 'PAID'
-                                  ? 'bg-emerald-100 text-emerald-800'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
                                   : bill.status === 'PARTIALLY_PAID'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-amber-100 text-amber-800'
+                                  ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300'
+                                  : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
                               }`}>
                                 {bill.status}
                               </span>
@@ -1716,10 +1716,10 @@ export const GstReturnsView: React.FC = () => {
 
                           {/* Expandable Line Items Details Table */}
                           {isExpanded && bill.items && bill.items.length > 0 && (
-                            <tr className="bg-slate-50/90 border-b border-emerald-100">
+                            <tr className="bg-slate-50/90 dark:bg-slate-850 border-b border-emerald-100 dark:border-slate-800">
                               <td colSpan={17} className="p-3 pl-8">
-                                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-                                  <div className="bg-gradient-to-r from-slate-800 to-emerald-900 text-white px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
+                                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                                  <div className="bg-gradient-to-r from-slate-800 to-emerald-900 dark:from-slate-900 dark:to-emerald-950 text-white px-3 py-1.5 text-[11px] font-bold flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       <Package className="w-3.5 h-3.5 text-emerald-300" />
                                       <span>Product & HSN Breakdown for Purchase Bill #{bill.billNumber}</span>
@@ -1727,7 +1727,7 @@ export const GstReturnsView: React.FC = () => {
                                     <span className="text-[10px] text-emerald-200 font-normal">{bill.items.length} Inward Line Item{bill.items.length > 1 ? 's' : ''}</span>
                                   </div>
                                   <table className="w-full text-left text-[11px]">
-                                    <thead className="bg-slate-100 text-slate-600 uppercase text-[9px] font-bold">
+                                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase text-[9px] font-bold">
                                       <tr>
                                         <th className="py-1.5 px-2.5">#</th>
                                         <th className="py-1.5 px-3">Product Name</th>
@@ -1742,20 +1742,20 @@ export const GstReturnsView: React.FC = () => {
                                         <th className="py-1.5 px-3 text-right">Line Total (₹)</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                                       {bill.items.map((item, itmIdx) => (
-                                        <tr key={itmIdx} className="hover:bg-slate-50">
-                                          <td className="py-1.5 px-2.5 text-slate-400 font-mono">{itmIdx + 1}</td>
-                                          <td className="py-1.5 px-3 font-semibold text-slate-900">{item.name}</td>
-                                          <td className="py-1.5 px-2.5 font-mono font-bold text-emerald-700">{item.hsnCode || 'N/A'}</td>
+                                        <tr key={itmIdx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                          <td className="py-1.5 px-2.5 text-slate-400 dark:text-slate-500 font-mono">{itmIdx + 1}</td>
+                                          <td className="py-1.5 px-3 font-semibold text-slate-900 dark:text-white">{item.name}</td>
+                                          <td className="py-1.5 px-2.5 font-mono font-bold text-emerald-700 dark:text-emerald-400">{item.hsnCode || 'N/A'}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono">{item.quantity} {item.unit || 'NOS'}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono">{formatINR(item.rate)}</td>
                                           <td className="py-1.5 px-2.5 text-right font-mono font-semibold">{formatINR(item.taxableAmount)}</td>
-                                          <td className="py-1.5 px-2.5 text-center font-bold text-emerald-700">{item.gstRate}%</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500">{item.cgstAmount > 0 ? formatINR(item.cgstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500">{item.sgstAmount > 0 ? formatINR(item.sgstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-2.5 text-right font-mono text-indigo-600 font-semibold">{item.igstAmount > 0 ? formatINR(item.igstAmount) : '-'}</td>
-                                          <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900">{formatINR(item.totalAmount)}</td>
+                                          <td className="py-1.5 px-2.5 text-center font-bold text-emerald-700 dark:text-emerald-400">{item.gstRate}%</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500 dark:text-slate-400">{item.cgstAmount > 0 ? formatINR(item.cgstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-slate-500 dark:text-slate-400">{item.sgstAmount > 0 ? formatINR(item.sgstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-2.5 text-right font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{item.igstAmount > 0 ? formatINR(item.igstAmount) : '-'}</td>
+                                          <td className="py-1.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">{formatINR(item.totalAmount)}</td>
                                         </tr>
                                       ))}
                                     </tbody>
@@ -1769,11 +1769,11 @@ export const GstReturnsView: React.FC = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={17} className="py-12 text-center text-slate-400">
+                      <td colSpan={17} className="py-12 text-center text-slate-400 dark:text-slate-500">
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <Truck className="w-8 h-8 text-slate-300" />
-                          <p className="text-sm font-semibold text-slate-600">No Purchase Bills Found</p>
-                          <p className="text-xs text-slate-400">
+                          <Truck className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                          <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">No Purchase Bills Found</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
                             Try choosing a different month or date range in the filter above.
                           </p>
                         </div>
@@ -1784,17 +1784,17 @@ export const GstReturnsView: React.FC = () => {
 
                 {/* Table Footer with Summary Sums */}
                 {filteredPurchaseBills.length > 0 && (
-                  <tfoot className="bg-slate-100/90 font-bold border-t-2 border-slate-300 text-slate-900">
+                  <tfoot className="bg-slate-100/90 dark:bg-slate-800 font-bold border-t-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
                     <tr>
                       <td colSpan={10} className="py-3 px-4 text-right uppercase text-xs tracking-wider">
                         Total for {filteredPurchaseBills.length} Inward Bills:
                       </td>
                       <td className="py-3 px-3 text-right font-mono text-xs">{formatINR(purchaseTotals.taxable)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700">{formatINR(purchaseTotals.cgst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700">{formatINR(purchaseTotals.sgst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-700">{formatINR(purchaseTotals.igst)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-emerald-800">{formatINR(purchaseTotals.totalTax)}</td>
-                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-950 font-extrabold">{formatINR(purchaseTotals.grandTotal)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700 dark:text-slate-300">{formatINR(purchaseTotals.cgst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-700 dark:text-slate-300">{formatINR(purchaseTotals.sgst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-indigo-700 dark:text-indigo-400">{formatINR(purchaseTotals.igst)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-emerald-800 dark:text-emerald-400">{formatINR(purchaseTotals.totalTax)}</td>
+                      <td className="py-3 px-3 text-right font-mono text-xs text-slate-950 dark:text-slate-100 font-extrabold">{formatINR(purchaseTotals.grandTotal)}</td>
                       <td></td>
                     </tr>
                   </tfoot>
@@ -1812,51 +1812,51 @@ export const GstReturnsView: React.FC = () => {
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-xs font-bold uppercase text-slate-400 mb-1">Total Taxable Outward</div>
-              <div className="text-xl font-extrabold text-slate-900">{formatINR(totalOutwardTaxable)}</div>
-              <div className="text-[11px] text-slate-500 mt-1">{activeInvoices.length} active invoices</div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">Total Taxable Outward</div>
+              <div className="text-xl font-extrabold text-slate-900 dark:text-white">{formatINR(totalOutwardTaxable)}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{activeInvoices.length} active invoices</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-xs font-bold uppercase text-slate-400 mb-1">Total Output Tax (IGST+CGST+SGST)</div>
-              <div className="text-xl font-extrabold text-indigo-600">{formatINR(totalOutwardTax)}</div>
-              <div className="text-[11px] text-slate-500 mt-1">
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">Total Output Tax (IGST+CGST+SGST)</div>
+              <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{formatINR(totalOutwardTax)}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                 CGST: {formatINR(totalOutwardCgst)} • SGST: {formatINR(totalOutwardSgst)}
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-xs font-bold uppercase text-slate-400 mb-1">4A - B2B Registered Sales</div>
-              <div className="text-xl font-extrabold text-emerald-700">{formatINR(b2bTaxable)}</div>
-              <div className="text-[11px] text-slate-500 mt-1">{b2bInvoices.length} Registered Buyers</div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">4A - B2B Registered Sales</div>
+              <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">{formatINR(b2bTaxable)}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{b2bInvoices.length} Registered Buyers</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="text-xs font-bold uppercase text-slate-400 mb-1">7 - B2C Small & Retail</div>
-              <div className="text-xl font-extrabold text-cyan-700">{formatINR(b2csTaxable)}</div>
-              <div className="text-[11px] text-slate-500 mt-1">{b2csInvoices.length} Unregistered invoices</div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">7 - B2C Small & Retail</div>
+              <div className="text-xl font-extrabold text-cyan-700 dark:text-cyan-400">{formatINR(b2csTaxable)}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{b2csInvoices.length} Unregistered invoices</div>
             </div>
           </div>
 
           {/* Table 4A: B2B Invoices */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-mono text-xs">Table 4A</span>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded font-mono text-xs">Table 4A</span>
                   B2B Tax Invoices (Registered Recipient)
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Supplies made to GST registered buyers eligible for buyer ITC</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Supplies made to GST registered buyers eligible for buyer ITC</p>
               </div>
-              <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                 {b2bInvoices.length} records
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/70 text-slate-600 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-2.5 px-4">GSTIN of Recipient</th>
                     <th className="py-2.5 px-4">Receiver Name</th>
@@ -1870,25 +1870,25 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-2.5 px-4 text-right">IGST</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {b2bInvoices.length > 0 ? (
                     b2bInvoices.map(inv => (
-                      <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-2.5 px-4 font-mono font-bold text-indigo-600">{inv.customerGstin}</td>
-                        <td className="py-2.5 px-4 font-semibold text-slate-900">{inv.customerName}</td>
-                        <td className="py-2.5 px-4 font-mono font-medium">{inv.invoiceNumber}</td>
-                        <td className="py-2.5 px-4 text-slate-500">{inv.invoiceDate}</td>
-                        <td className="py-2.5 px-4 text-right font-bold text-slate-900 font-mono">{formatINR(inv.grandTotal)}</td>
-                        <td className="py-2.5 px-4 text-slate-600">{inv.placeOfSupplyStateCode}-{inv.placeOfSupplyState}</td>
-                        <td className="py-2.5 px-4 text-right font-mono">{formatINR(inv.subTotalTaxable)}</td>
-                        <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(inv.totalCgst)}</td>
-                        <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(inv.totalSgst)}</td>
-                        <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(inv.totalIgst)}</td>
+                      <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-2.5 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{inv.customerGstin}</td>
+                        <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-slate-100">{inv.customerName}</td>
+                        <td className="py-2.5 px-4 font-mono font-medium text-slate-800 dark:text-slate-200">{inv.invoiceNumber}</td>
+                        <td className="py-2.5 px-4 text-slate-500 dark:text-slate-400">{inv.invoiceDate}</td>
+                        <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white font-mono">{formatINR(inv.grandTotal)}</td>
+                        <td className="py-2.5 px-4 text-slate-600 dark:text-slate-400">{inv.placeOfSupplyStateCode}-{inv.placeOfSupplyState}</td>
+                        <td className="py-2.5 px-4 text-right font-mono text-slate-900 dark:text-slate-100">{formatINR(inv.subTotalTaxable)}</td>
+                        <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(inv.totalCgst)}</td>
+                        <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(inv.totalSgst)}</td>
+                        <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(inv.totalIgst)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="py-8 text-center text-slate-400">
+                      <td colSpan={10} className="py-8 text-center text-slate-400 dark:text-slate-500">
                         No B2B invoices recorded in this period.
                       </td>
                     </tr>
@@ -1899,23 +1899,23 @@ export const GstReturnsView: React.FC = () => {
           </div>
 
           {/* Table 12: HSN Summary */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-xs">Table 12</span>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded font-mono text-xs">Table 12</span>
                   HSN-wise Summary of Outward Supplies
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Mandatory 4-digit / 6-digit HSN code aggregate reporting</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Mandatory 4-digit / 6-digit HSN code aggregate reporting</p>
               </div>
-              <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                 {hsnSummaryList.length} HSN codes
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/70 text-slate-600 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-2.5 px-4">HSN/SAC</th>
                     <th className="py-2.5 px-4">Description</th>
@@ -1928,18 +1928,18 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-2.5 px-4 text-right">IGST</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {hsnSummaryList.map(h => (
-                    <tr key={h.hsn} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 px-4 font-mono font-bold text-slate-900">{h.hsn}</td>
-                      <td className="py-2.5 px-4 font-medium text-slate-700">{h.desc}</td>
-                      <td className="py-2.5 px-4 text-slate-500 font-mono">{h.uqc}</td>
-                      <td className="py-2.5 px-4 text-right font-mono font-bold">{h.qty}</td>
-                      <td className="py-2.5 px-4 text-right font-mono font-semibold">{formatINR(h.total)}</td>
-                      <td className="py-2.5 px-4 text-right font-mono font-bold text-indigo-600">{formatINR(h.taxable)}</td>
-                      <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(h.cgst)}</td>
-                      <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(h.sgst)}</td>
-                      <td className="py-2.5 px-4 text-right font-mono text-slate-600">{formatINR(h.igst)}</td>
+                    <tr key={h.hsn} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-2.5 px-4 font-mono font-bold text-slate-900 dark:text-white">{h.hsn}</td>
+                      <td className="py-2.5 px-4 font-medium text-slate-700 dark:text-slate-300">{h.desc}</td>
+                      <td className="py-2.5 px-4 text-slate-500 dark:text-slate-400 font-mono">{h.uqc}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900 dark:text-white">{h.qty}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-800 dark:text-slate-200">{formatINR(h.total)}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">{formatINR(h.taxable)}</td>
+                      <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(h.cgst)}</td>
+                      <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(h.sgst)}</td>
+                      <td className="py-2.5 px-4 text-right font-mono text-slate-600 dark:text-slate-400">{formatINR(h.igst)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1955,17 +1955,17 @@ export const GstReturnsView: React.FC = () => {
       {returnType === 'gstr3b' && (
         <div className="space-y-6">
           {/* GSTR-3B Table 3.1 */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200">
-              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-mono text-xs">Table 3.1</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 rounded font-mono text-xs">Table 3.1</span>
                 Details of Outward Supplies and inward supplies liable to reverse charge
               </h3>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/70 text-slate-600 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-2.5 px-4">Nature of Supplies</th>
                     <th className="py-2.5 px-4 text-right">Total Taxable Value</th>
@@ -1975,16 +1975,16 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-2.5 px-4 text-right">Cess</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-3 px-4 font-semibold text-slate-900">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-100">
                       (a) Outward taxable supplies (other than zero rated, nil rated and exempted)
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">{formatINR(totalOutwardTaxable)}</td>
-                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700">{formatINR(totalOutwardIgst)}</td>
-                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700">{formatINR(totalOutwardCgst)}</td>
-                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700">{formatINR(totalOutwardSgst)}</td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-500">₹0.00</td>
+                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-900 dark:text-white">{formatINR(totalOutwardTaxable)}</td>
+                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">{formatINR(totalOutwardIgst)}</td>
+                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">{formatINR(totalOutwardCgst)}</td>
+                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">{formatINR(totalOutwardSgst)}</td>
+                    <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400">₹0.00</td>
                   </tr>
                 </tbody>
               </table>
@@ -1992,17 +1992,17 @@ export const GstReturnsView: React.FC = () => {
           </div>
 
           {/* GSTR-3B Table 4: Eligible ITC */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50/70 border-b border-slate-200">
-              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono text-xs">Table 4</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 rounded font-mono text-xs">Table 4</span>
                 Eligible ITC (Input Tax Credit Available)
               </h3>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100/70 text-slate-600 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-2.5 px-4">Details</th>
                     <th className="py-2.5 px-4 text-right">Integrated Tax (IGST)</th>
@@ -2011,17 +2011,17 @@ export const GstReturnsView: React.FC = () => {
                     <th className="py-2.5 px-4 text-right">Cess</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2.5 px-4 font-semibold text-slate-900">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-slate-100">
                       (A) ITC Available (whether in full or part) - All other ITC
                     </td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700">{formatINR(totalItcIgst)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700">{formatINR(totalItcCgst)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700">{formatINR(totalItcSgst)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-slate-500">₹0.00</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(totalItcIgst)}</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(totalItcCgst)}</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(totalItcSgst)}</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-slate-500 dark:text-slate-400">₹0.00</td>
                   </tr>
-                  <tr className="hover:bg-slate-50 text-rose-600">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 text-rose-600 dark:text-rose-400">
                     <td className="py-2.5 px-4 font-semibold">
                       (D) Ineligible ITC / Blocked under Section 17(5)
                     </td>
@@ -2036,74 +2036,74 @@ export const GstReturnsView: React.FC = () => {
           </div>
 
           {/* GSTR-3B Table 6.1: Net Tax Liability */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-indigo-600" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   Net Tax Liability to be Paid in Cash
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Output tax after set-off with available Input Tax Credit (ITC)
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-xs text-slate-400 uppercase font-bold">Total Cash Payable</div>
-                <div className="text-xl font-black text-indigo-600">{formatINR(totalNetCashPayable)}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold">Total Cash Payable</div>
+                <div className="text-xl font-black text-indigo-600 dark:text-indigo-400">{formatINR(totalNetCashPayable)}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="font-bold text-slate-700 mb-2">Central Tax (CGST)</div>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-slate-700 dark:text-slate-300 mb-2">Central Tax (CGST)</div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Output Tax:</span>
-                    <span className="font-mono font-semibold">{formatINR(totalOutwardCgst)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Output Tax:</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{formatINR(totalOutwardCgst)}</span>
                   </div>
-                  <div className="flex justify-between text-emerald-600">
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>Paid through ITC:</span>
                     <span className="font-mono font-semibold">- {formatINR(Math.min(totalOutwardCgst, totalItcCgst))}</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white">
                     <span>Cash Payable:</span>
-                    <span className="font-mono text-indigo-600">{formatINR(netCgstPayable)}</span>
+                    <span className="font-mono text-indigo-600 dark:text-indigo-400">{formatINR(netCgstPayable)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="font-bold text-slate-700 mb-2">State Tax (SGST)</div>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-slate-700 dark:text-slate-300 mb-2">State Tax (SGST)</div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Output Tax:</span>
-                    <span className="font-mono font-semibold">{formatINR(totalOutwardSgst)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Output Tax:</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{formatINR(totalOutwardSgst)}</span>
                   </div>
-                  <div className="flex justify-between text-emerald-600">
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>Paid through ITC:</span>
                     <span className="font-mono font-semibold">- {formatINR(Math.min(totalOutwardSgst, totalItcSgst))}</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white">
                     <span>Cash Payable:</span>
-                    <span className="font-mono text-indigo-600">{formatINR(netSgstPayable)}</span>
+                    <span className="font-mono text-indigo-600 dark:text-indigo-400">{formatINR(netSgstPayable)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="font-bold text-slate-700 mb-2">Integrated Tax (IGST)</div>
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-slate-700 dark:text-slate-300 mb-2">Integrated Tax (IGST)</div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Output Tax:</span>
-                    <span className="font-mono font-semibold">{formatINR(totalOutwardIgst)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Output Tax:</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{formatINR(totalOutwardIgst)}</span>
                   </div>
-                  <div className="flex justify-between text-emerald-600">
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>Paid through ITC:</span>
                     <span className="font-mono font-semibold">- {formatINR(Math.min(totalOutwardIgst, totalItcIgst))}</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white">
                     <span>Cash Payable:</span>
-                    <span className="font-mono text-indigo-600">{formatINR(netIgstPayable)}</span>
+                    <span className="font-mono text-indigo-600 dark:text-indigo-400">{formatINR(netIgstPayable)}</span>
                   </div>
                 </div>
               </div>
@@ -2118,32 +2118,32 @@ export const GstReturnsView: React.FC = () => {
       {returnType === 'hsn_finder' && (
         <div className="space-y-4">
           {/* Main Directory Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 space-y-5">
             
             {/* Header & Cloud Sync Status Banner */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight">
+                  <h3 className="font-black text-base md:text-lg text-slate-900 dark:text-white tracking-tight">
                     HSN & SAC Code GST Tariff Directory
                   </h3>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                     GST Master Catalog
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Manage Goods HSN (Chapters 01-97) and Services SAC (Chapter 99) codes with prescribed GST tax slabs and unit codes. Custom codes are instantly synced to your Cloud Database.
                 </p>
               </div>
 
               {/* Cloud DB Sync Status Badge */}
-              <div className="flex items-center gap-2.5 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 shrink-0 text-xs">
+              <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 text-xs">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                  <Cloud className="w-4 h-4 text-indigo-600" />
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
+                  <Cloud className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>Cloud Database Synced</span>
                 </div>
-                <span className="text-[11px] font-mono font-bold bg-white px-2 py-0.5 rounded-md text-indigo-700 border border-slate-200">
+                <span className="text-[11px] font-mono font-bold bg-white dark:bg-slate-900 px-2 py-0.5 rounded-md text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-700">
                   {customHsnCodes.length} Custom Codes
                 </span>
               </div>
@@ -2151,30 +2151,30 @@ export const GstReturnsView: React.FC = () => {
 
             {/* Quick Metrics Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-xl">
-                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Directory Codes</div>
-                <div className="text-xl font-black text-slate-900 mt-0.5 font-mono">
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 p-3 rounded-xl">
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Directory Codes</div>
+                <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5 font-mono">
                   {combinedTariffDirectory.length}
                 </div>
               </div>
 
-              <div className="bg-indigo-50/60 border border-indigo-100 p-3 rounded-xl">
-                <div className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Goods (HSN)</div>
-                <div className="text-xl font-black text-indigo-900 mt-0.5 font-mono">
+              <div className="bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 p-3 rounded-xl">
+                <div className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Goods (HSN)</div>
+                <div className="text-xl font-black text-indigo-900 dark:text-indigo-200 mt-0.5 font-mono">
                   {combinedTariffDirectory.filter(i => i.type === 'HSN').length}
                 </div>
               </div>
 
-              <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl">
-                <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Services (SAC)</div>
-                <div className="text-xl font-black text-amber-900 mt-0.5 font-mono">
+              <div className="bg-amber-50/60 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 p-3 rounded-xl">
+                <div className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Services (SAC)</div>
+                <div className="text-xl font-black text-amber-900 dark:text-amber-200 mt-0.5 font-mono">
                   {combinedTariffDirectory.filter(i => i.type === 'SAC').length}
                 </div>
               </div>
 
-              <div className="bg-emerald-50/60 border border-emerald-100 p-3 rounded-xl">
-                <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Cloud Custom Codes</div>
-                <div className="text-xl font-black text-emerald-900 mt-0.5 font-mono">
+              <div className="bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 p-3 rounded-xl">
+                <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Cloud Custom Codes</div>
+                <div className="text-xl font-black text-emerald-900 dark:text-emerald-200 mt-0.5 font-mono">
                   {customHsnCodes.length}
                 </div>
               </div>
@@ -2190,12 +2190,12 @@ export const GstReturnsView: React.FC = () => {
                   placeholder="Search by HSN/SAC code, description or unit..."
                   value={hsnSearchQuery}
                   onChange={e => setHsnSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                  className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-slate-900 dark:text-white"
                 />
                 {hsnSearchQuery && (
                   <button
                     onClick={() => setHsnSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -2205,7 +2205,7 @@ export const GstReturnsView: React.FC = () => {
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 {/* Scope Filters */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl text-slate-700 font-bold">
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl text-slate-700 dark:text-slate-300 font-bold">
                   {(['ALL', 'CUSTOM', 'STANDARD'] as const).map(scope => (
                     <button
                       key={scope}
@@ -2213,8 +2213,8 @@ export const GstReturnsView: React.FC = () => {
                       onClick={() => setHsnScopeFilter(scope)}
                       className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                         hsnScopeFilter === scope
-                          ? 'bg-white text-slate-900 shadow-xs'
-                          : 'text-slate-500 hover:text-slate-900'
+                          ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       {scope === 'ALL' ? 'All Codes' : scope === 'CUSTOM' ? `Custom Cloud (${customHsnCodes.length})` : 'Standard Catalog'}
@@ -2223,7 +2223,7 @@ export const GstReturnsView: React.FC = () => {
                 </div>
 
                 {/* Type Filters */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl text-slate-700 font-bold">
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl text-slate-700 dark:text-slate-300 font-bold">
                   {(['ALL', 'HSN', 'SAC'] as const).map(type => (
                     <button
                       key={type}
@@ -2231,8 +2231,8 @@ export const GstReturnsView: React.FC = () => {
                       onClick={() => setHsnTypeFilter(type)}
                       className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                         hsnTypeFilter === type
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-500 hover:text-slate-900'
+                          ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-xs'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       {type === 'ALL' ? 'All Types' : type === 'HSN' ? 'Goods (HSN)' : 'Services (SAC)'}
@@ -2244,7 +2244,7 @@ export const GstReturnsView: React.FC = () => {
                 <select
                   value={hsnRateFilter}
                   onChange={e => setHsnRateFilter(e.target.value as any)}
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                 >
                   <option value="ALL">All GST Rates</option>
                   <option value="0">0% (Nil / Exempt)</option>
@@ -2258,13 +2258,13 @@ export const GstReturnsView: React.FC = () => {
 
             {/* Directory Table */}
             {combinedTariffDirectory.length === 0 ? (
-              <div className="p-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
+              <div className="p-12 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 mx-auto flex items-center justify-center">
                   <Tag className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-sm">No HSN / SAC Codes Found</h4>
-                  <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">No HSN / SAC Codes Found</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
                     No matching tariff codes found for your search criteria. Add a custom code, adjust filters, or bulk import codes.
                   </p>
                 </div>
@@ -2285,16 +2285,16 @@ export const GstReturnsView: React.FC = () => {
                       setHsnTypeFilter('ALL');
                       setHsnRateFilter('ALL');
                     }}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
                   >
                     Reset All Filters
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold tracking-wider">
+                  <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase text-[10px] font-bold tracking-wider">
                     <tr>
                       <th className="py-3 px-4 font-mono">HSN / SAC Code</th>
                       <th className="py-3 px-4">Goods / Services Description</th>
@@ -2306,30 +2306,30 @@ export const GstReturnsView: React.FC = () => {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {combinedTariffDirectory.map(item => (
-                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
+                      <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
                         {/* HSN / SAC Code & Type */}
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] tracking-wide shrink-0 ${
                               item.type === 'SAC'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
                             }`}>
                               {item.type}
                             </span>
-                            <span className="font-mono font-bold text-slate-900 text-sm">
+                            <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                               {item.code}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyCode(item.code)}
-                              className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 rounded transition-opacity cursor-pointer"
+                              className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded transition-opacity cursor-pointer"
                               title="Copy code"
                             >
                               {copiedCode === item.code ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
@@ -2338,7 +2338,7 @@ export const GstReturnsView: React.FC = () => {
                         </td>
 
                         {/* Description */}
-                        <td className="py-3 px-4 font-medium text-slate-800 max-w-sm">
+                        <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 max-w-sm">
                           {item.description}
                         </td>
 
@@ -2346,43 +2346,43 @@ export const GstReturnsView: React.FC = () => {
                         <td className="py-3 px-4 text-center">
                           <span className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
                             item.gstRate === 0
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
                               : item.gstRate === 5
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300'
                               : item.gstRate === 12
-                              ? 'bg-amber-100 text-amber-800'
+                              ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
                               : item.gstRate === 18
-                              ? 'bg-indigo-100 text-indigo-800'
-                              : 'bg-rose-100 text-rose-800'
+                              ? 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300'
+                              : 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300'
                           }`}>
                             {item.gstRate}%
                           </span>
                         </td>
 
                         {/* CGST + SGST (Intra-state) */}
-                        <td className="py-3 px-4 text-center font-mono text-slate-600 text-[11px]">
+                        <td className="py-3 px-4 text-center font-mono text-slate-600 dark:text-slate-400 text-[11px]">
                           {item.gstRate / 2}% + {item.gstRate / 2}%
                         </td>
 
                         {/* IGST (Inter-state) */}
-                        <td className="py-3 px-4 text-center font-mono font-bold text-slate-800 text-[11px]">
+                        <td className="py-3 px-4 text-center font-mono font-bold text-slate-800 dark:text-slate-200 text-[11px]">
                           {item.gstRate}%
                         </td>
 
                         {/* UQC Unit */}
-                        <td className="py-3 px-4 text-center font-mono font-semibold text-slate-600 text-[11px]">
+                        <td className="py-3 px-4 text-center font-mono font-semibold text-slate-600 dark:text-slate-400 text-[11px]">
                           {item.uqc}
                         </td>
 
                         {/* Database Storage Badge */}
                         <td className="py-3 px-4 text-center">
                           {item.isCustom ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <Cloud className="w-3 h-3 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                              <Cloud className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                               <span>Cloud Synced</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                               <BookOpen className="w-3 h-3 text-slate-400" />
                               <span>Standard Catalog</span>
                             </span>
@@ -2397,7 +2397,7 @@ export const GstReturnsView: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleEditHsn(item.customData!)}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                                  className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors cursor-pointer"
                                   title="Edit custom code"
                                 >
                                   <Edit2 className="w-4 h-4" />
@@ -2405,7 +2405,7 @@ export const GstReturnsView: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmHsn(item.customData!)}
-                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
                                   title="Delete custom code"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -2416,7 +2416,7 @@ export const GstReturnsView: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleCloneStandardHsn({ code: item.code, description: item.description, defaultGst: item.gstRate })}
-                                  className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[11px] border border-indigo-200 transition-colors cursor-pointer flex items-center gap-1"
+                                  className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold rounded-lg text-[11px] border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer flex items-center gap-1"
                                   title="Add copy to your cloud custom directory"
                                 >
                                   <Plus className="w-3 h-3" />
@@ -2425,7 +2425,7 @@ export const GstReturnsView: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleCustomizeStandardHsn({ code: item.code, description: item.description, gstRate: item.gstRate, uqc: item.uqc, type: item.type })}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                  className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                                   title="Customize before saving"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
@@ -2442,12 +2442,12 @@ export const GstReturnsView: React.FC = () => {
             )}
 
             {/* Table Footer Summary */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 pt-2 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>All custom entries are automatically synced to Firebase Firestore database</span>
               </div>
-              <div className="font-mono text-slate-600">
+              <div className="font-mono text-slate-600 dark:text-slate-400">
                 Showing {combinedTariffDirectory.length} of {COMMON_HSN_CODES.length + customHsnCodes.length} total entries
               </div>
             </div>
@@ -2464,7 +2464,7 @@ export const GstReturnsView: React.FC = () => {
         onClose={() => setIsHsnModalOpen(false)}
         zIndex={9999}
       >
-        <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[min(92vh,92dvh)] my-auto animate-in zoom-in-95">
+        <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[min(92vh,92dvh)] my-auto animate-in zoom-in-95">
           
           {/* Modal Header */}
           <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0">
@@ -2495,7 +2495,7 @@ export const GstReturnsView: React.FC = () => {
             
             {/* Type Switcher */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Classification Type *
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -2507,8 +2507,8 @@ export const GstReturnsView: React.FC = () => {
                   }}
                   className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                     formType === 'HSN'
-                      ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-xs ring-2 ring-indigo-600/20'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-600 dark:border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-xs ring-2 ring-indigo-600/20'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Tag className="w-3.5 h-3.5" />
@@ -2524,8 +2524,8 @@ export const GstReturnsView: React.FC = () => {
                   }}
                   className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                     formType === 'SAC'
-                      ? 'bg-amber-50 border-amber-600 text-amber-800 shadow-xs ring-2 ring-amber-600/20'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-600 dark:border-amber-500 text-amber-800 dark:text-amber-300 shadow-xs ring-2 ring-amber-600/20'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -2537,7 +2537,7 @@ export const GstReturnsView: React.FC = () => {
             {/* Code and Unit Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   {formType === 'SAC' ? 'SAC Code (Starts with 99) *' : 'HSN Code (4/6/8 Digits) *'}
                 </label>
                 <input
@@ -2546,34 +2546,34 @@ export const GstReturnsView: React.FC = () => {
                   placeholder={formType === 'SAC' ? 'e.g. 998313' : 'e.g. 847130'}
                   value={formCode}
                   onChange={e => setFormCode(e.target.value.toUpperCase())}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                   {formType === 'SAC' ? 'Services Accounting Code (e.g. 9983 for IT, 9982 for Legal)' : 'Harmonized System of Nomenclature (e.g. 8471, 8517)'}
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Default Unit of Quantity (UQC) *
                 </label>
                 <select
                   value={formUqc}
                   onChange={e => setFormUqc(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-900 dark:text-white"
                 >
                   {STANDARD_UNITS.map(u => (
                     <option key={u} value={u}>{u}</option>
                   ))}
                   <option value="OTH">OTH (Others / Services)</option>
                 </select>
-                <p className="text-[10px] text-slate-400 mt-1">Standard statutory unit for GST returns</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Standard statutory unit for GST returns</p>
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Goods / Services Description *
               </label>
               <textarea
@@ -2582,13 +2582,13 @@ export const GstReturnsView: React.FC = () => {
                 placeholder="e.g. Automatic data processing machines, laptops and personal computers"
                 value={formDescription}
                 onChange={e => setFormDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
               />
             </div>
 
             {/* GST Tax Rate */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Prescribed GST Tax Slab *
               </label>
               <div className="grid grid-cols-5 gap-2">
@@ -2600,7 +2600,7 @@ export const GstReturnsView: React.FC = () => {
                     className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center ${
                       formGstRate === rate
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <span className="text-sm font-black">{rate}%</span>
@@ -2611,28 +2611,28 @@ export const GstReturnsView: React.FC = () => {
             </div>
 
             {/* Live Tax Split Preview Box */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Statutory Tax Breakdown</div>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Statutory Tax Breakdown</div>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-white p-2 rounded-lg border border-slate-200/80">
-                  <div className="text-[10px] text-slate-500 font-semibold">CGST (Central)</div>
-                  <div className="font-mono font-bold text-indigo-700 mt-0.5">{formGstRate / 2}%</div>
+                <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-700">
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">CGST (Central)</div>
+                  <div className="font-mono font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">{formGstRate / 2}%</div>
                 </div>
-                <div className="bg-white p-2 rounded-lg border border-slate-200/80">
-                  <div className="text-[10px] text-slate-500 font-semibold">SGST (State)</div>
-                  <div className="font-mono font-bold text-indigo-700 mt-0.5">{formGstRate / 2}%</div>
+                <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-700">
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">SGST (State)</div>
+                  <div className="font-mono font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">{formGstRate / 2}%</div>
                 </div>
-                <div className="bg-white p-2 rounded-lg border border-slate-200/80">
-                  <div className="text-[10px] text-slate-500 font-semibold">IGST (Inter-State)</div>
-                  <div className="font-mono font-bold text-indigo-700 mt-0.5">{formGstRate}%</div>
+                <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/80 dark:border-slate-700">
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">IGST (Inter-State)</div>
+                  <div className="font-mono font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">{formGstRate}%</div>
                 </div>
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Cloud className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <Cloud className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Saves to Firestore DB</span>
               </div>
               
@@ -2640,7 +2640,7 @@ export const GstReturnsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsHsnModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2666,7 +2666,7 @@ export const GstReturnsView: React.FC = () => {
         onClose={() => setIsBulkImportOpen(false)}
         zIndex={9999}
       >
-        <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[min(92vh,92dvh)] my-auto animate-in zoom-in-95">
+        <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[min(92vh,92dvh)] my-auto animate-in zoom-in-95">
           <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-300">
@@ -2687,19 +2687,19 @@ export const GstReturnsView: React.FC = () => {
           </div>
 
           <div className="p-5 space-y-4 overflow-y-auto modal-content-scroll">
-            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-600 space-y-1.5">
-              <div className="font-bold text-slate-800">Format Template:</div>
-              <p className="font-mono text-[11px] text-indigo-700 bg-white p-2 rounded-lg border border-slate-200">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-400 space-y-1.5">
+              <div className="font-bold text-slate-800 dark:text-slate-200">Format Template:</div>
+              <p className="font-mono text-[11px] text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
                 Code, Description, GST Slab, Unit
               </p>
-              <p className="text-[11px] text-slate-500">
-                Example: <code className="text-slate-800">8471, Computer Peripherals & RAM, 18, PCS</code><br />
-                Example: <code className="text-slate-800">9983, Cloud Consulting Services, 18, OTH</code>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Example: <code className="text-slate-800 dark:text-slate-200">8471, Computer Peripherals & RAM, 18, PCS</code><br />
+                Example: <code className="text-slate-800 dark:text-slate-200">9983, Cloud Consulting Services, 18, OTH</code>
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Paste Rows (One per line) *
               </label>
               <textarea
@@ -2707,12 +2707,12 @@ export const GstReturnsView: React.FC = () => {
                 placeholder={`8471, Computer accessories and RAM sticks, 18, PCS\n8517, Wireless routers and 5G equipment, 18, PCS\n9983, Web development and cloud devops services, 18, OTH`}
                 value={bulkImportText}
                 onChange={e => setBulkImportText(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-xs text-slate-500">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {bulkImportText.trim() ? bulkImportText.trim().split('\n').length : 0} rows entered
               </span>
 
@@ -2720,7 +2720,7 @@ export const GstReturnsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsBulkImportOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2747,29 +2747,29 @@ export const GstReturnsView: React.FC = () => {
         zIndex={9999}
       >
         {deleteConfirmHsn && (
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 p-5 space-y-4">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-900">Delete Custom HSN/SAC Code</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This will remove the code from your Cloud database.</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Delete Custom HSN/SAC Code</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">This will remove the code from your Cloud database.</p>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-semibold">Code:</span>
-                <span className="font-mono font-bold text-slate-900">{deleteConfirmHsn.code}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Code:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">{deleteConfirmHsn.code}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-semibold">Description:</span>
-                <span className="font-medium text-slate-800 truncate max-w-[200px]">{deleteConfirmHsn.description}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Description:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[200px]">{deleteConfirmHsn.description}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-semibold">GST Rate:</span>
-                <span className="font-bold text-indigo-600">{deleteConfirmHsn.gstRate}%</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">GST Rate:</span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">{deleteConfirmHsn.gstRate}%</span>
               </div>
             </div>
 
@@ -2777,7 +2777,7 @@ export const GstReturnsView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmHsn(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

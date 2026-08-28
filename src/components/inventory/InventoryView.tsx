@@ -243,14 +243,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
 
   return (
     <div className="space-y-5">
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Package className="w-5 h-5 text-indigo-600" />
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Package className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             <span>Inventory & Stock Management</span>
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Catalog, HSN directory, barcode scanner lookup, batch tracking & stock valuation
           </p>
         </div>
@@ -259,10 +259,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
           {/* Custom HSN Directory */}
           <button
             onClick={() => setIsCustomHsnModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-700 dark:hover:text-indigo-300 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 rounded-xl shadow-xs transition-all cursor-pointer"
             title="Manage Custom HSN and SAC codes directory"
           >
-            <Tag className="w-4 h-4 text-indigo-600" />
+            <Tag className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>HSN Directory {customHsnCodes.length > 0 && `(${customHsnCodes.length})`}</span>
           </button>
 
@@ -279,10 +279,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
           {can('purchases', 'view') && (
             <button
               onClick={() => setActiveTab('purchases')}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 rounded-xl transition-all cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/80 dark:border-indigo-800 rounded-xl transition-all cursor-pointer shadow-2xs"
               title="Log a supplier purchase bill to automatically add stock"
             >
-              <PackagePlus className="w-4 h-4 text-indigo-600" />
+              <PackagePlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Purchase Bill</span>
             </button>
           )}
@@ -291,10 +291,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
           {can('inventory', 'createProduct') && (
             <button
               onClick={() => setIsBulkUploadOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-700 dark:hover:text-indigo-300 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 rounded-xl shadow-xs transition-all cursor-pointer"
               title="Bulk upload items from CSV file or Excel spreadsheet"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Import CSV</span>
             </button>
           )}
@@ -313,58 +313,58 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-500">Total Items in Catalog</span>
-            <div className="text-2xl font-bold text-slate-900 mt-1">{products.length}</div>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Items in Catalog</span>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{products.length}</div>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">
               {products.filter(p => !p.isService).length} Goods • {products.filter(p => p.isService).length} Services
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
             <Layers className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-500">Total Stock Valuation (At Cost)</span>
-            <div className="text-2xl font-bold text-indigo-900 mt-1">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Stock Valuation (At Cost)</span>
+            <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-300 mt-1">
               {formatCurrency(totalInventoryValuation, business.currencySymbol)}
             </div>
-            <span className="text-[11px] text-slate-400">Asset value on balance sheet</span>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">Asset value on balance sheet</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-500">Low Stock Warnings</span>
-            <div className="text-2xl font-bold text-amber-600 mt-1">{lowStockCount}</div>
-            <span className="text-[11px] text-slate-400">Below threshold alerts</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Low Stock Warnings</span>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{lowStockCount}</div>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">Below threshold alerts</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by product name, SKU, HSN, or scan barcode..."
-            className="w-full pl-9 pr-24 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full pl-9 pr-24 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
           <button
             onClick={() => setIsScannerOpen(true)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors cursor-pointer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 hover:bg-indigo-200 dark:hover:bg-indigo-900 rounded-lg transition-colors cursor-pointer"
             title="Open Barcode Scanner"
           >
             <Scan className="w-3.5 h-3.5" />
@@ -376,7 +376,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none"
+            className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none"
           >
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat === 'ALL' ? 'All Categories' : cat}</option>
@@ -387,8 +387,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
             className={`px-3 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
               showLowStockOnly
-                ? 'bg-amber-50 border-amber-300 text-amber-900'
-                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300'
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
             }`}
           >
             ⚠️ Low Stock ({lowStockCount})
@@ -397,11 +397,11 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
       </div>
 
       {/* Product Catalog Table */}
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+              <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
                 <th className="py-3 px-4">Item & SKU</th>
                 <th className="py-3 px-4">Barcode & HSN</th>
                 {can('inventory', 'viewPurchaseCost') && (
@@ -413,7 +413,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredProducts.map(prod => {
                 const effectiveThreshold = getProductStockThreshold(prod, stockSettings);
                 const isOutOfStock = isProductOutOfStock(prod);
@@ -424,72 +424,72 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                   : 0;
 
                 return (
-                  <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={prod.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">{prod.name}</div>
-                      <div className="text-[10px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
+                      <div className="font-bold text-slate-900 dark:text-white">{prod.name}</div>
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
                         <span>SKU: {prod.sku}</span>
-                        <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">{prod.category}</span>
+                        <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{prod.category}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="font-mono text-slate-800 font-semibold text-[11px]">
+                        <div className="font-mono text-slate-800 dark:text-slate-200 font-semibold text-[11px]">
                           {prod.barcode || prod.sku}
                         </div>
                         <button
                           onClick={() => handlePrintLabel(prod)}
-                          className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
                           title="Print Barcode Stickers"
                         >
                           <Tag className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <div className="text-[10px] font-mono text-slate-400">HSN: {prod.hsnCode}</div>
+                      <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500">HSN: {prod.hsnCode}</div>
                     </td>
                     {can('inventory', 'viewPurchaseCost') && (
-                      <td className="py-3 px-4 text-right font-mono text-slate-600">
+                      <td className="py-3 px-4 text-right font-mono text-slate-600 dark:text-slate-300">
                         {formatCurrency(prod.purchasePrice, business.currencySymbol)}
                       </td>
                     )}
                     <td className="py-3 px-4 text-right font-mono">
-                      <div className="font-bold text-slate-900">
+                      <div className="font-bold text-slate-900 dark:text-white">
                         {formatCurrency(prod.sellingPrice, business.currencySymbol)}
                       </div>
                       {can('inventory', 'viewPurchaseCost') && (
-                        <div className="text-[10px] text-emerald-600 font-semibold">
+                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                           +{marginPercent}% margin
                         </div>
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200">
+                      <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-200 dark:border-indigo-800">
                         {prod.gstRate}% GST
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
                       {prod.isService ? (
-                        <span className="text-[11px] font-semibold text-indigo-600">Service</span>
+                        <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">Service</span>
                       ) : (
                         <div className="inline-flex flex-col items-center">
                           <span
                             title={`Current: ${prod.currentStock} ${prod.unit} • Threshold: ${effectiveThreshold}`}
                             className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
                               isOutOfStock
-                                ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                                 : isCritical
-                                ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
+                                ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 animate-pulse'
                                 : isLow
-                                ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                                : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                             }`}
                           >
-                            {isOutOfStock && <Ban className="w-3 h-3 text-rose-600" />}
-                            {isCritical && !isOutOfStock && <ShieldAlert className="w-3 h-3 text-rose-600" />}
-                            {isLow && !isCritical && !isOutOfStock && <AlertTriangle className="w-3 h-3 text-amber-600" />}
+                            {isOutOfStock && <Ban className="w-3 h-3 text-rose-600 dark:text-rose-400" />}
+                            {isCritical && !isOutOfStock && <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />}
+                            {isLow && !isCritical && !isOutOfStock && <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
                             <span>{prod.currentStock} {prod.unit}</span>
                           </span>
-                          <span className="text-[9px] text-slate-400 font-mono mt-0.5">
+                          <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
                             Min: {effectiveThreshold}
                           </span>
                           {can('inventory', 'adjustStock') && (
@@ -498,7 +498,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                                 setAdjustingProduct(prod);
                                 setNewStockQty(prod.currentStock);
                               }}
-                              className="text-[10px] text-indigo-600 font-medium hover:underline mt-0.5 cursor-pointer"
+                              className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium hover:underline mt-0.5 cursor-pointer"
                             >
                               Adjust Stock
                             </button>
@@ -512,7 +512,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                           <button
                             onClick={() => handleAddToInvoice(prod)}
                             title="Create Invoice with this item"
-                            className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors cursor-pointer"
                           >
                             <FileText className="w-4 h-4" />
                           </button>
@@ -520,7 +520,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                         <button
                           onClick={() => handlePrintLabel(prod)}
                           title="Print Barcode Labels"
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                         >
                           <Printer className="w-4 h-4" />
                         </button>
@@ -528,7 +528,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                           <button
                             onClick={() => handleOpenEdit(prod)}
                             title="Edit Product"
-                            className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
@@ -537,7 +537,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                           <button
                             onClick={() => deleteProduct(prod.id)}
                             title="Delete Product"
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -550,19 +550,19 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
 
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center">
                         <Package className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-700">No items found in catalog</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Quickly seed your inventory using CSV bulk upload or add individual items.</p>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No items found in catalog</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Quickly seed your inventory using CSV bulk upload or add individual items.</p>
                       </div>
                       <div className="flex items-center gap-2 pt-1">
                         <button
                           onClick={() => setIsBulkUploadOpen(true)}
-                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
                         >
                           <FileSpreadsheet className="w-3.5 h-3.5" />
                           <span>Bulk Import CSV</span>
@@ -587,12 +587,12 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
       {/* Add / Edit Product Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="w-full max-w-[96vw] sm:max-w-lg md:max-w-xl bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">
+          <div className="w-full max-w-[96vw] sm:max-w-lg md:max-w-xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {editingProduct ? 'Edit Catalog Item' : 'Add New Item / Service'}
               </h3>
-              <button onClick={() => setIsCreateModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setIsCreateModalOpen(false)} className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -600,58 +600,58 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
             <form onSubmit={handleSaveProduct} className="mt-4 space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block font-semibold text-slate-700 mb-1">Item / Service Name *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Item / Service Name *</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Dell 27-inch 4K Monitor"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">SKU / Item Code</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">SKU / Item Code</label>
                   <input
                     type="text"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    className="w-full px-3 py-2 font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Barcode / EAN (Scan to fill)</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Barcode / EAN (Scan to fill)</label>
                   <input
                     type="text"
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
                     placeholder="890123456789"
-                    className="w-full px-3 py-2 font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Category</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
                   <input
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     placeholder="Hardware, Electronics, Service..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block font-semibold text-slate-700">HSN / SAC Code</label>
+                    <label className="block font-semibold text-slate-700 dark:text-slate-300">HSN / SAC Code</label>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setIsHsnLookupOpen(true)}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200/60"
+                        className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 cursor-pointer bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200/60 dark:border-indigo-800"
                         title="Lookup HSN in App Dialog Format"
                       >
                         <Search className="w-3 h-3" />
@@ -660,7 +660,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                       <button
                         type="button"
                         onClick={() => setIsCustomHsnModalOpen(true)}
-                        className="text-[11px] font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white flex items-center gap-1 cursor-pointer"
                       >
                         <Tag className="w-3 h-3" />
                         <span>Custom</span>
@@ -690,13 +690,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                         }
                       }}
                       placeholder="e.g. 8471, 9983, 1006 or custom..."
-                      className="w-full px-3 py-2 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-xs"
+                      className="w-full px-3 py-2 font-mono uppercase bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-xs"
                     />
                     {hsnCode && (
                       <button
                         type="button"
                         onClick={() => setHsnCode('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-0.5"
                         title="Clear HSN"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -718,11 +718,11 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Unit of Measure</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Unit of Measure</label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none"
                   >
                     {STANDARD_UNITS.map(u => (
                       <option key={u} value={u}>{u}</option>
@@ -731,11 +731,11 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">GST Tax Rate (%)</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">GST Tax Rate (%)</label>
                   <select
                     value={gstRate}
                     onChange={(e) => setGstRate(parseInt(e.target.value) as GstTaxRate)}
-                    className="w-full px-3 py-2 font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none"
                   >
                     <option value="0">0% (Nil / Exempt)</option>
                     <option value="5">5% (Essentials)</option>
@@ -746,60 +746,60 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Purchase Price (₹)</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Purchase Price (₹)</label>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Selling Price (₹) *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Selling Price (₹) *</label>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     value={sellingPrice}
                     onChange={(e) => setSellingPrice(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 font-mono font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full px-3 py-2 font-mono font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Opening Stock Qty</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Opening Stock Qty</label>
                   <input
                     type="number"
                     min="0"
                     value={currentStock}
                     onChange={(e) => setCurrentStock(parseInt(e.target.value) || 0)}
                     disabled={isService}
-                    className="w-full px-3 py-2 font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none disabled:opacity-50"
+                    className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none disabled:opacity-50"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Min. Alert Stock</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Min. Alert Stock</label>
                   <input
                     type="number"
                     min="0"
                     value={minStockAlert}
                     onChange={(e) => setMinStockAlert(parseInt(e.target.value) || 0)}
                     disabled={isService}
-                    className="w-full px-3 py-2 font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none disabled:opacity-50"
+                    className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
 
               {/* Service toggle */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
-                  <span className="font-semibold text-slate-800 block">Is this an intangible Service?</span>
-                  <span className="text-[11px] text-slate-500">Services do not maintain physical stock inventory</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 block">Is this an intangible Service?</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Services do not maintain physical stock inventory</span>
                 </div>
                 <input
                   type="checkbox"
@@ -811,37 +811,37 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
 
               {/* Batch info */}
               {!isService && (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <span className="font-bold text-slate-700 uppercase text-[10px]">Batch & Expiry (Optional)</span>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px]">Batch & Expiry (Optional)</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] text-slate-500">Initial Batch #</label>
+                      <label className="text-[10px] text-slate-500 dark:text-slate-400">Initial Batch #</label>
                       <input
                         type="text"
                         value={batchNo}
                         onChange={(e) => setBatchNo(e.target.value)}
                         placeholder="BATCH-001"
-                        className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg"
+                        className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-500">Expiry Date</label>
+                      <label className="text-[10px] text-slate-500 dark:text-slate-400">Expiry Date</label>
                       <input
                         type="date"
                         value={expiryDate}
                         onChange={(e) => setExpiryDate(e.target.value)}
-                        className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg"
+                        className="w-full px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -860,33 +860,33 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
       {/* Stock Adjustment Modal */}
       {adjustingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto modal-overlay">
-          <div className="w-full max-w-[96vw] sm:max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
+          <div className="w-full max-w-[96vw] sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-h-[95dvh] sm:max-h-[90dvh] overflow-y-auto modal-content-scroll my-auto">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
               Adjust Physical Stock Count
             </h3>
-            <p className="text-xs text-slate-500 mb-4">
-              Item: <strong className="text-slate-800">{adjustingProduct.name}</strong> (Current: {adjustingProduct.currentStock} {adjustingProduct.unit})
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Item: <strong className="text-slate-800 dark:text-slate-200">{adjustingProduct.name}</strong> (Current: {adjustingProduct.currentStock} {adjustingProduct.unit})
             </p>
 
             <form onSubmit={handleConfirmStockAdjust} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">New Verified Physical Count</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">New Verified Physical Count</label>
                 <input
                   type="number"
                   min="0"
                   value={newStockQty}
                   onChange={(e) => setNewStockQty(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 text-base font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                  className="w-full px-3 py-2 text-base font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Reason for Adjustment</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Reason for Adjustment</label>
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:outline-none"
                 >
                   <option value="Physical audit verification">Physical audit verification</option>
                   <option value="Damaged / Expired goods write-off">Damaged / Expired goods write-off</option>
@@ -899,7 +899,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onOpenNewInvoiceWi
                 <button
                   type="button"
                   onClick={() => setAdjustingProduct(null)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold cursor-pointer"
+                  className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>

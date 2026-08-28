@@ -1186,7 +1186,7 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
                               row.entryType === 'EXPENSE' ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800' :
                               row.entryType === 'CONTRA_TRANSFER' ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800' :
                               row.entryType === 'JOURNAL_ENTRY' ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800' :
-                              'bg-slate-100 text-slate-500 border-slate-300'
+                              'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700'
                             }`}
                           >
                             <option value="PAYMENT_IN">Payment In (Receipt)</option>
@@ -1433,7 +1433,7 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
                 <Landmark className="w-4 h-4 text-indigo-600" />
                 <span>Create Bank Account Ledger Head</span>
               </h4>
-              <button onClick={() => setShowNewBankModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setShowNewBankModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1476,7 +1476,7 @@ export const BankStatementImportModal: React.FC<BankStatementImportModalProps> =
               <button
                 type="button"
                 onClick={() => setShowNewBankModal(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl cursor-pointer"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>

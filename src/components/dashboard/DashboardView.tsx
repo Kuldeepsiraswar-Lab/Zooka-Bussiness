@@ -323,22 +323,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
       {/* ------------------------------------------------------------- */}
       {/* 📈 MONTHLY SALES TREND LINE CHART (RECHARTS INTEGRATION)     */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-5">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6 space-y-5">
         {/* Header and Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-xs">
+              <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 shadow-xs">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>Monthly Sales & Revenue Growth Trends</span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded-full">
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 rounded-full">
                     Performance Analytics
                   </span>
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Track month-on-month turnover trajectory, compare inward purchases, and project growth.
                 </p>
               </div>
@@ -347,14 +347,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setChartViewMode('sales_and_purchases')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                   chartViewMode === 'sales_and_purchases'
-                    ? 'bg-white text-indigo-600 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Sales vs Purchases
@@ -364,8 +364,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 onClick={() => setChartViewMode('sales_only')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                   chartViewMode === 'sales_only'
-                    ? 'bg-white text-indigo-600 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Sales Only
@@ -375,8 +375,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 onClick={() => setChartViewMode('net_margin')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                   chartViewMode === 'net_margin'
-                    ? 'bg-white text-indigo-600 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Net Margin
@@ -387,7 +387,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
             <select
               value={chartPeriod}
               onChange={(e) => setChartPeriod(e.target.value as any)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
             >
               <option value="FY_26_27">FY 2026-27 (Apr - Sep)</option>
               <option value="LAST_6_MONTHS">Last 6 Months (Mar - Aug)</option>
@@ -397,35 +397,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
         {/* Growth Stats Summary Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Period Sales</span>
-            <div className="text-base sm:text-lg font-black text-indigo-950 mt-0.5 font-mono">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Period Sales</span>
+            <div className="text-base sm:text-lg font-black text-indigo-950 dark:text-indigo-200 mt-0.5 font-mono">
               {formatCurrency(chartStats.totalSalesPeriod, business.currencySymbol)}
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Average Monthly Revenue</span>
-            <div className="text-base sm:text-lg font-black text-slate-900 mt-0.5 font-mono">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Average Monthly Revenue</span>
+            <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5 font-mono">
               {formatCurrency(chartStats.avgMonthlySales, business.currencySymbol)}
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Latest Growth Trajectory</span>
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Latest Growth Trajectory</span>
             <div className="flex items-center gap-1 mt-0.5">
               <span className={`text-base sm:text-lg font-black font-mono ${
-                chartStats.latestGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                chartStats.latestGrowth >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
               }`}>
                 {chartStats.latestGrowth >= 0 ? '+' : ''}{chartStats.latestGrowth}%
               </span>
-              <span className="text-[10px] text-slate-500">MoM</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">MoM</span>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Net Operating Spread</span>
-            <div className="text-base sm:text-lg font-black text-emerald-950 mt-0.5 font-mono">
+          <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Net Operating Spread</span>
+            <div className="text-base sm:text-lg font-black text-emerald-950 dark:text-emerald-200 mt-0.5 font-mono">
               {formatCurrency(chartStats.netMargin, business.currencySymbol)}
             </div>
           </div>
@@ -571,33 +571,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
       {/* ------------------------------------------------------------- */}
       {/* DAILY SALE & PURCHASE CONTROL & HIGHLIGHT HUB                 */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {/* Header & Date Switcher Bar */}
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-50 dark:from-slate-850 via-indigo-50/40 dark:via-indigo-950/20 to-slate-50 dark:to-slate-850 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-indigo-600 text-white shadow-xs">
+              <span className="p-1.5 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white shadow-xs">
                 <Calendar className="w-4 h-4" />
               </span>
-              <h2 className="text-base font-bold text-slate-900">Daily Sale & Purchase Tracker</h2>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Daily Sale & Purchase Tracker</h2>
               {selectedDay === getTodayDateString() && (
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 rounded-full">
                   Today
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Live daily turnover, purchases, net cash flow, and transaction breakdown by date.
             </p>
           </div>
 
           {/* Interactive Day Date Selector */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-white border border-slate-300 rounded-xl shadow-xs p-1">
+            <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs p-1">
               <button
                 type="button"
                 onClick={() => shiftDate(-1)}
-                className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
                 title="Previous Day"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -607,13 +607,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 type="date"
                 value={selectedDay}
                 onChange={(e) => setSelectedDay(e.target.value)}
-                className="px-2 py-1 text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer"
+                className="px-2 py-1 text-xs font-bold text-slate-800 dark:text-slate-200 bg-transparent outline-none cursor-pointer"
               />
 
               <button
                 type="button"
                 onClick={() => shiftDate(1)}
-                className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
                 title="Next Day"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -626,7 +626,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
               className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                 selectedDay === getTodayDateString()
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
               }`}
             >
               Today
@@ -637,75 +637,75 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         {/* Daily Top 3 Metric Cards for Selected Date */}
         <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Daily Sale Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-white to-emerald-50/30 border border-emerald-200/80 shadow-xs">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/70 dark:from-emerald-950/40 via-white dark:via-slate-900 to-emerald-50/30 dark:to-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/60 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shadow-xs">
                   <ArrowUpRight className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Daily Sales</span>
-                  <p className="text-[10px] text-slate-500">{formatDate(selectedDay)}</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Daily Sales</span>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{formatDate(selectedDay)}</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 text-xs font-bold font-mono bg-emerald-100 text-emerald-800 rounded-lg">
+              <span className="px-2 py-0.5 text-xs font-bold font-mono bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 rounded-lg">
                 {dayInvoices.length} {dayInvoices.length === 1 ? 'sale' : 'sales'}
               </span>
             </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-emerald-950 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-emerald-950 dark:text-emerald-200 font-mono">
                 {formatCurrency(dailySaleTotal, business.currencySymbol)}
               </div>
-              <div className="mt-2 pt-2 border-t border-emerald-100 flex items-center justify-between text-xs text-slate-600">
-                <span>Taxable: <strong className="text-slate-800 font-mono">{formatCurrency(dailySaleTaxable, business.currencySymbol)}</strong></span>
-                <span>GST: <strong className="text-emerald-700 font-mono">{formatCurrency(dailySaleTax, business.currencySymbol)}</strong></span>
+              <div className="mt-2 pt-2 border-t border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                <span>Taxable: <strong className="text-slate-800 dark:text-slate-200 font-mono">{formatCurrency(dailySaleTaxable, business.currencySymbol)}</strong></span>
+                <span>GST: <strong className="text-emerald-700 dark:text-emerald-400 font-mono">{formatCurrency(dailySaleTax, business.currencySymbol)}</strong></span>
               </div>
             </div>
           </div>
 
           {/* Daily Purchase Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-rose-50/30 border border-rose-200/80 shadow-xs">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-50/70 dark:from-rose-950/40 via-white dark:via-slate-900 to-rose-50/30 dark:to-rose-950/20 border border-rose-200/80 dark:border-rose-900/60 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 flex items-center justify-center shadow-xs">
                   <ArrowDownLeft className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800">Daily Purchases</span>
-                  <p className="text-[10px] text-slate-500">{formatDate(selectedDay)}</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">Daily Purchases</span>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{formatDate(selectedDay)}</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 text-xs font-bold font-mono bg-rose-100 text-rose-800 rounded-lg">
+              <span className="px-2 py-0.5 text-xs font-bold font-mono bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 rounded-lg">
                 {dayPurchases.length} {dayPurchases.length === 1 ? 'bill' : 'bills'}
               </span>
             </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-rose-950 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-rose-950 dark:text-rose-200 font-mono">
                 {formatCurrency(dailyPurchaseTotal, business.currencySymbol)}
               </div>
-              <div className="mt-2 pt-2 border-t border-rose-100 flex items-center justify-between text-xs text-slate-600">
-                <span>Taxable: <strong className="text-slate-800 font-mono">{formatCurrency(dailyPurchaseTaxable, business.currencySymbol)}</strong></span>
-                <span>ITC Credit: <strong className="text-rose-700 font-mono">{formatCurrency(dailyPurchaseItc, business.currencySymbol)}</strong></span>
+              <div className="mt-2 pt-2 border-t border-rose-100 dark:border-rose-900/40 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                <span>Taxable: <strong className="text-slate-800 dark:text-slate-200 font-mono">{formatCurrency(dailyPurchaseTaxable, business.currencySymbol)}</strong></span>
+                <span>ITC Credit: <strong className="text-rose-700 dark:text-rose-400 font-mono">{formatCurrency(dailyPurchaseItc, business.currencySymbol)}</strong></span>
               </div>
             </div>
           </div>
 
           {/* Daily Net Cash Flow / Spread Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-cyan-50/30 border border-indigo-200/80 shadow-xs">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 dark:from-indigo-950/40 via-white dark:via-slate-900 to-cyan-50/30 dark:to-cyan-950/20 border border-indigo-200/80 dark:border-indigo-900/60 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shadow-xs">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">Daily Net Spread</span>
-                  <p className="text-[10px] text-slate-500">Sales minus Purchases</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-200">Daily Net Spread</span>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Sales minus Purchases</p>
                 </div>
               </div>
               <span className={`px-2 py-0.5 text-[10px] font-bold rounded-lg ${
-                dailyNetSpread >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                dailyNetSpread >= 0 ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300'
               }`}>
                 {dailyNetSpread >= 0 ? 'Net Surplus' : 'Net Outflow'}
               </span>
@@ -713,19 +713,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
             <div className="mt-3">
               <div className={`text-2xl sm:text-3xl font-black font-mono ${
-                dailyNetSpread >= 0 ? 'text-indigo-950' : 'text-rose-700'
+                dailyNetSpread >= 0 ? 'text-indigo-950 dark:text-indigo-200' : 'text-rose-700 dark:text-rose-300'
               }`}>
                 {dailyNetSpread >= 0 ? '+' : ''}{formatCurrency(dailyNetSpread, business.currencySymbol)}
               </div>
-              <div className="mt-2 pt-2 border-t border-indigo-100 flex items-center justify-between text-xs text-slate-600">
+              <div className="mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                 <button
                   onClick={() => setActiveTab('gst_returns')}
-                  className="text-indigo-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>View GST Registers</span>
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                   {dayInvoices.length + dayPurchases.length} total entries
                 </span>
               </div>
@@ -739,40 +739,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Sales */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Cumulative Revenue (Sales)</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Cumulative Revenue (Sales)</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">
+          <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
             {formatCurrency(totalSales, business.currencySymbol)}
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{invoices.length} Invoices issued</span>
-            <span className="text-emerald-600 font-medium flex items-center">
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center">
               FY 2026-27
             </span>
           </div>
         </div>
 
         {/* GST Output vs Input ITC */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Net GST Liability</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Net GST Liability</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-bold text-indigo-950">
+          <div className="mt-2 text-2xl font-bold text-indigo-950 dark:text-indigo-200">
             {formatCurrency(netGstPayable, business.currencySymbol)}
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>ITC: {formatCurrency(totalInputItc, business.currencySymbol)}</span>
             <button
               onClick={() => setActiveTab('gst_returns')}
-              className="text-indigo-600 font-medium hover:underline flex items-center cursor-pointer"
+              className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline flex items-center cursor-pointer"
             >
               GSTR-3B <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </button>
@@ -780,21 +780,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         </div>
 
         {/* Receivables (Debtors) */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Accounts Receivable</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Accounts Receivable</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-bold text-amber-900">
+          <div className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-300">
             {formatCurrency(totalReceivables, business.currencySymbol)}
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Pending from customers</span>
             <button
               onClick={() => setActiveTab('parties')}
-              className="text-amber-700 font-medium hover:underline cursor-pointer"
+              className="text-amber-700 dark:text-amber-400 font-medium hover:underline cursor-pointer"
             >
               View Debtors
             </button>
@@ -802,21 +802,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         </div>
 
         {/* Purchases & Payables */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Accounts Payable</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Accounts Payable</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-bold text-rose-900">
+          <div className="mt-2 text-2xl font-bold text-rose-900 dark:text-rose-300">
             {formatCurrency(totalPayables, business.currencySymbol)}
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Due to suppliers</span>
             <button
               onClick={() => setActiveTab('purchases')}
-              className="text-rose-700 font-medium hover:underline cursor-pointer"
+              className="text-rose-700 dark:text-rose-400 font-medium hover:underline cursor-pointer"
             >
               View Bills
             </button>
@@ -878,24 +878,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         </div>
 
         {/* Low Stock & Inventory Health */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900">Inventory Status</h3>
-                  <p className="text-[11px] text-slate-500">{products.length} catalog items</p>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">Inventory Status</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{products.length} catalog items</p>
                 </div>
               </div>
               {lowStockProducts.length > 0 ? (
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 rounded-full">
                   {lowStockProducts.length} Low Stock
                 </span>
               ) : (
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 rounded-full">
                   Healthy
                 </span>
               )}
@@ -908,26 +908,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 const isCritical = isProductCriticalStock(prod, stockSettings);
 
                 return (
-                  <div key={prod.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 border border-amber-100 text-xs">
+                  <div key={prod.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 text-xs">
                     <div className="min-w-0 pr-2">
-                      <p className="font-semibold text-slate-800 line-clamp-1">{prod.name}</p>
-                      <p className="text-[10px] text-slate-500">Min Alert: {effectiveThreshold} {prod.unit}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">{prod.name}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Min Alert: {effectiveThreshold} {prod.unit}</p>
                     </div>
                     <span className={`font-bold px-2 py-0.5 rounded text-xs font-mono shrink-0 flex items-center gap-1 ${
                       isOutOfStock 
-                        ? 'bg-rose-100 text-rose-800 border border-rose-300' 
+                        ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800' 
                         : isCritical
-                        ? 'bg-rose-50 text-rose-700 border border-rose-200 animate-pulse'
-                        : 'bg-amber-100 text-amber-800'
+                        ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse'
+                        : 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300'
                     }`}>
-                      {isOutOfStock && <Ban className="w-3 h-3 text-rose-600" />}
+                      {isOutOfStock && <Ban className="w-3 h-3 text-rose-600 dark:text-rose-400" />}
                       {prod.currentStock} {prod.unit}
                     </span>
                   </div>
                 );
               })}
               {lowStockProducts.length === 0 && (
-                <div className="p-4 text-center text-xs text-slate-400">
+                <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
                   All inventory stock levels are above threshold limits.
                 </div>
               )}
@@ -936,7 +936,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
           <button
             onClick={() => setActiveTab('inventory')}
-            className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+            className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
           >
             <span>Manage Inventory & Stock</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -944,39 +944,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         </div>
 
         {/* GST Filing Quick Status Card */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-cyan-50 text-cyan-700">
+                <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900">GST & Tax Registers</h3>
-                  <p className="text-[11px] text-slate-500">Sale & Purchase Registers</p>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">GST & Tax Registers</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Sale & Purchase Registers</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-700 rounded-full">
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 rounded-full">
                 August 2026
               </span>
             </div>
 
             <div className="space-y-2 mt-3 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-500">Taxable Outward Supplies:</span>
-                <span className="font-semibold text-slate-800 font-mono">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Taxable Outward Supplies:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
                   {formatCurrency(invoices.reduce((s, i) => s + i.subTotalTaxable, 0), business.currencySymbol)}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-500">Total Output Tax (CGST+SGST+IGST):</span>
-                <span className="font-semibold text-slate-800 font-mono">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Total Output Tax (CGST+SGST+IGST):</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
                   {formatCurrency(totalOutputGst, business.currencySymbol)}
                 </span>
               </div>
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500">Eligible Inward ITC:</span>
-                <span className="font-semibold text-emerald-600 font-mono">
+                <span className="text-slate-500 dark:text-slate-400">Eligible Inward ITC:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
                   {formatCurrency(totalInputItc, business.currencySymbol)}
                 </span>
               </div>
@@ -985,7 +985,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
 
           <button
             onClick={() => setActiveTab('gst_returns')}
-            className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors cursor-pointer"
+            className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition-colors cursor-pointer"
           >
             <span>Open Sale & Purchase Registers</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1027,15 +1027,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
       {/* ------------------------------------------------------------- */}
       {/* RECENT INVOICES FEED TABLE                                    */}
       {/* ------------------------------------------------------------- */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Recent Tax Invoices & Sales</h2>
-            <p className="text-xs text-slate-500">Latest sales invoices issued with payment tracking</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Recent Tax Invoices & Sales</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Latest sales invoices issued with payment tracking</p>
           </div>
           <button
             onClick={() => setActiveTab('invoices')}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 cursor-pointer"
           >
             <span>View all {invoices.length} invoices</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1045,7 +1045,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
         <div className="overflow-x-auto -mx-5 px-5">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-500 font-semibold bg-slate-50/50">
+              <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold bg-slate-50/50 dark:bg-slate-800/50">
                 <th className="py-2.5 px-3">Invoice No & Date</th>
                 <th className="py-2.5 px-3">Customer & GSTIN</th>
                 <th className="py-2.5 px-3">Products / Items</th>
@@ -1056,48 +1056,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                 <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {recentInvoices.map(inv => {
                 const isPaid = inv.status === 'PAID';
                 return (
-                  <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-3 font-medium text-slate-900">
+                  <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                    <td className="py-3 px-3 font-medium text-slate-900 dark:text-white">
                       <div className="font-semibold">{inv.invoiceNumber}</div>
-                      <div className="text-[11px] text-slate-400">{formatDate(inv.invoiceDate)}</div>
+                      <div className="text-[11px] text-slate-400 dark:text-slate-500">{formatDate(inv.invoiceDate)}</div>
                     </td>
                     <td className="py-3 px-3">
-                      <div className="font-semibold text-slate-800">{inv.customerName}</div>
-                      <div className="text-[11px] font-mono text-slate-500">
+                      <div className="font-semibold text-slate-800 dark:text-slate-200">{inv.customerName}</div>
+                      <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                         {inv.customerGstin || 'Unregistered / Retail'}
                       </div>
                     </td>
                     <td className="py-3 px-3 max-w-[200px]">
                       {inv.items && inv.items.length > 0 ? (
                         <div className="space-y-0.5">
-                          <div className="text-slate-800 font-medium truncate flex items-center gap-1" title={inv.items.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}>
-                            <Package className="w-3 h-3 text-indigo-500 shrink-0" />
+                          <div className="text-slate-800 dark:text-slate-200 font-medium truncate flex items-center gap-1" title={inv.items.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}>
+                            <Package className="w-3 h-3 text-indigo-500 dark:text-indigo-400 shrink-0" />
                             <span className="truncate">{inv.items[0]?.name}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">({inv.items[0]?.quantity} {inv.items[0]?.unit})</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">({inv.items[0]?.quantity} {inv.items[0]?.unit})</span>
                           </div>
                           {inv.items.length > 1 && (
-                            <div className="text-[10px] font-bold text-indigo-600">
+                            <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
                               +{inv.items.length - 1} more item{inv.items.length - 1 > 1 ? 's' : ''}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-400 text-[11px] italic">No items</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[11px] italic">No items</span>
                       )}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded">
+                      <span className="inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded">
                         {inv.isInterState ? 'IGST (Inter-State)' : 'CGST+SGST (Intra)'}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
+                    <td className="py-3 px-3 text-right font-mono text-slate-700 dark:text-slate-300">
                       {formatCurrency(inv.subTotalTaxable, business.currencySymbol)}
                     </td>
-                    <td className="py-3 px-3 text-right font-bold font-mono text-slate-900">
+                    <td className="py-3 px-3 text-right font-bold font-mono text-slate-900 dark:text-white">
                       {formatCurrency(inv.grandTotal, business.currencySymbol)}
                     </td>
                     <td className="py-3 px-3 text-center">
@@ -1118,24 +1118,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenNewInvoice, 
                         {onEditInvoice && (
                           <button
                             onClick={() => onEditInvoice(inv)}
-                            className="px-2 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                            className="px-2 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-900/60 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                             title="Edit Invoice"
                           >
-                            <Edit3 className="w-3 h-3 text-amber-600" />
+                            <Edit3 className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                             <span>Edit</span>
                           </button>
                         )}
                         <button
                           onClick={() => setShareModalInvoice(inv)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/80 dark:border-emerald-900/60 rounded-lg transition-colors cursor-pointer"
                           title="Dispatch invoice via WhatsApp or Email"
                         >
-                          <Send className="w-3 h-3 text-emerald-600" />
+                          <Send className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                           <span>Dispatch</span>
                         </button>
                         <button
                           onClick={() => setSelectedInvoiceIdForPrint(inv.id)}
-                          className="px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                          className="px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors cursor-pointer"
                         >
                           Print / PDF
                         </button>

@@ -226,21 +226,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto modal-overlay animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/70 backdrop-blur-xs overflow-y-auto modal-overlay animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90dvh] my-auto animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-600/20 shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-600/20 shrink-0">
               <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                 {userToEdit 
                   ? (isEditingSelf ? 'Edit Your Profile & Password' : `Edit User: ${userToEdit.name}`)
                   : 'Add New Team Member'}
               </h2>
-              <p className="text-[11px] sm:text-xs text-slate-500 truncate">
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
                 {userToEdit
                   ? (isCurrentUserAdmin ? 'Configure role access levels, department, and credentials' : 'Update your personal profile and security credentials')
                   : 'Set up work email, assigned system role, and access authorization'}
@@ -249,7 +249,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -259,13 +259,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto modal-content-scroll p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Section 1: Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> Basic Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -274,12 +274,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="e.g. Ramesh Chandra"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Work Email <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -288,12 +288,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="ramesh@bharattech.in"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Phone Number
                 </label>
                 <input
@@ -301,12 +301,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="+91 98765 00000"
                   value={formData.phone}
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Department / Branch
                 </label>
                 <input
@@ -314,14 +314,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="Sales, Accounts, Warehouse, etc."
                   value={formData.department}
                   onChange={e => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
             </div>
 
             {/* Avatar Color Picker */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Profile Badge Theme
               </label>
               <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     type="button"
                     onClick={() => setFormData({ ...formData, avatarBg: color })}
                     className={`w-6 h-6 rounded-full ${color} transition-transform cursor-pointer ${
-                      formData.avatarBg === color ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                      formData.avatarBg === color ? 'ring-2 ring-offset-2 ring-indigo-600 dark:ring-offset-slate-900 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
                     }`}
                   />
                 ))}
@@ -340,8 +340,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </div>
 
           {/* Section 2: Role Selection */}
-          <div className="space-y-3 pt-4 border-t border-slate-200">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" /> Assigned System Role
             </h3>
 
@@ -358,24 +358,24 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                       onClick={() => handleRoleChange(rKey)}
                       className={`p-3.5 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-500/20 shadow-xs'
-                          : 'bg-white hover:bg-slate-50 border-slate-200'
+                          ? 'bg-indigo-50/70 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-700 ring-2 ring-indigo-500/20 shadow-xs'
+                          : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700'
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-xs text-slate-900">{roleDef.name}</span>
+                          <span className="font-bold text-xs text-slate-900 dark:text-slate-100">{roleDef.name}</span>
                           <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded ${roleDef.badgeBg} ${roleDef.badgeText}`}>
                             {rKey}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-snug">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                           {roleDef.description}
                         </p>
                       </div>
 
                       {isSelected && (
-                        <div className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
+                        <div className="mt-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
                           <Check className="w-3 h-3" /> Selected Role
                         </div>
                       )}
@@ -384,29 +384,29 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 })}
               </div>
             ) : (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-slate-900">
+                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100">
                       {ROLE_DEFINITIONS[formData.role]?.name || formData.role}
                     </span>
                     <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded ${ROLE_DEFINITIONS[formData.role]?.badgeBg} ${ROLE_DEFINITIONS[formData.role]?.badgeText}`}>
                       {formData.role}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                     Your system role is assigned by your Company Administrator. Contact an Admin to change access level.
                   </p>
                 </div>
-                <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
               </div>
             )}
           </div>
 
           {/* Section 3: Security Credentials (Password & PIN) */}
-          <div className="space-y-3 pt-4 border-t border-slate-200">
+          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-indigo-500" /> {userToEdit ? 'Reset Security Credentials' : 'Login Credentials & Security'}
               </h3>
               {isCurrentUserAdmin && (
@@ -417,16 +417,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
                     setFormData(prev => ({ ...prev, password: randomPwd, pin: randomPin }));
                   }}
-                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer hover:underline"
+                  className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 cursor-pointer hover:underline"
                 >
                   Generate Random
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-indigo-50/40 rounded-2xl border border-indigo-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-indigo-50/40 dark:bg-indigo-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-900/60">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {userToEdit ? 'New Password' : 'User Account Password'} {!userToEdit && <span className="text-rose-500">*</span>}
                 </label>
                 <div className="relative">
@@ -435,17 +435,17 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     placeholder={userToEdit ? 'Leave blank to keep existing password' : 'Set secure password...'}
                     value={formData.password}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                    className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                   {userToEdit 
                     ? '🔒 Existing password is protected. Enter only to set a new password.'
                     : 'Used for browser login and session unlocking'}
@@ -453,7 +453,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {userToEdit ? 'New 4-Digit PIN' : 'Quick 4-Digit PIN'} {!userToEdit && <span className="text-rose-500">*</span>}
                 </label>
                 <div className="relative">
@@ -463,17 +463,17 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     placeholder={userToEdit ? 'Leave blank to keep existing PIN' : 'Set 4-digit PIN...'}
                     value={formData.pin}
                     onChange={e => setFormData({ ...formData, pin: e.target.value })}
-                    className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white"
+                    className="w-full px-3.5 pr-9 py-2 text-xs font-mono rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 dark:focus:border-indigo-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPin(!showPin)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                   >
                     {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                   {userToEdit 
                     ? '🔒 Existing PIN is protected. Enter only to set a new PIN.' 
                     : 'For fast counter POS & quick screen unlocking'}
@@ -484,21 +484,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
           {/* Section 4: Granular Permission Customization Accordion (Admins Only) */}
           {isCurrentUserAdmin && (
-            <div className="pt-4 border-t border-slate-200">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setShowAdvancedPerms(!showAdvancedPerms)}
-                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-indigo-600" />
+                  <Sliders className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>Fine-tune Granular Permissions (Module & Action Level)</span>
                 </div>
                 {showAdvancedPerms ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
 
               {showAdvancedPerms && (
-                <div className="mt-3 p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-4 animate-in fade-in duration-150">
+                <div className="mt-3 p-4 bg-slate-50/70 dark:bg-slate-850/60 rounded-2xl border border-slate-200 dark:border-slate-750 space-y-4 animate-in fade-in duration-150">
                   {/* Module Selector Tabs */}
                   <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                     {(Object.keys(customPerms) as (keyof UserPermissions)[]).map(modKey => (
@@ -508,8 +508,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         onClick={() => setActivePermModule(modKey)}
                         className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize shrink-0 transition-all cursor-pointer ${
                           activePermModule === modKey
-                            ? 'bg-slate-900 text-white shadow-xs'
-                            : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                            ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-xs'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                         }`}
                       >
                         {modKey.replace(/_/g, ' ')}
@@ -518,8 +518,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   </div>
 
                   {/* Active Module Permissions List */}
-                  <div className="bg-white rounded-xl p-3 border border-slate-200 space-y-2">
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-100">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 pb-1 border-b border-slate-100 dark:border-slate-700">
                       {activePermModule.replace(/_/g, ' ')} Capabilities
                     </div>
 
@@ -527,15 +527,15 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                       {Object.entries((customPerms[activePermModule] || {}) as Record<string, boolean>).map(([permKey, isAllowed]) => (
                         <label
                           key={permKey}
-                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer text-xs"
+                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-100 dark:border-slate-700/60 cursor-pointer text-xs"
                         >
                           <input
                             type="checkbox"
                             checked={isAllowed}
                             onChange={() => handleTogglePerm(activePermModule, permKey)}
-                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 dark:bg-slate-700 dark:border-slate-600"
                           />
-                          <span className="text-slate-700 font-medium capitalize">
+                          <span className="text-slate-700 dark:text-slate-200 font-medium capitalize">
                             {permKey.replace(/([A-Z])/g, ' $1').toLowerCase()}
                           </span>
                         </label>
@@ -548,12 +548,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           )}
 
           {/* Footer Submit & Delete */}
-          <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
               {isCurrentUserAdmin && userToEdit && userToEdit.id !== currentUser.id && (
                 showDeleteConfirm ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-rose-600 font-bold">Confirm delete?</span>
+                    <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">Confirm delete?</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -569,7 +569,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-800"
+                      className="px-2 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     >
                       Cancel
                     </button>
@@ -578,7 +578,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Delete User</span>
@@ -591,7 +591,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>

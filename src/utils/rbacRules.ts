@@ -550,14 +550,14 @@ export const COMPANY_ASSIGNABLE_ROLES: RoleType[] = [
 
 export const DEFAULT_SUPER_ADMIN: AppUser = {
   id: 'usr-super-admin',
-  name: 'Vikram Singhania',
+  name: 'Kuldeep Siraswar',
   email: 'superadmin@vyaparflow.in',
   phone: '+91 99999 88888',
   role: 'SUPER_ADMIN',
   roleTitle: 'Platform Super Administrator',
   department: 'Executive Governance & Board',
   avatarBg: 'bg-gradient-to-tr from-purple-600 via-indigo-600 to-violet-700',
-  avatarText: 'SA',
+  avatarText: 'KS',
   password: 'superadmin',
   pin: '9999',
   isActive: true,

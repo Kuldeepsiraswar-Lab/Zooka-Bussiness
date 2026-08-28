@@ -423,14 +423,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const saved = localStorage.getItem('vyapar_superadmin_auth');
       if (saved) {
         const parsed = JSON.parse(saved);
+        const name = (parsed.name === 'Vikram Singhania' || parsed.name === 'Vikram Singhaniya')
+          ? DEFAULT_SUPER_ADMIN.name
+          : (parsed.name || DEFAULT_SUPER_ADMIN.name);
+        const avatarText = (parsed.avatarText === 'SA' && name === DEFAULT_SUPER_ADMIN.name)
+          ? DEFAULT_SUPER_ADMIN.avatarText
+          : (parsed.avatarText || DEFAULT_SUPER_ADMIN.avatarText);
         return {
-          name: parsed.name || DEFAULT_SUPER_ADMIN.name,
+          name,
           email: parsed.email || DEFAULT_SUPER_ADMIN.email,
           phone: parsed.phone || DEFAULT_SUPER_ADMIN.phone || '+91 99999 88888',
           roleTitle: parsed.roleTitle || DEFAULT_SUPER_ADMIN.roleTitle || 'Platform Super Administrator',
           department: parsed.department || DEFAULT_SUPER_ADMIN.department || 'Executive Governance & Board',
           avatarBg: parsed.avatarBg || DEFAULT_SUPER_ADMIN.avatarBg,
-          avatarText: parsed.avatarText || DEFAULT_SUPER_ADMIN.avatarText,
+          avatarText,
           password: parsed.password || 'superadmin',
           pin: parsed.pin || '9999',
           lastChanged: parsed.lastChanged || '2026-01-01T00:00:00.000Z'

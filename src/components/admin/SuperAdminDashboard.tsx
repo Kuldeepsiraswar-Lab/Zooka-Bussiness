@@ -1298,11 +1298,11 @@ export const SuperAdminDashboard: React.FC = () => {
             {/* Profile Highlight */}
             <div className="flex items-center gap-4 bg-purple-950/40 p-3.5 rounded-2xl border border-purple-800/40">
               <div className={`w-14 h-14 rounded-2xl ${superAdminAuth.avatarBg || 'bg-gradient-to-tr from-purple-600 via-indigo-600 to-violet-700'} text-amber-300 font-black text-lg flex items-center justify-center shadow-lg ring-2 ring-purple-400/40 shrink-0`}>
-                {superAdminAuth.avatarText || 'SA'}
+                {superAdminAuth.avatarText || 'KS'}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-black text-white truncate">
-                  {superAdminAuth.name || 'Vikram Singhania'}
+                  {superAdminAuth.name || 'Kuldeep Siraswar'}
                 </h3>
                 <p className="text-xs text-purple-200 font-semibold truncate">
                   {superAdminAuth.roleTitle || 'Platform Super Administrator'}

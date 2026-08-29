@@ -141,7 +141,7 @@ interface AppContextType {
     invoices: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>[], 
     options?: { updateExisting?: boolean; autoCreateParties?: boolean; deductInventory?: boolean }
   ) => { added: number; updated: number; partiesCreated: number };
-  updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
+  updateInvoice: (id: string, invoice: Partial<Invoice>) => boolean;
   deleteInvoice: (id: string) => void;
   getInvoice: (id: string) => Invoice | undefined;
   recordInvoicePayment: (id: string, amount: number, method: PaymentMethod, notes?: string) => void;
@@ -2379,15 +2379,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Single Unified Serial Number Rule for both Tax Invoice and POS Billing
     let invoiceNumber = invoiceData.invoiceNumber?.trim();
     
-    const existingIndex = invoices.findIndex(i => 
-      (i.invoiceNumber || '').trim().toLowerCase() === (invoiceNumber || '').toLowerCase()
-    );
+    // Check if the provided invoice number already exists (case-insensitive & trimmed comparison)
+    const existingIndex = invoiceNumber ? invoices.findIndex(i => 
+      (i.invoiceNumber || '').trim().toLowerCase() === invoiceNumber.toLowerCase()
+    ) : -1;
     
+    // Strictly prevent duplicate invoice numbers: If duplicate or empty, generate the guaranteed next unique number
     if (!invoiceNumber || existingIndex !== -1) {
       const generated = getNextAvailableInvoiceNumber(invoices, business);
+      const originalRequested = invoiceNumber;
       invoiceNumber = generated.invoiceNumber;
-      if (invoiceData.invoiceNumber && existingIndex !== -1) {
-        showToast('info', 'Sequential Serial Assigned', `Serial number adjusted to ${invoiceNumber} to maintain continuous sequence.`);
+      if (originalRequested && existingIndex !== -1) {
+        showToast(
+          'warning', 
+          'Duplicate Invoice No. Prevented', 
+          `Invoice number "${originalRequested}" already exists. Reassigned unique serial ${invoiceNumber} to prevent duplicity.`
+        );
       }
     }
     
@@ -2605,7 +2612,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { added, updated, partiesCreated };
   };
 
-  const updateInvoice = (id: string, invoiceData: Partial<Invoice>) => {
+  const updateInvoice = (id: string, invoiceData: Partial<Invoice>): boolean => {
+    // If invoiceNumber is being updated, verify it is unique across all other invoices
+    if (invoiceData.invoiceNumber !== undefined) {
+      const trimmedNewNumber = invoiceData.invoiceNumber.trim();
+      if (!trimmedNewNumber) {
+        showToast('error', 'Invalid Invoice No.', 'Invoice number cannot be empty.');
+        return false;
+      }
+      const duplicate = invoices.find(
+        inv => inv.id !== id && (inv.invoiceNumber || '').trim().toLowerCase() === trimmedNewNumber.toLowerCase()
+      );
+      if (duplicate) {
+        showToast(
+          'error', 
+          'Duplicate Invoice No.', 
+          `Invoice number "${trimmedNewNumber}" is already in use by another invoice. Duplicate invoice numbers are not allowed.`
+        );
+        return false;
+      }
+    }
+
     setInvoices(prev => prev.map(inv => {
       if (inv.id === id) {
         const updated = {
@@ -2619,6 +2646,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return inv;
     }));
     showToast('success', 'Invoice Updated', 'Changes saved successfully.');
+    return true;
   };
 
   const deleteInvoice = (id: string) => {

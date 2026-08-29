@@ -87,6 +87,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
     updateBusiness,
     parties, 
     products, 
+    invoices,
     customHsnCodes,
     createInvoice, 
     updateInvoice, 
@@ -172,6 +173,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
   // Inter-State vs Intra-State determination
   const isInterState = (placeOfSupplyStateCode || customerStateCode || business.stateCode) !== business.stateCode;
+
+  // Check for duplicate invoice number in real-time
+  const duplicateInvoice = invoiceNumber.trim() ? invoices.find(
+    inv => (!isEditing || inv.id !== initialData?.id) && 
+      (inv.invoiceNumber || '').trim().toLowerCase() === invoiceNumber.trim().toLowerCase()
+  ) : null;
+  const isDuplicateInvoiceNumber = !!duplicateInvoice;
 
   // Shipping details
   const [hasDifferentShipping, setHasDifferentShipping] = useState<boolean>(
@@ -923,6 +931,11 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
       terms,
     };
 
+    if (isEditing && isDuplicateInvoiceNumber) {
+      showToast('error', 'Duplicate Invoice Number', `Invoice number "${invoiceNumber}" is already in use. Please enter a unique invoice number.`);
+      return;
+    }
+
     // Purge draft from localStorage upon confirmed save
     clearInvoiceDraft(currentCompanyId, initialData?.id);
     setAvailableDraft(null);
@@ -930,7 +943,10 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
 
     let savedInv: Invoice;
     if (isEditing && initialData?.id) {
-      updateInvoice(initialData.id, invoicePayload);
+      const updated = updateInvoice(initialData.id, invoicePayload);
+      if (!updated) {
+        return;
+      }
       savedInv = { ...invoicePayload, id: initialData.id, createdAt: initialData.createdAt || new Date().toISOString() } as Invoice;
       if (mode === 'print') {
         onClose();
@@ -1148,7 +1164,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Invoice Number</label>
-                  {!isEditing && (
+                  {!isEditing ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -1162,15 +1178,31 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ onClose, initialDa
                       <RotateCcw className="w-2.5 h-2.5" />
                       <span>Auto-Sync</span>
                     </button>
+                  ) : null}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={invoiceNumber}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                    className={`w-full px-3 py-2 text-xs font-mono font-semibold bg-slate-50 dark:bg-slate-800 border ${
+                      isDuplicateInvoiceNumber 
+                        ? 'border-rose-500 text-rose-600 dark:text-rose-400 focus:ring-2 focus:ring-rose-500/20' 
+                        : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20'
+                    } rounded-xl focus:outline-none`}
+                    required
+                  />
+                  {isDuplicateInvoiceNumber && (
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 bg-rose-50 dark:bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-800">
+                      Duplicate No.
+                    </span>
                   )}
                 </div>
-                <input
-                  type="text"
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-mono font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-                  required
-                />
+                {isDuplicateInvoiceNumber && (
+                  <p className="text-[10px] text-rose-500 dark:text-rose-400 mt-1 font-medium">
+                    ⚠️ Another invoice already uses this number. Must be unique.
+                  </p>
+                )}
               </div>
 
               <div>
